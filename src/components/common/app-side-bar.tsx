@@ -21,7 +21,7 @@ const menuItems = [
 export default function AppSideBar() {
   const { toggleSidebar } = useSidebar();
   return (
-    <Sidebar variant="sidebar" collapsible="icon" className="border-none">
+    <Sidebar variant="sidebar" collapsible="icon" className="border-none p-1.5">
       <SidebarContent className="bg-white border-r-0 flex items-center">
         <SidebarGroup>
           <SidebarGroupContent>
