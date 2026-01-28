@@ -1,5 +1,5 @@
 import AppSideBar from "@/components/common/app-side-bar";
-import "./globals.css";
+import "../globals.css";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import AppHeader from "@/components/common/app-header";
 
