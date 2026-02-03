@@ -8,6 +8,7 @@ import { useState } from "react";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowCofirmPassword] = useState(false);
 
   return (
     <div className="flex flex-col justify-center min-w-112.5 gap-8 mb-14">
@@ -51,12 +52,28 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
-
             <div className="flex flex-col gap-1.5">
               <Label className="text-muted-foreground font-bold text-sm">
-                닉네임
+                비밀번호 확인
               </Label>
-              <Input placeholder="영문, 숫자 6~12자" className="h-12.5" />
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="비밀번호를 다시 입력해주세요."
+                  className="h-12.5 pr-12"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCofirmPassword(!showConfirmPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff size={20} />
+                  ) : (
+                    <Eye size={20} />
+                  )}
+                </button>
+              </div>
             </div>
           </div>
           <Button className="w-full h-12.5 cursor-pointer">회원가입</Button>

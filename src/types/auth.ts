@@ -1,7 +1,6 @@
 type authForm = {
   email: string;
   password: string;
-  nickname: string;
 };
 
 type useMutationCallback = {
