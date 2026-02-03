@@ -25,9 +25,12 @@ export default function LoginPage() {
           <div className="w-full flex flex-col gap-2">
             <div className="flex flex-col gap-1.5">
               <Label className="text-muted-foreground font-bold text-sm">
-                아이디
+                이메일 주소
               </Label>
-              <Input placeholder="영문, 숫자 6~12자" className="h-12.5" />
+              <Input
+                placeholder="'@' 포함 이메일 주소 입력'"
+                className="h-12.5"
+              />
             </div>
             <div className="flex flex-col gap-1.5">
               <Label className="text-muted-foreground font-bold text-sm">
@@ -48,15 +51,7 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
-            <div className="flex flex-col gap-1.5">
-              <Label className="text-muted-foreground font-bold text-sm">
-                이메일 주소
-              </Label>
-              <Input
-                placeholder="'@' 포함 이메일 주소 입력'"
-                className="h-12.5"
-              />
-            </div>
+
             <div className="flex flex-col gap-1.5">
               <Label className="text-muted-foreground font-bold text-sm">
                 닉네임
