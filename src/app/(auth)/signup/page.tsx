@@ -8,10 +8,49 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SignUpFormValues, signUpSchema } from "@/utils/schema";
+import { useSignUp } from "@/hooks/mutations/auth/use-sign-up";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowCofirmPassword] = useState(false);
+  const router = useRouter();
+
+  const { mutate: signupMutate, isPending: signupIsPending } = useSignUp({
+    onSuccess: () => {
+      toast.success("회원가입 메일이 발송되었습니다. 메일함을 확인해주세요!", {
+        position: "top-center",
+      });
+
+      router.replace("/login");
+    },
+    onError: (error) => {
+      const errorCode = error.code;
+      let errorMessage = "회원가입 중 오류가 발생했습니다.";
+
+      switch (errorCode) {
+        case "user_already_exists":
+          errorMessage = "이미 가입된 이메일입니다.";
+          break;
+        case "email_address_invalid":
+          errorMessage = "유효하지 않은 이메일 형식입니다.";
+          break;
+        case "signup_disabled":
+          errorMessage = "현재 회원가입이 비활성화되어 있습니다.";
+          break;
+        case "over_email_send_rate_limit":
+          errorMessage =
+            "단시간에 너무 많은 요청이 있었습니다. 잠시 후 다시 시도해주세요.";
+          break;
+        default:
+          errorMessage = "회원가입 중 오류가 발생했습니다.";
+      }
+      toast.error(errorMessage, {
+        position: "top-center",
+      });
+    },
+  });
 
   const {
     register,
@@ -24,6 +63,7 @@ export default function LoginPage() {
 
   const onSubmit = async (data: SignUpFormValues) => {
     console.log("서버로 전송할 데이터:", data);
+    signupMutate(data);
   };
 
   return (
@@ -119,7 +159,11 @@ export default function LoginPage() {
               </div>
             </div>
           </div>
-          <Button type="submit" className="w-full h-12.5 cursor-pointer">
+          <Button
+            disabled={signupIsPending}
+            type="submit"
+            className="w-full h-12.5 cursor-pointer"
+          >
             회원가입
           </Button>
         </form>
