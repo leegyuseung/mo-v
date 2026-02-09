@@ -2,7 +2,8 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export default function RootProvider({
   children,
@@ -10,6 +11,11 @@ export default function RootProvider({
   children: React.ReactNode;
 }) {
   const [queryClient] = useState(() => new QueryClient());
+  const { initializeSession } = useAuthStore();
+
+  useEffect(() => {
+    initializeSession();
+  }, [initializeSession]);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -18,3 +24,4 @@ export default function RootProvider({
     </QueryClientProvider>
   );
 }
+

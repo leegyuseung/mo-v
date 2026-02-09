@@ -1,4 +1,5 @@
 import "../globals.css";
+import AuthGuard from "@/components/auth/auth-guard";
 
 export default function AuthLayout({
   children,
@@ -7,7 +8,8 @@ export default function AuthLayout({
 }>) {
   return (
     <div className="flex min-h-screen w-full justify-center bg-white">
-      {children}
+      <AuthGuard>{children}</AuthGuard>
     </div>
   );
 }
+
