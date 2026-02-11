@@ -28,7 +28,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col justify-center min-w-112.5 gap-8 mb-14">
+    <div className="flex flex-col justify-center w-full max-w-md px-4 md:px-0 gap-8 mb-14">
       <div className="flex flex-col items-center justify-center gap-4">
         <div className="flex flex-col items-center justify-center">
           <Image
