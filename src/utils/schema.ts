@@ -26,3 +26,17 @@ export const signUpSchema = z
   });
 
 export type SignUpFormValues = z.infer<typeof signUpSchema>;
+
+export const profileSchema = z.object({
+  nickname: z
+    .string()
+    .min(2, { message: "닉네임은 최소 2자 이상이어야 합니다." })
+    .max(20, { message: "닉네임은 최대 20자까지 가능합니다." }),
+  bio: z
+    .string()
+    .max(200, { message: "자기소개는 최대 200자까지 가능합니다." })
+    .optional()
+    .or(z.literal("")),
+});
+
+export type ProfileFormValues = z.infer<typeof profileSchema>;
