@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { changePassword } from "@/api/auth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -22,7 +23,11 @@ import {
     Save,
     X,
     Gift,
+    Lock,
+    Eye,
+    EyeOff,
 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function ProfilePage() {
     const { user, profile, heartPoints, isLoading } = useAuthStore();
@@ -31,6 +36,52 @@ export default function ProfilePage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
+
+    // 비밀번호 변경 상태
+    const [currentPw, setCurrentPw] = useState("");
+    const [newPw, setNewPw] = useState("");
+    const [confirmPw, setConfirmPw] = useState("");
+    const [showCurrentPw, setShowCurrentPw] = useState(false);
+    const [showNewPw, setShowNewPw] = useState(false);
+    const [showConfirmPw, setShowConfirmPw] = useState(false);
+    const [isPwChanging, setIsPwChanging] = useState(false);
+
+    const handleChangePassword = async () => {
+        if (!currentPw) {
+            toast.error("현재 비밀번호를 입력해주세요.");
+            return;
+        }
+        if (!newPw) {
+            toast.error("변경할 비밀번호를 입력해주세요.");
+            return;
+        }
+        if (newPw !== confirmPw) {
+            toast.error("변경할 비밀번호가 일치하지 않습니다.");
+            return;
+        }
+        if (newPw.length < 6) {
+            toast.error("비밀번호는 6자 이상이어야 합니다.");
+            return;
+        }
+
+        setIsPwChanging(true);
+        try {
+            await changePassword(
+                user?.email || profile?.email || "",
+                currentPw,
+                newPw
+            );
+            toast.success("비밀번호가 성공적으로 변경되었습니다.");
+            setCurrentPw("");
+            setNewPw("");
+            setConfirmPw("");
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "비밀번호 변경에 실패했습니다.";
+            toast.error(message);
+        } finally {
+            setIsPwChanging(false);
+        }
+    };
 
     const {
         register,
@@ -320,6 +371,101 @@ export default function ProfilePage() {
                                 {heartPoints?.point?.toLocaleString() || 0} P
                             </p>
                         </div>
+                    </div>
+                </div>
+
+                <Separator />
+
+                {/* 비밀번호 변경 */}
+                <div className="space-y-4">
+                    <h2 className="text-sm font-semibold text-gray-700">비밀번호 변경</h2>
+
+                    {/* 현재 비밀번호 */}
+                    <div className="space-y-1">
+                        <Label className="text-xs text-gray-500">현재 비밀번호</Label>
+                        <div className="relative">
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <Input
+                                type={showCurrentPw ? "text" : "password"}
+                                placeholder="현재 비밀번호를 입력해주세요"
+                                value={currentPw}
+                                onChange={(e) => setCurrentPw(e.target.value)}
+                                className="h-11 pl-9 pr-10"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowCurrentPw(!showCurrentPw)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                            >
+                                {showCurrentPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* 변경할 비밀번호 */}
+                    <div className="space-y-1">
+                        <Label className="text-xs text-gray-500">변경할 비밀번호</Label>
+                        <div className="relative">
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <Input
+                                type={showNewPw ? "text" : "password"}
+                                placeholder="변경할 비밀번호를 입력해주세요"
+                                value={newPw}
+                                onChange={(e) => setNewPw(e.target.value)}
+                                className="h-11 pl-9 pr-10"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowNewPw(!showNewPw)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                            >
+                                {showNewPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* 변경할 비밀번호 확인 */}
+                    <div className="space-y-1">
+                        <Label className="text-xs text-gray-500">변경할 비밀번호 확인</Label>
+                        <div className="relative">
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <Input
+                                type={showConfirmPw ? "text" : "password"}
+                                placeholder="변경할 비밀번호를 다시 입력해주세요"
+                                value={confirmPw}
+                                onChange={(e) => setConfirmPw(e.target.value)}
+                                className="h-11 pl-9 pr-10"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowConfirmPw(!showConfirmPw)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                            >
+                                {showConfirmPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                        </div>
+                        {confirmPw && newPw !== confirmPw && (
+                            <p className="text-xs text-red-500">비밀번호가 일치하지 않습니다.</p>
+                        )}
+                    </div>
+
+                    <div className="flex justify-end">
+                        <Button
+                            type="button"
+                            onClick={handleChangePassword}
+                            disabled={isPwChanging || !currentPw || !newPw || !confirmPw}
+                            variant="outline"
+                            className="h-10 px-6 rounded-xl font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isPwChanging ? (
+                                <div className="flex items-center gap-2">
+                                    <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                                    변경 중...
+                                </div>
+                            ) : (
+                                "비밀번호 변경"
+                            )}
+                        </Button>
                     </div>
                 </div>
 

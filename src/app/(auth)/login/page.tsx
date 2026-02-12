@@ -70,7 +70,10 @@ export default function LoginPage() {
             </Button>
           </form>
           <div className="flex text-sm text-muted-foreground gap-4">
-            <button className="cursor-pointer hover:bg-sidebar-accent rounded-sm">
+            <button
+              onClick={() => router.push("/findpw")}
+              className="cursor-pointer hover:bg-sidebar-accent rounded-sm"
+            >
               비밀번호 찾기
             </button>
             <div>|</div>

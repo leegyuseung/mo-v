@@ -3,6 +3,35 @@ import { createClient } from "@/utils/supabase/client";
 
 const supabase = createClient();
 
+export async function resetPassword(email: string) {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/login`,
+  });
+
+  if (error) throw error;
+}
+
+export async function changePassword(
+  email: string,
+  currentPassword: string,
+  newPassword: string
+) {
+  // 현재 비밀번호 확인
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email,
+    password: currentPassword,
+  });
+
+  if (signInError) throw new Error("현재 비밀번호가 일치하지 않습니다.");
+
+  // 새 비밀번호로 변경
+  const { error: updateError } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
+
+  if (updateError) throw updateError;
+}
+
 export const signUp = async (formData: authForm) => {
   const { data, error } = await supabase.auth.signUp({
     email: formData.email,
