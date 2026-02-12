@@ -114,15 +114,22 @@ export default function AppHeader() {
                 </div>
 
                 {/* 하트 포인트 */}
-                <div className="px-3 sm:px-4 py-3 flex items-center justify-between border-b border-gray-100">
+                <Link
+                  href="/history"
+                  onClick={() => setIsCardOpen(false)}
+                  className="px-3 sm:px-4 py-3 flex items-center justify-between border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
+                >
                   <div className="flex items-center gap-2 text-gray-600">
                     <Heart className="w-5 h-5 text-red-400 fill-red-400" />
                     <span className="text-sm">내 하트</span>
                   </div>
-                  <span className="font-semibold text-gray-900">
-                    {heartPoints?.point?.toLocaleString() || 0} P
-                  </span>
-                </div>
+                  <div className="flex items-center gap-1">
+                    <span className="font-semibold text-gray-900">
+                      {heartPoints?.point?.toLocaleString() || 0} P
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-gray-400" />
+                  </div>
+                </Link>
 
                 {/* 로그아웃 */}
                 <button

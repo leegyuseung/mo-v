@@ -35,6 +35,36 @@ export type Database = {
                 }
                 Relationships: []
             }
+            heart_point_history: {
+                Row: {
+                    id: number
+                    user_id: string
+                    amount: number
+                    type: string
+                    description: string | null
+                    after_point: number
+                    created_at: string
+                }
+                Insert: {
+                    id?: number
+                    user_id: string
+                    amount: number
+                    type: string
+                    description?: string | null
+                    after_point: number
+                    created_at?: string
+                }
+                Update: {
+                    id?: number
+                    user_id?: string
+                    amount?: number
+                    type?: string
+                    description?: string | null
+                    after_point?: number
+                    created_at?: string
+                }
+                Relationships: []
+            }
             profiles: {
                 Row: {
                     avatar_url: string | null

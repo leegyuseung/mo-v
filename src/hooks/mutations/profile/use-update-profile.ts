@@ -34,7 +34,7 @@ export function useUpdateProfile() {
             // 처음 프로필 수정 시 50 하트포인트 지급
             let heartPoints = null;
             if (isFirstEdit) {
-                heartPoints = await addHeartPoints(userId, 50);
+                heartPoints = await addHeartPoints(userId, 50, "profile_first_edit", "첫 프로필 수정 보너스");
             }
 
             return { profile, heartPoints };
