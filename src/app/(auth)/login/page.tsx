@@ -30,7 +30,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex flex-col items-center w-full">
-      <div className="flex flex-col justify-center flex-1 w-full max-w-md px-4 md:px-0 gap-8">
+      <div className="flex flex-col justify-center flex-1 w-full max-w-md px-4 md:px-0 gap-8 mb-12">
         <div className="flex flex-col items-center justify-center gap-4">
           <div className="flex flex-col items-center justify-center">
             <Image
@@ -71,10 +71,6 @@ export default function LoginPage() {
           </form>
           <div className="flex text-sm text-muted-foreground gap-4">
             <button className="cursor-pointer hover:bg-sidebar-accent rounded-sm">
-              아이디 찾기
-            </button>
-            <div>|</div>
-            <button className="cursor-pointer hover:bg-sidebar-accent rounded-sm">
               비밀번호 찾기
             </button>
             <div>|</div>
@@ -86,22 +82,34 @@ export default function LoginPage() {
             </button>
           </div>
         </div>
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center gap-3 md:gap-4">
           <button className="cursor-pointer">
             <Image
-              src={"/naver_login_icon.png"}
-              alt="naver_login_icon"
+              src="/naver_login_icon.png"
+              alt="네이버 로그인"
               height={56}
               width={56}
+              className="w-10 h-10 md:w-14 md:h-14"
               priority
             />
           </button>
           <button className="cursor-pointer">
             <Image
-              src={"/kakao_login_icon.png"}
-              alt="kakao_login_icon"
+              src="/kakao_login_icon.png"
+              alt="카카오 로그인"
               height={56}
               width={56}
+              className="w-10 h-10 md:w-14 md:h-14"
+              priority
+            />
+          </button>
+          <button className="cursor-pointer">
+            <Image
+              src="/google_login_icon.svg"
+              alt="구글 로그인"
+              height={56}
+              width={56}
+              className="w-10 h-10 md:w-14 md:h-14"
               priority
             />
           </button>
