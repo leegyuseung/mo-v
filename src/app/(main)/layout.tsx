@@ -1,6 +1,7 @@
 import AppSideBar from "@/components/common/app-side-bar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import AppHeader from "@/components/common/app-header";
+import AppFooter from "@/components/common/app-footer";
 
 export default function MainLayout({
   children,
@@ -10,9 +11,10 @@ export default function MainLayout({
   return (
     <SidebarProvider>
       <AppSideBar />
-      <div className="w-full">
+      <div className="w-full flex flex-col min-h-screen">
         <AppHeader />
-        {children}
+        <main className="flex-1">{children}</main>
+        <AppFooter />
       </div>
     </SidebarProvider>
   );
