@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useSignInWithPassword } from "@/hooks/mutations/auth/use-sign-in-with-password";
+import { signInWithProvider } from "@/api/auth";
 import { toast } from "sonner";
 import AppFooter from "@/components/common/app-footer";
 
@@ -26,6 +27,14 @@ export default function LoginPage() {
       return;
     }
     signIn({ email, password });
+  };
+
+  const handleSocialLogin = async (provider: "google" | "kakao") => {
+    try {
+      await signInWithProvider(provider);
+    } catch {
+      toast.error("소셜 로그인에 실패했습니다. 다시 시도해주세요.");
+    }
   };
 
   return (
@@ -86,7 +95,10 @@ export default function LoginPage() {
           </div>
         </div>
         <div className="flex justify-center gap-3 md:gap-4">
-          <button className="cursor-pointer">
+          <button
+            onClick={() => toast.info("네이버 로그인은 준비 중입니다.")}
+            className="cursor-pointer"
+          >
             <Image
               src="/naver_login_icon.png"
               alt="네이버 로그인"
@@ -96,7 +108,10 @@ export default function LoginPage() {
               priority
             />
           </button>
-          <button className="cursor-pointer">
+          <button
+            onClick={() => handleSocialLogin("kakao")}
+            className="cursor-pointer"
+          >
             <Image
               src="/kakao_login_icon.png"
               alt="카카오 로그인"
@@ -106,7 +121,10 @@ export default function LoginPage() {
               priority
             />
           </button>
-          <button className="cursor-pointer">
+          <button
+            onClick={() => handleSocialLogin("google")}
+            className="cursor-pointer"
+          >
             <Image
               src="/google_login_icon.svg"
               alt="구글 로그인"
