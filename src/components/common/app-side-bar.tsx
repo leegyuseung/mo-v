@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Users, Menu, TvMinimalPlay } from "lucide-react";
+import { Users, Menu, TvMinimalPlay, Shield } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -9,8 +9,10 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarFooter,
   useSidebar,
 } from "../ui/sidebar";
+import { useAuthStore } from "@/store/useAuthStore";
 
 // 메뉴 구성 데이터
 const menuItems = [
@@ -20,6 +22,9 @@ const menuItems = [
 
 export default function AppSideBar() {
   const { toggleSidebar } = useSidebar();
+  const { profile } = useAuthStore();
+  const isAdmin = profile?.role === "admin";
+
   return (
     <Sidebar variant="sidebar" collapsible="icon" className="border-none p-1.5">
       <SidebarContent className="bg-white border-r-0 flex items-center">
@@ -53,6 +58,22 @@ export default function AppSideBar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      {/* 관리자 메뉴 */}
+      {isAdmin && (
+        <SidebarFooter className="bg-white">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="관리자">
+                <Link href="/admin" target="_blank">
+                  <Shield className="w-5 h-5" />
+                  <span>관리자</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+      )}
     </Sidebar>
   );
 }

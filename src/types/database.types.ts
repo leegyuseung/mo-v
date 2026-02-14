@@ -74,6 +74,7 @@ export type Database = {
                     id: string
                     is_first_edit: boolean
                     nickname: string | null
+                    role: string
                     updated_at: string | null
                 }
                 Insert: {
@@ -84,6 +85,7 @@ export type Database = {
                     id?: string
                     is_first_edit?: boolean
                     nickname?: string | null
+                    role?: string
                     updated_at?: string | null
                 }
                 Update: {
@@ -94,6 +96,7 @@ export type Database = {
                     id?: string
                     is_first_edit?: boolean
                     nickname?: string | null
+                    role?: string
                     updated_at?: string | null
                 }
                 Relationships: []
