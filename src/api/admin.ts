@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/client";
+import { Tables } from "@/types/database.types";
 
 const supabase = createClient();
 
@@ -10,18 +11,18 @@ export type DashboardStats = {
     totalStreamers: number;
 };
 
+export type Profile = Tables<"profiles">;
+export type Streamer = Tables<"streamers">;
+
 export async function fetchDashboardStats(): Promise<DashboardStats> {
-    // 전체 유저 수
     const { count: totalUsers } = await supabase
         .from("profiles")
         .select("*", { count: "exact", head: true });
 
-    // 스트리머 수
     const { count: totalStreamers } = await supabase
         .from("streamers")
         .select("*", { count: "exact", head: true });
 
-    // Provider별 유저 수 (RPC)
     let emailUsers = 0;
     let googleUsers = 0;
     let kakaoUsers = 0;
@@ -48,4 +49,65 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
         kakaoUsers,
         totalStreamers: totalStreamers || 0,
     };
+}
+
+// 유저 목록 조회
+export async function fetchUsers(): Promise<Profile[]> {
+    const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+}
+
+// 유저 정보 수정
+export async function updateUser(
+    userId: string,
+    updates: { nickname?: string; role?: string; bio?: string }
+) {
+    const { data, error } = await supabase
+        .from("profiles")
+        .update(updates)
+        .eq("id", userId)
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+}
+
+// 스트리머 목록 조회
+export async function fetchStreamers(): Promise<Streamer[]> {
+    const { data, error } = await supabase
+        .from("streamers")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+}
+
+// 스트리머 정보 수정
+export async function updateStreamer(
+    streamerId: number,
+    updates: {
+        nickname?: string;
+        platform?: string;
+        chzzk_id?: string | null;
+        soop_id?: string | null;
+        image_url?: string | null;
+        group_name?: string[] | null;
+    }
+) {
+    const { data, error } = await supabase
+        .from("streamers")
+        .update(updates)
+        .eq("id", streamerId)
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
 }
