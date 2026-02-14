@@ -47,6 +47,18 @@ function UserRow({ user }: { user: Profile }) {
                 {user.email || "-"}
             </td>
             <td className="px-4 py-3 text-sm">
+                <span
+                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${user.provider === "google"
+                            ? "bg-red-50 text-red-600"
+                            : user.provider === "kakao"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : "bg-emerald-50 text-emerald-600"
+                        }`}
+                >
+                    {user.provider || "email"}
+                </span>
+            </td>
+            <td className="px-4 py-3 text-sm">
                 {isEditing ? (
                     <Input
                         value={nickname}
@@ -70,8 +82,8 @@ function UserRow({ user }: { user: Profile }) {
                 ) : (
                     <span
                         className={`px-2 py-0.5 rounded-full text-xs font-medium ${user.role === "admin"
-                                ? "bg-indigo-100 text-indigo-700"
-                                : "bg-gray-100 text-gray-600"
+                            ? "bg-indigo-100 text-indigo-700"
+                            : "bg-gray-100 text-gray-600"
                             }`}
                     >
                         {user.role}
@@ -179,8 +191,8 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
                 ) : (
                     <span
                         className={`px-2 py-0.5 rounded-full text-xs font-medium ${streamer.platform === "chzzk"
-                                ? "bg-green-100 text-green-700"
-                                : "bg-blue-100 text-blue-700"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-blue-100 text-blue-700"
                             }`}
                     >
                         {streamer.platform}
@@ -314,6 +326,7 @@ export default function AdminUsersPage() {
                             <tr className="bg-gray-50/80 border-b border-gray-100">
                                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">ID</th>
                                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">이메일</th>
+                                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">가입 방식</th>
                                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">닉네임</th>
                                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">역할</th>
                                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">가입일</th>
@@ -322,12 +335,12 @@ export default function AdminUsersPage() {
                         </thead>
                         <tbody>
                             {usersLoading ? (
-                                <TableSkeleton cols={6} />
+                                <TableSkeleton cols={7} />
                             ) : users && users.length > 0 ? (
                                 users.map((user) => <UserRow key={user.id} user={user} />)
                             ) : (
                                 <tr>
-                                    <td colSpan={6} className="px-4 py-12 text-center text-gray-400 text-sm">
+                                    <td colSpan={7} className="px-4 py-12 text-center text-gray-400 text-sm">
                                         등록된 유저가 없습니다.
                                     </td>
                                 </tr>

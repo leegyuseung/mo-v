@@ -74,6 +74,7 @@ export type Database = {
                     id: string
                     is_first_edit: boolean
                     nickname: string | null
+                    provider: string | null
                     role: string
                     updated_at: string | null
                 }
@@ -85,6 +86,7 @@ export type Database = {
                     id?: string
                     is_first_edit?: boolean
                     nickname?: string | null
+                    provider?: string | null
                     role?: string
                     updated_at?: string | null
                 }
@@ -96,6 +98,7 @@ export type Database = {
                     id?: string
                     is_first_edit?: boolean
                     nickname?: string | null
+                    provider?: string | null
                     role?: string
                     updated_at?: string | null
                 }
