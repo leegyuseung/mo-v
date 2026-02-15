@@ -1,6 +1,12 @@
 import { createClient } from "@/utils/supabase/client";
 import type { DashboardStats, Streamer } from "@/types/admin";
 import type { Profile } from "@/types/profile";
+import type {
+    ChzzkChannelProfile,
+    StreamerRegistrationRequest,
+    StreamerRequestStatus,
+} from "@/types/admin";
+import { STREAMER_REQUEST_TABLE, STREAMER_TABLE } from "@/lib/constant";
 
 export type { DashboardStats, Profile, Streamer };
 
@@ -70,6 +76,11 @@ export async function updateUser(
     return data;
 }
 
+export async function deleteUser(userId: string) {
+    const { error } = await supabase.from("profiles").delete().eq("id", userId);
+    if (error) throw error;
+}
+
 // 스트리머 목록 조회
 export async function fetchStreamers(): Promise<Streamer[]> {
     const { data, error } = await supabase
@@ -102,4 +113,98 @@ export async function updateStreamer(
 
     if (error) throw error;
     return data;
+}
+
+export async function deleteStreamer(streamerId: number) {
+    const { error } = await supabase.from("streamers").delete().eq("id", streamerId);
+    if (error) throw error;
+}
+
+export async function fetchPendingStreamerRequests(): Promise<
+    StreamerRegistrationRequest[]
+> {
+    const { data, error } = await supabase
+        .from(STREAMER_REQUEST_TABLE)
+        .select("*")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return (data || []) as StreamerRegistrationRequest[];
+}
+
+export async function updateStreamerRequestStatus(
+    requestId: number,
+    status: StreamerRequestStatus
+) {
+    const { data, error } = await supabase
+        .from(STREAMER_REQUEST_TABLE)
+        .update({
+            status,
+            reviewed_at: new Date().toISOString(),
+        })
+        .eq("id", requestId)
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+}
+
+export async function registerStreamerFromRequest(
+    requestId: number,
+    payload: { nickname: string; imageUrl: string }
+) {
+    const { data: request, error: requestError } = await supabase
+        .from(STREAMER_REQUEST_TABLE)
+        .select("*")
+        .eq("id", requestId)
+        .single();
+
+    if (requestError) throw requestError;
+    if (!request || request.status !== "pending") {
+        throw new Error("이미 처리된 요청입니다.");
+    }
+
+    const insertPayload = {
+        nickname: payload.nickname,
+        platform: request.platform,
+        chzzk_id: request.platform === "chzzk" ? request.platform_streamer_id : null,
+        soop_id: request.platform === "soop" ? request.platform_streamer_id : null,
+        image_url: payload.imageUrl,
+    };
+
+    const { error: insertError } = await supabase
+        .from(STREAMER_TABLE)
+        .insert(insertPayload);
+
+    if (insertError) throw insertError;
+
+    const { data, error } = await supabase
+        .from(STREAMER_REQUEST_TABLE)
+        .update({
+            status: "approved",
+            reviewed_at: new Date().toISOString(),
+        })
+        .eq("id", requestId)
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+}
+
+export async function fetchChzzkChannelProfile(
+    channelId: string
+): Promise<ChzzkChannelProfile> {
+    const response = await fetch(
+        `/api/chzzk/channels?channelIds=${encodeURIComponent(channelId)}`
+    );
+
+    if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        throw new Error(body?.message || "치지직 채널 정보를 불러오지 못했습니다.");
+    }
+
+    return response.json();
 }

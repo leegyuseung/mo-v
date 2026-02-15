@@ -52,8 +52,18 @@ export default function StreamerRequestModal({
       const segments = url.pathname.split("/").filter(Boolean);
 
       if (platformValue === "chzzk") {
-        if (host !== "chzzk.naver.com" || segments.length < 1) return null;
-        return segments[0] || null;
+        if (!host.endsWith("chzzk.naver.com") || segments.length < 1) return null;
+
+        // 채널 ID 포맷(32자리 hex)이 있으면 우선 사용
+        const idByPattern = segments.find((segment) =>
+          /^[a-f0-9]{32}$/i.test(segment)
+        );
+        if (idByPattern) {
+          return idByPattern;
+        }
+
+        // /{channelId}, /live/{channelId} 등 변형 대비: 마지막 세그먼트 사용
+        return segments[segments.length - 1] || null;
       }
 
       if (

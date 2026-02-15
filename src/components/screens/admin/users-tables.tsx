@@ -3,12 +3,15 @@
 import { useState } from "react";
 import { useUpdateUser } from "@/hooks/mutations/admin/use-update-user";
 import { useUpdateStreamer } from "@/hooks/mutations/admin/use-update-streamer";
+import { useDeleteUser } from "@/hooks/mutations/admin/use-delete-user";
+import { useDeleteStreamer } from "@/hooks/mutations/admin/use-delete-streamer";
 import type { Profile } from "@/types/profile";
 import type { Streamer } from "@/types/admin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Pencil, Check, X } from "lucide-react";
+import { Pencil, Check, X, Trash2 } from "lucide-react";
+import ConfirmAlert from "@/components/common/confirm-alert";
 
 function TableSkeleton({ cols }: { cols: number }) {
   return (
@@ -28,9 +31,11 @@ function TableSkeleton({ cols }: { cols: number }) {
 
 function UserRow({ user }: { user: Profile }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [nickname, setNickname] = useState(user.nickname || "");
   const [role, setRole] = useState(user.role || "user");
   const { mutate: updateUser, isPending } = useUpdateUser();
+  const { mutate: deleteUserMutate, isPending: isDeleting } = useDeleteUser();
 
   const handleSave = () => {
     updateUser(
@@ -45,105 +50,137 @@ function UserRow({ user }: { user: Profile }) {
     setIsEditing(false);
   };
 
+  const handleDelete = () => {
+    deleteUserMutate(user.id);
+    setIsDeleteAlertOpen(false);
+  };
+
   return (
-    <tr className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
-      <td className="px-4 py-3 text-sm text-gray-500 font-mono text-xs">
-        {user.id.slice(0, 8)}...
-      </td>
-      <td className="px-4 py-3 text-sm text-gray-700">{user.email || "-"}</td>
-      <td className="px-4 py-3 text-sm">
-        <span
-          className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-            user.provider === "google"
-              ? "bg-red-50 text-red-600"
-              : user.provider === "kakao"
-                ? "bg-yellow-100 text-yellow-700"
-                : "bg-emerald-50 text-emerald-600"
-          }`}
-        >
-          {user.provider || "email"}
-        </span>
-      </td>
-      <td className="px-4 py-3 text-sm">
-        {isEditing ? (
-          <Input
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            className="h-8 text-sm w-32"
-          />
-        ) : (
-          <span className="text-gray-700">{user.nickname || "-"}</span>
-        )}
-      </td>
-      <td className="px-4 py-3 text-sm">
-        {isEditing ? (
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            className="h-8 px-2 border rounded-md text-sm bg-white"
-          >
-            <option value="user">user</option>
-            <option value="admin">admin</option>
-          </select>
-        ) : (
+    <>
+      <tr className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+        <td className="px-4 py-3 text-sm text-gray-500 font-mono text-xs">
+          {user.id.slice(0, 8)}...
+        </td>
+        <td className="px-4 py-3 text-sm text-gray-700">{user.email || "-"}</td>
+        <td className="px-4 py-3 text-sm">
           <span
             className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-              user.role === "admin"
-                ? "bg-indigo-100 text-indigo-700"
-                : "bg-gray-100 text-gray-600"
+              user.provider === "google"
+                ? "bg-red-50 text-red-600"
+                : user.provider === "kakao"
+                  ? "bg-yellow-100 text-yellow-700"
+                  : "bg-emerald-50 text-emerald-600"
             }`}
           >
-            {user.role}
+            {user.provider || "email"}
           </span>
-        )}
-      </td>
-      <td className="px-4 py-3 text-sm text-gray-400">
-        {new Date(user.created_at).toLocaleDateString("ko-KR")}
-      </td>
-      <td className="px-4 py-3">
-        {isEditing ? (
-          <div className="flex gap-1">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleSave}
-              disabled={isPending}
-              className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 cursor-pointer"
+        </td>
+        <td className="px-4 py-3 text-sm">
+          {isEditing ? (
+            <Input
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              className="h-8 text-sm w-32"
+            />
+          ) : (
+            <span className="text-gray-700">{user.nickname || "-"}</span>
+          )}
+        </td>
+        <td className="px-4 py-3 text-sm">
+          {isEditing ? (
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="h-8 px-2 border rounded-md text-sm bg-white"
             >
-              <Check className="w-4 h-4" />
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleCancel}
-              className="h-7 w-7 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 cursor-pointer"
+              <option value="user">user</option>
+              <option value="admin">admin</option>
+            </select>
+          ) : (
+            <span
+              className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                user.role === "admin"
+                  ? "bg-indigo-100 text-indigo-700"
+                  : "bg-gray-100 text-gray-600"
+              }`}
             >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-        ) : (
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setIsEditing(true)}
-            className="h-7 w-7 p-0 text-gray-400 hover:text-gray-600 cursor-pointer"
-          >
-            <Pencil className="w-3.5 h-3.5" />
-          </Button>
-        )}
-      </td>
-    </tr>
+              {user.role}
+            </span>
+          )}
+        </td>
+        <td className="px-4 py-3 text-sm text-gray-400">
+          {new Date(user.created_at).toLocaleDateString("ko-KR")}
+        </td>
+        <td className="px-4 py-3">
+          {isEditing ? (
+            <div className="flex gap-1">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleSave}
+                disabled={isPending}
+                className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 cursor-pointer"
+              >
+                <Check className="w-4 h-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleCancel}
+                className="h-7 w-7 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          ) : (
+            <div className="flex gap-1">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setIsEditing(true)}
+                className="h-7 w-7 p-0 text-gray-400 hover:text-gray-600 cursor-pointer"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setIsDeleteAlertOpen(true)}
+                disabled={isDeleting}
+                className="h-7 w-7 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          )}
+        </td>
+      </tr>
+
+      <ConfirmAlert
+        open={isDeleteAlertOpen}
+        title="유저 삭제"
+        description="정말 이 유저를 삭제하시겠습니까?"
+        confirmText="삭제"
+        cancelText="취소"
+        isPending={isDeleting}
+        onConfirm={handleDelete}
+        onCancel={() => setIsDeleteAlertOpen(false)}
+      />
+    </>
   );
 }
 
 function StreamerRow({ streamer }: { streamer: Streamer }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [nickname, setNickname] = useState(streamer.nickname || "");
   const [platform, setPlatform] = useState(streamer.platform || "");
   const [chzzkId, setChzzkId] = useState(streamer.chzzk_id || "");
   const [soopId, setSoopId] = useState(streamer.soop_id || "");
   const [imageUrl, setImageUrl] = useState(streamer.image_url || "");
   const { mutate: update, isPending } = useUpdateStreamer();
+  const { mutate: deleteStreamerMutate, isPending: isDeleting } =
+    useDeleteStreamer();
 
   const handleSave = () => {
     update(
@@ -170,119 +207,148 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
     setIsEditing(false);
   };
 
+  const handleDelete = () => {
+    deleteStreamerMutate(streamer.id);
+    setIsDeleteAlertOpen(false);
+  };
+
   return (
-    <tr className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
-      <td className="px-4 py-3 text-sm text-gray-500">{streamer.id}</td>
-      <td className="px-4 py-3 text-sm">
-        {isEditing ? (
-          <Input
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            className="h-8 text-sm w-28"
-          />
-        ) : (
-          <span className="text-gray-700 font-medium">{streamer.nickname || "-"}</span>
-        )}
-      </td>
-      <td className="px-4 py-3 text-sm">
-        {isEditing ? (
-          <select
-            value={platform}
-            onChange={(e) => setPlatform(e.target.value)}
-            className="h-8 px-2 border rounded-md text-sm bg-white"
-          >
-            <option value="chzzk">chzzk</option>
-            <option value="soop">soop</option>
-          </select>
-        ) : (
-          <span
-            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-              streamer.platform === "chzzk"
-                ? "bg-green-100 text-green-700"
-                : "bg-blue-100 text-blue-700"
-            }`}
-          >
-            {streamer.platform}
-          </span>
-        )}
-      </td>
-      <td className="px-4 py-3 text-sm">
-        {isEditing ? (
-          <Input
-            value={chzzkId}
-            onChange={(e) => setChzzkId(e.target.value)}
-            placeholder="chzzk ID"
-            className="h-8 text-sm w-36"
-          />
-        ) : (
-          <span className="text-gray-500 text-xs font-mono">
-            {streamer.chzzk_id ? `${streamer.chzzk_id.slice(0, 12)}...` : "-"}
-          </span>
-        )}
-      </td>
-      <td className="px-4 py-3 text-sm">
-        {isEditing ? (
-          <Input
-            value={soopId}
-            onChange={(e) => setSoopId(e.target.value)}
-            placeholder="soop ID"
-            className="h-8 text-sm w-28"
-          />
-        ) : (
-          <span className="text-gray-500 text-xs">{streamer.soop_id || "-"}</span>
-        )}
-      </td>
-      <td className="px-4 py-3 text-sm">
-        {isEditing ? (
-          <Input
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            placeholder="이미지 URL"
-            className="h-8 text-sm w-36"
-          />
-        ) : streamer.image_url ? (
-          <img
-            src={streamer.image_url}
-            alt={streamer.nickname || ""}
-            className="w-8 h-8 rounded-full object-cover"
-          />
-        ) : (
-          <span className="text-gray-400 text-xs">없음</span>
-        )}
-      </td>
-      <td className="px-4 py-3">
-        {isEditing ? (
-          <div className="flex gap-1">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleSave}
-              disabled={isPending}
-              className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 cursor-pointer"
+    <>
+      <tr className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+        <td className="px-4 py-3 text-sm text-gray-500">{streamer.id}</td>
+        <td className="px-4 py-3 text-sm">
+          {isEditing ? (
+            <Input
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              className="h-8 text-sm w-28"
+            />
+          ) : (
+            <span className="text-gray-700 font-medium">{streamer.nickname || "-"}</span>
+          )}
+        </td>
+        <td className="px-4 py-3 text-sm">
+          {isEditing ? (
+            <select
+              value={platform}
+              onChange={(e) => setPlatform(e.target.value)}
+              className="h-8 px-2 border rounded-md text-sm bg-white"
             >
-              <Check className="w-4 h-4" />
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleCancel}
-              className="h-7 w-7 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 cursor-pointer"
+              <option value="chzzk">chzzk</option>
+              <option value="soop">soop</option>
+            </select>
+          ) : (
+            <span
+              className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                streamer.platform === "chzzk"
+                  ? "bg-green-100 text-green-700"
+                  : "bg-blue-100 text-blue-700"
+              }`}
             >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-        ) : (
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setIsEditing(true)}
-            className="h-7 w-7 p-0 text-gray-400 hover:text-gray-600 cursor-pointer"
-          >
-            <Pencil className="w-3.5 h-3.5" />
-          </Button>
-        )}
-      </td>
-    </tr>
+              {streamer.platform}
+            </span>
+          )}
+        </td>
+        <td className="px-4 py-3 text-sm">
+          {isEditing ? (
+            <Input
+              value={chzzkId}
+              onChange={(e) => setChzzkId(e.target.value)}
+              placeholder="chzzk ID"
+              className="h-8 text-sm w-36"
+            />
+          ) : (
+            <span className="text-gray-500 text-xs font-mono">
+              {streamer.chzzk_id ? `${streamer.chzzk_id.slice(0, 12)}...` : "-"}
+            </span>
+          )}
+        </td>
+        <td className="px-4 py-3 text-sm">
+          {isEditing ? (
+            <Input
+              value={soopId}
+              onChange={(e) => setSoopId(e.target.value)}
+              placeholder="soop ID"
+              className="h-8 text-sm w-28"
+            />
+          ) : (
+            <span className="text-gray-500 text-xs">{streamer.soop_id || "-"}</span>
+          )}
+        </td>
+        <td className="px-4 py-3 text-sm">
+          {isEditing ? (
+            <Input
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              placeholder="이미지 URL"
+              className="h-8 text-sm w-36"
+            />
+          ) : streamer.image_url ? (
+            <img
+              src={streamer.image_url}
+              alt={streamer.nickname || ""}
+              className="w-8 h-8 rounded-full object-cover"
+            />
+          ) : (
+            <span className="text-gray-400 text-xs">없음</span>
+          )}
+        </td>
+        <td className="px-4 py-3">
+          {isEditing ? (
+            <div className="flex gap-1">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleSave}
+                disabled={isPending}
+                className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 cursor-pointer"
+              >
+                <Check className="w-4 h-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleCancel}
+                className="h-7 w-7 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          ) : (
+            <div className="flex gap-1">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setIsEditing(true)}
+                className="h-7 w-7 p-0 text-gray-400 hover:text-gray-600 cursor-pointer"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setIsDeleteAlertOpen(true)}
+                disabled={isDeleting}
+                className="h-7 w-7 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          )}
+        </td>
+      </tr>
+
+      <ConfirmAlert
+        open={isDeleteAlertOpen}
+        title="스트리머 삭제"
+        description="정말 이 스트리머를 삭제하시겠습니까?"
+        confirmText="삭제"
+        cancelText="취소"
+        isPending={isDeleting}
+        onConfirm={handleDelete}
+        onCancel={() => setIsDeleteAlertOpen(false)}
+      />
+    </>
   );
 }
 
