@@ -1,14 +1,12 @@
-import {
-  signInWithPassword,
-  fetchUserProfile,
-  fetchHeartPoints,
-} from "@/api/auth";
-import { useMutationCallback } from "@/types/auth";
+import { signInWithPassword } from "@/api/auth";
+import { fetchUserProfile } from "@/api/profile";
+import { fetchHeartPoints } from "@/api/heart";
+import type { MutationCallback } from "@/types/auth";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 
-export function useSignInWithPassword(callbacks?: useMutationCallback) {
+export function useSignInWithPassword(callbacks?: MutationCallback) {
   const router = useRouter();
   const { setSession } = useAuthStore();
 

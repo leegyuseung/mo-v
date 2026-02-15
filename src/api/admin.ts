@@ -1,18 +1,10 @@
 import { createClient } from "@/utils/supabase/client";
-import { Tables } from "@/types/database.types";
+import type { DashboardStats, Streamer } from "@/types/admin";
+import type { Profile } from "@/types/profile";
+
+export type { DashboardStats, Profile, Streamer };
 
 const supabase = createClient();
-
-export type DashboardStats = {
-    totalUsers: number;
-    emailUsers: number;
-    googleUsers: number;
-    kakaoUsers: number;
-    totalStreamers: number;
-};
-
-export type Profile = Tables<"profiles">;
-export type Streamer = Tables<"streamers">;
 
 export async function fetchDashboardStats(): Promise<DashboardStats> {
     const { count: totalUsers } = await supabase

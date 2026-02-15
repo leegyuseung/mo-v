@@ -1,4 +1,4 @@
-"use client";
+
 
 import AdminSideBar from "@/components/common/admin-side-bar";
 import AdminAuthGuard from "@/components/common/admin-auth-guard";

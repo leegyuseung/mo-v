@@ -1,32 +1,10 @@
 import { create } from "zustand";
 import { User } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/client";
-import { Tables } from "@/types/database.types";
+import type { Profile, HeartPoints } from "@/types/profile";
+import type { AuthState, AuthActions } from "@/types/auth";
 
-// Tables 헬퍼를 사용해 Supabase 테이블 타입 자동 참조
-export type Profile = Tables<"profiles">;
-export type HeartPoints = Tables<"heart_points">;
-
-type AuthState = {
-    user: User | null;
-    profile: Profile | null;
-    heartPoints: HeartPoints | null;
-    isLoading: boolean;
-    isInitialized: boolean;
-};
-
-type AuthActions = {
-    setUser: (user: User | null) => void;
-    setProfile: (profile: Profile | null) => void;
-    setHeartPoints: (heartPoints: HeartPoints | null) => void;
-    setSession: (
-        user: User | null,
-        profile: Profile | null,
-        heartPoints: HeartPoints | null
-    ) => void;
-    clearSession: () => void;
-    initializeSession: () => Promise<void>;
-};
+export type { Profile, HeartPoints };
 
 const supabase = createClient();
 

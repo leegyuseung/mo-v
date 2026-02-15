@@ -1,15 +1,9 @@
-import { updateProfile, uploadAvatar, addHeartPoints } from "@/api/auth";
+import { updateProfile, uploadAvatar } from "@/api/profile";
+import { addHeartPoints } from "@/api/heart";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-
-type UpdateProfileInput = {
-    userId: string;
-    nickname?: string;
-    bio?: string;
-    avatarFile?: File | null;
-    isFirstEdit?: boolean;
-};
+import type { UpdateProfileInput } from "@/types/profile";
 
 export function useUpdateProfile() {
     const { setProfile, setHeartPoints } = useAuthStore();
