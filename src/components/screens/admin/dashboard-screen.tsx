@@ -1,7 +1,6 @@
 "use client";
 
 import { useDashboardStats } from "@/hooks/queries/admin/use-dashboard-stats";
-import type { DashboardStats } from "@/types/admin";
 import {
     Users,
     Mail,
@@ -9,6 +8,7 @@ import {
     MessageCircle,
     TvMinimalPlay,
 } from "lucide-react";
+import { StatCard, StatCardSkeleton } from "@/components/screens/admin/stat-card";
 
 export default function DashboardScreen() {
     const { data: stats, isLoading } = useDashboardStats();
@@ -72,53 +72,22 @@ export default function DashboardScreen() {
             {isLoading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     {[...Array(5)].map((_, i) => (
-                        <div
-                            key={i}
-                            className="bg-white rounded-2xl p-6 shadow-sm animate-pulse"
-                        >
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="w-12 h-12 bg-gray-200 rounded-xl" />
-                                <div className="w-16 h-4 bg-gray-200 rounded" />
-                            </div>
-                            <div className="w-20 h-8 bg-gray-200 rounded mt-2" />
-                        </div>
+                        <StatCardSkeleton key={i} />
                     ))}
                 </div>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     {statCards.map((card) => (
-                        <div
+                        <StatCard
                             key={card.title}
-                            className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-100"
-                        >
-                            <div className="flex items-center justify-between mb-4">
-                                <div className={`p-3 rounded-xl ${card.bgLight}`}>
-                                    <card.icon className={`w-6 h-6 ${card.textColor}`} />
-                                </div>
-                                <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                    {card.title}
-                                </span>
-                            </div>
-                            <div className="flex items-end gap-2">
-                                <span className="text-3xl font-bold text-gray-900">
-                                    {card.value.toLocaleString()}
-                                </span>
-                                <span className="text-sm text-gray-400 mb-1">명</span>
-                            </div>
-                            <div className="mt-3 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                <div
-                                    className={`h-full rounded-full bg-gradient-to-r ${card.color}`}
-                                    style={{
-                                        width: `${Math.min(
-                                            100,
-                                            stats!.totalUsers > 0
-                                                ? (card.value / stats!.totalUsers) * 100
-                                                : 0
-                                        )}%`,
-                                    }}
-                                />
-                            </div>
-                        </div>
+                            title={card.title}
+                            value={card.value}
+                            icon={card.icon}
+                            color={card.color}
+                            bgLight={card.bgLight}
+                            textColor={card.textColor}
+                            ratioBase={stats?.totalUsers || 0}
+                        />
                     ))}
                 </div>
             )}
