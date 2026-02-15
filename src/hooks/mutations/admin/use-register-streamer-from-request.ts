@@ -10,11 +10,13 @@ export function useRegisterStreamerFromRequest() {
             requestId,
             nickname,
             imageUrl,
+            groupName,
         }: {
             requestId: number;
             nickname: string;
             imageUrl: string;
-        }) => registerStreamerFromRequest(requestId, { nickname, imageUrl }),
+            groupName: string[] | null;
+        }) => registerStreamerFromRequest(requestId, { nickname, imageUrl, groupName }),
         onSuccess: () => {
             queryClient.invalidateQueries({
                 queryKey: ["admin", "pending-streamer-requests"],

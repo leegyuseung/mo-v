@@ -29,6 +29,15 @@ function TableSkeleton({ cols }: { cols: number }) {
   );
 }
 
+function parseTextArrayInput(input: string): string[] | null {
+  const parsed = input
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  return parsed.length > 0 ? parsed : null;
+}
+
 function UserRow({ user }: { user: Profile }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
@@ -177,7 +186,11 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
   const [platform, setPlatform] = useState(streamer.platform || "");
   const [chzzkId, setChzzkId] = useState(streamer.chzzk_id || "");
   const [soopId, setSoopId] = useState(streamer.soop_id || "");
+  const [groupNameInput, setGroupNameInput] = useState(
+    streamer.group_name?.join(", ") || ""
+  );
   const [imageUrl, setImageUrl] = useState(streamer.image_url || "");
+
   const { mutate: update, isPending } = useUpdateStreamer();
   const { mutate: deleteStreamerMutate, isPending: isDeleting } =
     useDeleteStreamer();
@@ -192,6 +205,7 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
           chzzk_id: chzzkId || null,
           soop_id: soopId || null,
           image_url: imageUrl || null,
+          group_name: parseTextArrayInput(groupNameInput),
         },
       },
       { onSuccess: () => setIsEditing(false) }
@@ -203,6 +217,7 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
     setPlatform(streamer.platform || "");
     setChzzkId(streamer.chzzk_id || "");
     setSoopId(streamer.soop_id || "");
+    setGroupNameInput(streamer.group_name?.join(", ") || "");
     setImageUrl(streamer.image_url || "");
     setIsEditing(false);
   };
@@ -273,6 +288,20 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
             />
           ) : (
             <span className="text-gray-500 text-xs">{streamer.soop_id || "-"}</span>
+          )}
+        </td>
+        <td className="px-4 py-3 text-sm">
+          {isEditing ? (
+            <Input
+              value={groupNameInput}
+              onChange={(e) => setGroupNameInput(e.target.value)}
+              placeholder="그룹명 (쉼표로 구분)"
+              className="h-8 text-sm w-44"
+            />
+          ) : (
+            <span className="text-gray-500 text-xs">
+              {streamer.group_name?.join(", ") || "-"}
+            </span>
           )}
         </td>
         <td className="px-4 py-3 text-sm">
@@ -406,20 +435,21 @@ export function StreamerTable({ streamers, isLoading }: StreamerTableProps) {
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">플랫폼</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">치지직 ID</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">SOOP ID</th>
+            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">그룹명(text[])</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">이미지</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-20">수정</th>
           </tr>
         </thead>
         <tbody>
           {isLoading ? (
-            <TableSkeleton cols={7} />
+            <TableSkeleton cols={8} />
           ) : streamers && streamers.length > 0 ? (
             streamers.map((streamer) => (
               <StreamerRow key={streamer.id} streamer={streamer} />
             ))
           ) : (
             <tr>
-              <td colSpan={7} className="px-4 py-12 text-center text-gray-400 text-sm">
+              <td colSpan={8} className="px-4 py-12 text-center text-gray-400 text-sm">
                 등록된 스트리머가 없습니다.
               </td>
             </tr>

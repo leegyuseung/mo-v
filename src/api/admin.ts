@@ -153,7 +153,7 @@ export async function updateStreamerRequestStatus(
 
 export async function registerStreamerFromRequest(
     requestId: number,
-    payload: { nickname: string; imageUrl: string }
+    payload: { nickname: string; imageUrl: string; groupName: string[] | null }
 ) {
     const { data: request, error: requestError } = await supabase
         .from(STREAMER_REQUEST_TABLE)
@@ -172,6 +172,7 @@ export async function registerStreamerFromRequest(
         chzzk_id: request.platform === "chzzk" ? request.platform_streamer_id : null,
         soop_id: request.platform === "soop" ? request.platform_streamer_id : null,
         image_url: payload.imageUrl,
+        group_name: payload.groupName,
     };
 
     const { error: insertError } = await supabase

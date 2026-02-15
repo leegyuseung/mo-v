@@ -15,6 +15,7 @@ import { toast } from "sonner";
 function RequestRow({ request }: { request: StreamerRegistrationRequest }) {
     const [nickname, setNickname] = useState("");
     const [imageUrl, setImageUrl] = useState("");
+    const [groupNameInput, setGroupNameInput] = useState("");
     const { mutate: rejectRequest, isPending: isRejecting } =
         useUpdateStreamerRequestStatus();
     const { mutate: registerStreamer, isPending: isRegistering } =
@@ -45,11 +46,16 @@ function RequestRow({ request }: { request: StreamerRegistrationRequest }) {
             toast.error("이미지 주소를 입력해 주세요.");
             return;
         }
+        const parsedGroupName = groupNameInput
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean);
 
         registerStreamer({
             requestId: request.id,
             nickname: effectiveNickname,
             imageUrl: effectiveImageUrl,
+            groupName: parsedGroupName.length > 0 ? parsedGroupName : null,
         });
     };
 
@@ -112,6 +118,14 @@ function RequestRow({ request }: { request: StreamerRegistrationRequest }) {
                         </p>
                     )}
             </td>
+            <td className="px-4 py-3 text-sm">
+                <Input
+                    value={groupNameInput}
+                    onChange={(e) => setGroupNameInput(e.target.value)}
+                    placeholder="그룹명 입력 (쉼표로 구분)"
+                    className="h-8 min-w-56"
+                />
+            </td>
             <td className="px-4 py-3 text-sm text-gray-400">
                 {new Date(request.created_at).toLocaleString("ko-KR")}
             </td>
@@ -160,7 +174,7 @@ export default function PendingScreen() {
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
-                <table className="w-full text-left min-w-[920px]">
+                <table className="w-full text-left min-w-[1120px]">
                     <thead>
                         <tr className="bg-gray-50/80 border-b border-gray-100">
                             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">
@@ -176,6 +190,9 @@ export default function PendingScreen() {
                                 이미지 주소
                             </th>
                             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">
+                                그룹명(text[])
+                            </th>
+                            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">
                                 요청일시
                             </th>
                             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-52">
@@ -187,7 +204,7 @@ export default function PendingScreen() {
                         {isLoading ? (
                             [...Array(4)].map((_, i) => (
                                 <tr key={i} className="border-b border-gray-100">
-                                    <td className="px-4 py-3" colSpan={6}>
+                                    <td className="px-4 py-3" colSpan={7}>
                                         <Skeleton className="h-5 w-full" />
                                     </td>
                                 </tr>
@@ -199,7 +216,7 @@ export default function PendingScreen() {
                         ) : (
                             <tr>
                                 <td
-                                    colSpan={6}
+                                    colSpan={7}
                                     className="px-4 py-14 text-center text-gray-400 text-sm"
                                 >
                                     등록 대기 요청이 없습니다.

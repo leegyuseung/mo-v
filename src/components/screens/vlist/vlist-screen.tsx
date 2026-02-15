@@ -177,11 +177,18 @@ export default function VlistScreen() {
                 </span>
               </div>
 
-              <div className="space-y-1 text-xs text-gray-500">
-                {streamer.group_name && streamer.group_name.length > 0 && (
-                  <p className="truncate">그룹: {streamer.group_name.join(", ")}</p>
-                )}
-              </div>
+              {streamer.group_name && streamer.group_name.length > 0 && (
+                <div className="mt-1 flex flex-wrap gap-1.5">
+                  {streamer.group_name.map((group) => (
+                    <span
+                      key={`${streamer.id}-${group}`}
+                      className="inline-flex items-center rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[10px] font-medium text-gray-600"
+                    >
+                      {group}
+                    </span>
+                  ))}
+                </div>
+              )}
             </Link>
           ))}
         </div>
