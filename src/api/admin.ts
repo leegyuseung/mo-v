@@ -102,6 +102,7 @@ export async function updateStreamer(
         soop_id?: string | null;
         image_url?: string | null;
         group_name?: string[] | null;
+        crew_name?: string[] | null;
     }
 ) {
     const { data, error } = await supabase

@@ -18,6 +18,7 @@ export function useUpdateStreamer() {
                 soop_id?: string | null;
                 image_url?: string | null;
                 group_name?: string[] | null;
+                crew_name?: string[] | null;
             };
         }) => updateStreamer(streamerId, updates),
         onSuccess: () => {

@@ -108,6 +108,7 @@ export type Database = {
                 Row: {
                     chzzk_id: string | null
                     created_at: string
+                    crew_name: string[] | null
                     group_name: string[] | null
                     id: number
                     image_url: string | null
@@ -118,6 +119,7 @@ export type Database = {
                 Insert: {
                     chzzk_id?: string | null
                     created_at?: string
+                    crew_name?: string[] | null
                     group_name?: string[] | null
                     id?: number
                     image_url?: string | null
@@ -128,6 +130,7 @@ export type Database = {
                 Update: {
                     chzzk_id?: string | null
                     created_at?: string
+                    crew_name?: string[] | null
                     group_name?: string[] | null
                     id?: number
                     image_url?: string | null
