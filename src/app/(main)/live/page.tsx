@@ -1,3 +1,5 @@
+import LiveScreen from "@/components/screens/live/live-screen";
+
 export default function LivePage() {
-  return <div>Live Page</div>;
+  return <LiveScreen />;
 }

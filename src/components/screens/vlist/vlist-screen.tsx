@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { useStreamers } from "@/hooks/queries/streamers/use-streamers";
 import type {
   StreamerPlatform,
@@ -66,9 +67,19 @@ export default function VlistScreen() {
       return "bg-white text-gray-900 border-gray-300 hover:bg-gray-50";
     }
     if (value === "chzzk") {
-      return "bg-green-500 text-white border-green-500 hover:bg-green-600";
+      return "bg-green-500 text-white border-green-500 hover:bg-green-600 hover:text-white";
     }
-    return "bg-blue-500 text-white border-blue-500 hover:bg-blue-600";
+    return "bg-blue-500 text-white border-blue-500 hover:bg-blue-600 hover:text-white";
+  };
+
+  const getPlatformInactiveClass = (value: StreamerPlatform) => {
+    if (value === "all") {
+      return "border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-800";
+    }
+    if (value === "chzzk") {
+      return "border-gray-200 text-gray-600 hover:bg-green-50 hover:border-green-300 hover:text-green-700";
+    }
+    return "border-gray-200 text-gray-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700";
   };
 
   return (
@@ -84,7 +95,11 @@ export default function VlistScreen() {
                 size="sm"
                 variant="outline"
                 onClick={() => onChangePlatform(item.value)}
-                className={`cursor-pointer ${platform === item.value ? getPlatformActiveClass(item.value) : "border-gray-200 text-gray-600"}`}
+                className={`cursor-pointer ${
+                  platform === item.value
+                    ? getPlatformActiveClass(item.value)
+                    : getPlatformInactiveClass(item.value)
+                }`}
               >
                 {item.label}
               </Button>
@@ -132,8 +147,8 @@ export default function VlistScreen() {
       </div>
 
       {isLoading ? (
-        <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 text-center text-gray-500">
-          로딩중...
+        <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 flex items-center justify-center">
+          <Spinner />
         </div>
       ) : streamers.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 text-center text-gray-400">
@@ -243,7 +258,9 @@ export default function VlistScreen() {
       )}
 
       {isFetching && !isLoading && (
-        <p className="mt-3 text-center text-xs text-gray-400">로딩중...</p>
+        <div className="mt-3 flex justify-center">
+          <Spinner className="h-5 w-5 border-2" />
+        </div>
       )}
 
       <StreamerRequestModal

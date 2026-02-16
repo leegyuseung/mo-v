@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+// CHZZK channels API 응답 포맷 변형(content.data / content[] / data[])을 흡수한다.
 function pickChannel(raw: unknown) {
   const data = raw as Record<string, unknown> | null;
   if (!data) return null;
@@ -32,6 +33,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const channelIds = searchParams.get("channelIds");
 
+  // Admin 화면 자동완성에서 단일 channelId를 전달하는 전용 엔드포인트다.
   if (!channelIds) {
     return NextResponse.json(
       { message: "channelIds is required" },
@@ -44,6 +46,7 @@ export async function GET(request: Request) {
       channelIds
     )}`;
 
+    // 서버에서만 보관되는 Client-Secret을 사용해 CHZZK Open API를 호출한다.
     const headers: HeadersInit = {};
     const clientId =
       process.env.CHZZK_CLIENT_ID || process.env.NEXT_PUBLIC_CHZZK_CLIENT_ID;
@@ -72,6 +75,7 @@ export async function GET(request: Request) {
     const data = await response.json();
     const channel = pickChannel(data);
 
+    // UI에서 필요한 최소 필드만 노출한다.
     return NextResponse.json({
       channelName:
         (channel?.channelName as string | undefined) ||

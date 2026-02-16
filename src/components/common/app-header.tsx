@@ -31,6 +31,8 @@ export default function AppHeader() {
             alt=""
             height={64}
             width={64}
+            loading="eager"
+            priority
             className="cursor-pointer"
           />
         </Link>
