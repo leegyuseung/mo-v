@@ -18,6 +18,8 @@ import {
   STREAMER_SORT_OPTIONS,
 } from "@/lib/constant";
 import StreamerRequestModal from "@/components/screens/vlist/streamer-request-modal";
+import { useAuthStore } from "@/store/useAuthStore";
+import { toast } from "sonner";
 
 export default function VlistScreen() {
   const [page, setPage] = useState(1);
@@ -25,6 +27,7 @@ export default function VlistScreen() {
   const [sortOrder, setSortOrder] = useState<StreamerSortOrder>("asc");
   const [keyword, setKeyword] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const { user } = useAuthStore();
 
   const { data, isLoading, isFetching } = useStreamers({
     page,
@@ -60,6 +63,14 @@ export default function VlistScreen() {
   const onChangeKeyword = (value: string) => {
     setKeyword(value);
     setPage(1);
+  };
+
+  const onClickAddStreamer = () => {
+    if (!user) {
+      toast.error("로그인 후 스트리머 추가 요청이 가능합니다.");
+      return;
+    }
+    setIsAddModalOpen(true);
   };
 
   const getPlatformActiveClass = (value: StreamerPlatform) => {
@@ -115,10 +126,10 @@ export default function VlistScreen() {
             />
             <Button
               type="button"
-              size="sm"
               variant="outline"
-              onClick={() => setIsAddModalOpen(true)}
-              className="cursor-pointer whitespace-nowrap border-gray-200 text-gray-700"
+              onClick={onClickAddStreamer}
+              disabled={!user}
+              className="h-9 cursor-pointer whitespace-nowrap border-gray-200 text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               스트리머 추가
             </Button>

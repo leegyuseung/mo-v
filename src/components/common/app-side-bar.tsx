@@ -1,6 +1,16 @@
 "use client";
 import Link from "next/link";
-import { Users, Menu, TvMinimalPlay, Shield } from "lucide-react";
+import type { ComponentType } from "react";
+import {
+  Clapperboard,
+  MicVocal,
+  Gem,
+  House,
+  Menu,
+  Shield,
+  TvMinimalPlay,
+  UsersRound,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -14,11 +24,25 @@ import {
 } from "../ui/sidebar";
 import { useAuthStore } from "@/store/useAuthStore";
 
-// 메뉴 구성 데이터
+type MenuItem = {
+  title: string;
+  icon: ComponentType<{ className?: string }>;
+  url?: string;
+};
+
+// 완성된 화면만 링크를 연결한다.
 const menuItems = [
+  { title: "mo-v", url: "/", icon: House },
   { title: "라이브", url: "/live", icon: TvMinimalPlay },
-  { title: "리스트", url: "/vlist", icon: Users },
-];
+  { title: "버추얼", url: "/vlist", icon: Gem },
+  { title: "그룹", icon: MicVocal },
+  { title: "크루", icon: UsersRound },
+  { title: "콘텐츠", icon: Clapperboard },
+] satisfies MenuItem[];
+
+const isNavigableItem = (item: MenuItem) => {
+  return Boolean(item.url);
+};
 
 export default function AppSideBar() {
   const { toggleSidebar } = useSidebar();
@@ -46,12 +70,23 @@ export default function AppSideBar() {
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild tooltip={item.title}>
-                    <Link href={item.url}>
+                  {isNavigableItem(item) ? (
+                    <SidebarMenuButton asChild tooltip={item.title}>
+                      <Link href={item.url!}>
+                        <item.icon className="w-5 h-5" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  ) : (
+                    <SidebarMenuButton
+                      disabled
+                      tooltip={`${item.title} (준비중)`}
+                      className="cursor-not-allowed"
+                    >
                       <item.icon className="w-5 h-5" />
                       <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
+                    </SidebarMenuButton>
+                  )}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>

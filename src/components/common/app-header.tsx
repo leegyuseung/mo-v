@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useSignOut } from "@/hooks/mutations/auth/use-sign-out";
-import { Menu } from "lucide-react";
+import { CalendarDays, Menu, Star } from "lucide-react";
 import { useSidebar } from "../ui/sidebar";
 import AppHeaderProfileMenu from "@/components/common/app-header-profile-menu";
 
@@ -38,6 +38,20 @@ export default function AppHeader() {
         </Link>
       </div>
       <div className="flex items-center gap-2 md:gap-3">
+        <button
+          type="button"
+          aria-label="즐겨찾기(준비중)"
+          className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 cursor-pointer"
+        >
+          <Star className="w-4 h-4" />
+        </button>
+        <button
+          type="button"
+          aria-label="출석 이벤트(준비중)"
+          className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 cursor-pointer"
+        >
+          <CalendarDays className="w-4 h-4" />
+        </button>
         {isLoading ? (
           <div className="w-16 md:w-20 h-8 bg-gray-100 animate-pulse rounded-xl" />
         ) : user ? (

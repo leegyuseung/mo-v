@@ -407,7 +407,7 @@ type UserTableProps = {
 
 export function UserTable({ users, isLoading }: UserTableProps) {
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto overflow-y-auto max-h-[560px]">
       <table className="w-full text-left">
         <thead>
           <tr className="bg-gray-50/80 border-b border-gray-100">
@@ -445,7 +445,7 @@ type StreamerTableProps = {
 
 export function StreamerTable({ streamers, isLoading }: StreamerTableProps) {
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto overflow-y-auto max-h-[560px]">
       <table className="w-full text-left">
         <thead>
           <tr className="bg-gray-50/80 border-b border-gray-100">

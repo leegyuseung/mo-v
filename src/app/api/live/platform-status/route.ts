@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-type Platform = "chzzk" | "soop";
+type Platform = "chzzk";
 
 // 문자열/숫자 혼합으로 내려오는 시청자 수를 안전하게 number로 변환한다.
 function parseNumber(value: unknown): number | null {
@@ -232,102 +232,20 @@ async function fetchChzzkLiveStatus(channelId: string) {
   }
 }
 
-// SOOP은 공식 공개 API 대신 페이지 메타/스크립트에서 최소 상태만 파싱한다.
-function parseSoopMetaTitle(html: string) {
-  const titleMatch = html.match(
-    /<meta\s+property=["']og:title["']\s+content=["']([^"']*)["']/i
-  );
-  return titleMatch?.[1] || null;
-}
-
-function parseSoopViewerCount(html: string): number | null {
-  const patterns = [
-    /"concurrentUserCount"\s*:\s*(\d+)/i,
-    /"viewerCount"\s*:\s*(\d+)/i,
-    /"current_viewer"\s*:\s*"?(\d+)/i,
-    /"view_cnt"\s*:\s*"?(\d+)/i,
-  ];
-
-  for (const pattern of patterns) {
-    const matched = html.match(pattern);
-    if (matched?.[1]) {
-      const value = Number(matched[1]);
-      if (Number.isFinite(value)) return value;
-    }
-  }
-  return null;
-}
-
-function parseSoopLiveState(html: string) {
-  const livePatterns = [
-    /"is_live"\s*:\s*"?1"?/i,
-    /"isOnAir"\s*:\s*true/i,
-    /"onair"\s*:\s*true/i,
-    /"broad_status"\s*:\s*"ON"/i,
-  ];
-
-  if (livePatterns.some((pattern) => pattern.test(html))) {
-    return true;
-  }
-
-  return false;
-}
-
-async function fetchSoopLiveStatus(stationId: string) {
-  const liveUrl = `https://www.sooplive.co.kr/station/${stationId}`;
-
-  try {
-    const response = await fetch(liveUrl, { cache: "no-store" });
-    if (!response.ok) {
-      return {
-        isLive: false,
-        viewerCount: null,
-        liveTitle: null,
-        liveThumbnailImageUrl: null,
-        liveUrl,
-      };
-    }
-
-    const html = await response.text();
-    const ogTitle = parseSoopMetaTitle(html);
-    const viewerCount = parseSoopViewerCount(html);
-    const isLive = parseSoopLiveState(html) || (viewerCount ?? 0) > 0;
-
-    return {
-      isLive,
-      viewerCount,
-      liveTitle: ogTitle,
-      liveThumbnailImageUrl: null,
-      liveUrl,
-    };
-  } catch {
-    return {
-      isLive: false,
-      viewerCount: null,
-      liveTitle: null,
-      liveThumbnailImageUrl: null,
-      liveUrl,
-    };
-  }
-}
-
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const platform = searchParams.get("platform") as Platform | null;
   const id = searchParams.get("id");
 
   // 클라이언트에서 platform/id가 없으면 즉시 400 처리한다.
-  if (!platform || !id || (platform !== "chzzk" && platform !== "soop")) {
+  if (!platform || !id || platform !== "chzzk") {
     return NextResponse.json(
       { message: "Invalid platform or id" },
       { status: 400 }
     );
   }
 
-  const result =
-    platform === "chzzk"
-      ? await fetchChzzkLiveStatus(id)
-      : await fetchSoopLiveStatus(id);
+  const result = await fetchChzzkLiveStatus(id);
 
   return NextResponse.json(result);
 }

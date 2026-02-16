@@ -14,7 +14,9 @@ import { STREAMER_PLATFORM_OPTIONS } from "@/lib/constant";
 export default function LiveScreen() {
   const [platform, setPlatform] = useState<StreamerPlatform>("all");
   const [keyword, setKeyword] = useState("");
-  const [sortOrder, setSortOrder] = useState<"asc">("asc");
+  const [sortOrder, setSortOrder] = useState<"name_asc" | "viewer_desc">(
+    "name_asc"
+  );
   const [brokenImageByStreamerId, setBrokenImageByStreamerId] = useState<
     Record<number, boolean>
   >({});
@@ -34,11 +36,12 @@ export default function LiveScreen() {
         if (!keywordLower) return true;
         return (item.nickname || "").toLowerCase().includes(keywordLower);
       })
-      .sort((a, b) =>
-        sortOrder === "asc"
-          ? (a.nickname || "").localeCompare(b.nickname || "ko")
-          : (b.nickname || "").localeCompare(a.nickname || "ko")
-      );
+      .sort((a, b) => {
+        if (sortOrder === "viewer_desc") {
+          return (b.viewerCount ?? 0) - (a.viewerCount ?? 0);
+        }
+        return (a.nickname || "").localeCompare(b.nickname || "ko");
+      });
   }, [data, keyword, platform, sortOrder]);
 
   const getPlatformActiveClass = (value: StreamerPlatform) => {
@@ -75,8 +78,8 @@ export default function LiveScreen() {
                 variant="outline"
                 onClick={() => setPlatform(item.value)}
                 className={`cursor-pointer ${platform === item.value
-                    ? getPlatformActiveClass(item.value)
-                    : getPlatformInactiveClass(item.value)
+                  ? getPlatformActiveClass(item.value)
+                  : getPlatformInactiveClass(item.value)
                   }`}
               >
                 {item.label}
@@ -100,10 +103,25 @@ export default function LiveScreen() {
             type="button"
             size="sm"
             variant="default"
-            onClick={() => setSortOrder("asc")}
-            className="cursor-pointer bg-gray-800 hover:bg-gray-900 text-white"
+            onClick={() => setSortOrder("name_asc")}
+            className={`cursor-pointer ${sortOrder === "name_asc"
+              ? "bg-gray-800 hover:bg-gray-900 text-white"
+              : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+              }`}
           >
             가나다순
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="default"
+            onClick={() => setSortOrder("viewer_desc")}
+            className={`cursor-pointer ${sortOrder === "viewer_desc"
+              ? "bg-gray-800 hover:bg-gray-900 text-white"
+              : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+              }`}
+          >
+            시청자 수
           </Button>
         </div>
       </div>
@@ -186,8 +204,8 @@ export default function LiveScreen() {
                   </p>
                   <span
                     className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${streamer.platform === "chzzk"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-blue-100 text-blue-700"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-blue-100 text-blue-700"
                       }`}
                   >
                     {streamer.platform?.toUpperCase() || "UNKNOWN"}
