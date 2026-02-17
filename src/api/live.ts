@@ -39,6 +39,19 @@ export async function fetchLiveStreamers(): Promise<LiveStreamer[]> {
   const liveStatuses = await Promise.all(
     streamers.map(async (streamer) => {
       const platform = streamer.platform === "chzzk" ? "chzzk" : "soop";
+
+      // SOOP 라이브 조회는 오류 이슈로 비활성화한다.
+      // 필요 시 SOOP API 연동 안정화 후 다시 활성화한다.
+      if (platform === "soop") {
+        return {
+          isLive: false,
+          viewerCount: null,
+          liveTitle: null,
+          liveThumbnailImageUrl: null,
+          liveUrl: `https://www.sooplive.co.kr/station/${streamer.soop_id || ""}`,
+        } as PlatformLiveStatus;
+      }
+
       const platformId =
         platform === "chzzk" ? streamer.chzzk_id : streamer.soop_id;
 

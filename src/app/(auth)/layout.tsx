@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import "../globals.css";
 import AuthGuard from "@/components/auth/auth-guard";
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function AuthLayout({
   children,
@@ -12,4 +20,3 @@ export default function AuthLayout({
     </div>
   );
 }
-
