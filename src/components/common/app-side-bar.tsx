@@ -6,7 +6,6 @@ import {
   MicVocal,
   Gem,
   House,
-  Menu,
   Shield,
   TvMinimalPlay,
   UsersRound,
@@ -20,7 +19,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarFooter,
-  useSidebar,
 } from "../ui/sidebar";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -45,33 +43,23 @@ const isNavigableItem = (item: MenuItem) => {
 };
 
 export default function AppSideBar() {
-  const { toggleSidebar } = useSidebar();
   const { profile } = useAuthStore();
   const isAdmin = profile?.role === "admin";
 
   return (
     <Sidebar variant="sidebar" collapsible="icon" className="border-none p-1.5">
-      <SidebarContent className="bg-white border-r-0 flex items-center">
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem onClick={toggleSidebar}>
-                <SidebarMenuButton className="cursor-pointer">
-                  <Menu className="w-5 h-5" />
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {/* 첫 번째 메뉴그룹 */}
+      <SidebarContent className="bg-white border-r-0 flex items-center pt-2 md:pt-3">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   {isNavigableItem(item) ? (
-                    <SidebarMenuButton asChild tooltip={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      tooltip={item.title}
+                      className="hover:bg-transparent hover:text-blue-600"
+                    >
                       <Link href={item.url!}>
                         <item.icon className="w-5 h-5" />
                         <span>{item.title}</span>
@@ -99,7 +87,11 @@ export default function AppSideBar() {
         <SidebarFooter className="bg-white">
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="관리자">
+              <SidebarMenuButton
+                asChild
+                tooltip="관리자"
+                className="hover:bg-transparent hover:text-blue-600"
+              >
                 <Link href="/admin" target="_blank">
                   <Shield className="w-5 h-5" />
                   <span>관리자</span>

@@ -267,7 +267,24 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
   return (
     <>
       <tr className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
-        <td className="px-4 py-3 text-sm text-gray-500">{streamer.id}</td>
+        <td className="px-4 py-3 text-sm">
+          {isEditing ? (
+            <Input
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              placeholder="이미지 URL"
+              className="h-8 text-sm w-36"
+            />
+          ) : streamer.image_url ? (
+            <img
+              src={streamer.image_url}
+              alt={streamer.nickname || ""}
+              className="w-8 h-8 rounded-full object-cover"
+            />
+          ) : (
+            <span className="text-gray-400 text-xs">없음</span>
+          )}
+        </td>
         <td className="px-4 py-3 text-sm">
           {isEditing ? (
             <Input
@@ -358,10 +375,10 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
         <td className="px-4 py-3 text-sm">
           {isEditing ? (
             <Input
-              type="date"
               value={birthday}
               onChange={(e) => setBirthday(e.target.value)}
-              className="h-8 text-sm w-40"
+              placeholder="생일 (예: 1월 15일)"
+              className="h-8 text-sm w-44"
             />
           ) : (
             <span className="text-gray-500 text-xs">{streamer.birthday || "-"}</span>
@@ -408,10 +425,10 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
         <td className="px-4 py-3 text-sm">
           {isEditing ? (
             <Input
-              type="date"
               value={firstStreamDate}
               onChange={(e) => setFirstStreamDate(e.target.value)}
-              className="h-8 text-sm w-40"
+              placeholder="첫 방송일 (예: 2023년 5월)"
+              className="h-8 text-sm w-44"
             />
           ) : (
             <span className="text-gray-500 text-xs">
@@ -479,24 +496,6 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
             />
           ) : (
             <span className="text-gray-500 text-xs">{streamer.youtube_url || "-"}</span>
-          )}
-        </td>
-        <td className="px-4 py-3 text-sm">
-          {isEditing ? (
-            <Input
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="이미지 URL"
-              className="h-8 text-sm w-36"
-            />
-          ) : streamer.image_url ? (
-            <img
-              src={streamer.image_url}
-              alt={streamer.nickname || ""}
-              className="w-8 h-8 rounded-full object-cover"
-            />
-          ) : (
-            <span className="text-gray-400 text-xs">없음</span>
           )}
         </td>
         <td className="px-4 py-3">
@@ -604,10 +603,10 @@ type StreamerTableProps = {
 export function StreamerTable({ streamers, isLoading }: StreamerTableProps) {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto overflow-y-auto max-h-[560px]">
-      <table className="min-w-[2600px] text-left">
+      <table className="min-w-[2500px] text-left">
         <thead>
           <tr className="bg-gray-50/80 border-b border-gray-100">
-            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">ID</th>
+            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">이미지</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">닉네임</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">플랫폼</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">치지직 ID</th>
@@ -624,20 +623,19 @@ export function StreamerTable({ streamers, isLoading }: StreamerTableProps) {
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">별명</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">플랫폼 주소</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">유튜브 주소</th>
-            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">이미지</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-20">수정</th>
           </tr>
         </thead>
         <tbody>
           {isLoading ? (
-            <TableSkeleton cols={19} />
+            <TableSkeleton cols={18} />
           ) : streamers && streamers.length > 0 ? (
             streamers.map((streamer) => (
               <StreamerRow key={streamer.id} streamer={streamer} />
             ))
           ) : (
             <tr>
-              <td colSpan={19} className="px-4 py-12 text-center text-gray-400 text-sm">
+              <td colSpan={18} className="px-4 py-12 text-center text-gray-400 text-sm">
                 등록된 스트리머가 없습니다.
               </td>
             </tr>

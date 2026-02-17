@@ -209,7 +209,7 @@ export default function VlistScreen() {
                   {streamer.group_name?.map((group) => (
                     <span
                       key={`${streamer.id}-group-${group}`}
-                      className="inline-flex items-center rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[10px] font-medium text-gray-600"
+                      className="inline-flex items-center rounded-full border border-pink-100 bg-pink-50 px-2 py-0.5 text-[10px] font-medium text-pink-700"
                     >
                       {group}
                     </span>

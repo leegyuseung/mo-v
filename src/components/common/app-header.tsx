@@ -15,15 +15,14 @@ export default function AppHeader() {
   const { toggleSidebar } = useSidebar();
 
   return (
-    <div className="flex items-center justify-between px-3 md:px-6 h-16 w-full bg-white">
+    <div className="relative z-30 flex items-center justify-between px-3 md:px-6 h-16 w-full bg-white">
       <div className="flex items-center gap-2">
-        {/* 모바일 사이드바 토글 버튼 */}
         <button
           onClick={toggleSidebar}
-          className="md:hidden p-1.5 rounded-lg hover:bg-sidebar-accent cursor-pointer transition-colors"
+          className="md:-ml-3 h-10 w-10 inline-flex items-center justify-center rounded-lg cursor-pointer text-gray-700 hover:bg-gray-100 transition-colors"
           aria-label="메뉴 열기"
         >
-          <Menu className="w-5 h-5 text-gray-700" />
+          <Menu className="w-5 h-5" />
         </button>
         <Link href={"/"}>
           <Image
