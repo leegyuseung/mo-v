@@ -15,7 +15,7 @@ export default function AppHeader() {
   const { toggleSidebar } = useSidebar();
 
   return (
-    <div className="flex items-center justify-between px-3 md:px-6 h-14 md:h-16 w-full bg-white">
+    <div className="flex items-center justify-between px-3 md:px-6 h-16 w-full bg-white">
       <div className="flex items-center gap-2">
         {/* 모바일 사이드바 토글 버튼 */}
         <button
@@ -29,8 +29,8 @@ export default function AppHeader() {
           <Image
             src={"/logo.png"}
             alt=""
-            height={64}
-            width={64}
+            height={72}
+            width={72}
             loading="eager"
             priority
             className="cursor-pointer"
@@ -41,14 +41,14 @@ export default function AppHeader() {
         <button
           type="button"
           aria-label="즐겨찾기(준비중)"
-          className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 cursor-pointer"
+          className="h-10 w-10 inline-flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 cursor-pointer"
         >
           <Star className="w-4 h-4" />
         </button>
         <button
           type="button"
           aria-label="출석 이벤트(준비중)"
-          className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 cursor-pointer"
+          className="h-10 w-10 inline-flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 cursor-pointer"
         >
           <CalendarDays className="w-4 h-4" />
         </button>
@@ -65,7 +65,7 @@ export default function AppHeader() {
         ) : (
           <button
             onClick={() => router.push("/login")}
-            className="rounded-xl px-2 py-2 cursor-pointer text-sm hover:bg-sidebar-accent"
+            className="h-10 rounded-xl px-3 cursor-pointer text-sm hover:bg-sidebar-accent"
           >
             로그인
           </button>
