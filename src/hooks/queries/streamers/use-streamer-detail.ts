@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchStreamerById } from "@/api/streamers";
+import { fetchStreamerByPublicId } from "@/api/streamers";
 
-export function useStreamerDetail(streamerId: number) {
+export function useStreamerDetail(streamerPublicId: string) {
   return useQuery({
-    queryKey: ["streamer", streamerId],
-    queryFn: () => fetchStreamerById(streamerId),
-    enabled: Number.isFinite(streamerId) && streamerId > 0,
+    queryKey: ["streamer", streamerPublicId],
+    queryFn: () => fetchStreamerByPublicId(streamerPublicId),
+    enabled: streamerPublicId.trim().length > 0,
   });
 }

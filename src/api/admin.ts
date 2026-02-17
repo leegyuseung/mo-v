@@ -3,10 +3,15 @@ import type { DashboardStats, Streamer } from "@/types/admin";
 import type { Profile } from "@/types/profile";
 import type {
     ChzzkChannelProfile,
+    StreamerInfoEditRequest,
     StreamerRegistrationRequest,
     StreamerRequestStatus,
 } from "@/types/admin";
-import { STREAMER_REQUEST_TABLE, STREAMER_TABLE } from "@/lib/constant";
+import {
+    STREAMER_INFO_EDIT_REQUEST_TABLE,
+    STREAMER_REQUEST_TABLE,
+    STREAMER_TABLE,
+} from "@/lib/constant";
 
 export type { DashboardStats, Profile, Streamer };
 
@@ -103,6 +108,16 @@ export async function updateStreamer(
         image_url?: string | null;
         group_name?: string[] | null;
         crew_name?: string[] | null;
+        birthday?: string | null;
+        nationality?: string | null;
+        gender?: string | null;
+        genre?: string[] | null;
+        first_stream_date?: string | null;
+        fandom_name?: string | null;
+        mbti?: string | null;
+        alias?: string[] | null;
+        platform_url?: string | null;
+        youtube_url?: string | null;
     }
 ) {
     const { data, error } = await supabase
@@ -152,6 +167,15 @@ export async function updateStreamerRequestStatus(
     return data;
 }
 
+export async function deleteStreamerRequest(requestId: number) {
+    const { error } = await supabase
+        .from(STREAMER_REQUEST_TABLE)
+        .delete()
+        .eq("id", requestId);
+
+    if (error) throw error;
+}
+
 export async function registerStreamerFromRequest(
     requestId: number,
     payload: { nickname: string; imageUrl: string; groupName: string[] | null }
@@ -182,18 +206,33 @@ export async function registerStreamerFromRequest(
 
     if (insertError) throw insertError;
 
-    const { data, error } = await supabase
+    const { error: deleteError } = await supabase
         .from(STREAMER_REQUEST_TABLE)
-        .update({
-            status: "approved",
-            reviewed_at: new Date().toISOString(),
-        })
-        .eq("id", requestId)
-        .select()
-        .single();
+        .delete()
+        .eq("id", requestId);
+
+    if (deleteError) throw deleteError;
+}
+
+export async function fetchStreamerInfoEditRequests(): Promise<
+    StreamerInfoEditRequest[]
+> {
+    const { data, error } = await supabase
+        .from(STREAMER_INFO_EDIT_REQUEST_TABLE)
+        .select("*")
+        .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return data;
+    return (data || []) as StreamerInfoEditRequest[];
+}
+
+export async function deleteStreamerInfoEditRequest(requestId: number) {
+    const { error } = await supabase
+        .from(STREAMER_INFO_EDIT_REQUEST_TABLE)
+        .delete()
+        .eq("id", requestId);
+
+    if (error) throw error;
 }
 
 export async function fetchChzzkChannelProfile(

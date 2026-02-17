@@ -1,10 +1,15 @@
 import { createClient } from "@/utils/supabase/client";
 import type {
+  CreateStreamerInfoEditRequestInput,
   CreateStreamerRequestInput,
   StreamerListParams,
   StreamerListResponse,
 } from "@/types/streamer";
-import { STREAMER_REQUEST_TABLE, STREAMER_TABLE } from "@/lib/constant";
+import {
+  STREAMER_INFO_EDIT_REQUEST_TABLE,
+  STREAMER_REQUEST_TABLE,
+  STREAMER_TABLE,
+} from "@/lib/constant";
 
 const supabase = createClient();
 
@@ -43,12 +48,12 @@ export async function fetchStreamers({
   };
 }
 
-export async function fetchStreamerById(streamerId: number) {
-  const { data, error } = await supabase
-    .from(STREAMER_TABLE)
-    .select("*")
-    .eq("id", streamerId)
-    .single();
+export async function fetchStreamerByPublicId(streamerPublicId: string) {
+  const query = supabase.from(STREAMER_TABLE).select("*");
+  const isLegacyNumericId = /^[0-9]+$/.test(streamerPublicId);
+  const { data, error } = await (isLegacyNumericId
+    ? query.eq("id", Number(streamerPublicId)).single()
+    : query.eq("public_id", streamerPublicId).single());
 
   if (error) {
     throw error;
@@ -84,6 +89,31 @@ export async function createStreamerRegistrationRequest({
     platform_streamer_id: platformStreamerId,
     platform_streamer_url: platformStreamerUrl,
     status: "pending",
+  });
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function createStreamerInfoEditRequest({
+  content,
+  streamerId,
+  streamerNickname,
+  requesterId,
+  requesterNickname,
+}: CreateStreamerInfoEditRequestInput) {
+  const trimmedContent = content.trim();
+  if (!trimmedContent) {
+    throw new Error("수정 요청 내용을 입력해 주세요.");
+  }
+
+  const { error } = await supabase.from(STREAMER_INFO_EDIT_REQUEST_TABLE).insert({
+    content: trimmedContent,
+    streamer_id: streamerId,
+    streamer_nickname: streamerNickname,
+    requester_id: requesterId,
+    requester_nickname: requesterNickname,
   });
 
   if (error) {

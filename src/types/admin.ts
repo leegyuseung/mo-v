@@ -34,3 +34,13 @@ export type ChzzkChannelProfile = {
     channelName: string | null;
     channelImageUrl: string | null;
 };
+
+export type StreamerInfoEditRequest = {
+    id: number;
+    created_at: string;
+    content: string;
+    streamer_id: number;
+    streamer_nickname: string;
+    requester_id: string;
+    requester_nickname: string | null;
+};

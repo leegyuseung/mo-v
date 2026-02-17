@@ -6,6 +6,7 @@ import {
     Users,
     Clock,
     ArrowLeft,
+    UserRoundPen,
 } from "lucide-react";
 import {
     Sidebar,
@@ -24,7 +25,8 @@ import {
 const adminMenuItems = [
     { title: "대시보드", url: "/admin", icon: LayoutDashboard },
     { title: "유저/스트리머 관리", url: "/admin/users", icon: Users },
-    { title: "등록 대기", url: "/admin/pending", icon: Clock },
+    { title: "스트리머 등록 대기", url: "/admin/pending", icon: Clock },
+    { title: "스트리머 정보 수정 요청", url: "/admin/infoeditrq", icon: UserRoundPen },
 ];
 
 export default function AdminSideBar() {
@@ -63,8 +65,8 @@ export default function AdminSideBar() {
                                             asChild
                                             tooltip={item.title}
                                             className={`transition-colors ${isActive
-                                                    ? "bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 hover:text-indigo-300"
-                                                    : "text-gray-400 hover:bg-gray-800 hover:text-white"
+                                                ? "bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 hover:text-indigo-300"
+                                                : "text-gray-400 hover:bg-gray-800 hover:text-white"
                                                 }`}
                                         >
                                             <Link href={item.url}>

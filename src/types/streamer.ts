@@ -25,3 +25,11 @@ export type CreateStreamerRequestInput = {
   platformStreamerId: string;
   platformStreamerUrl: string;
 };
+
+export type CreateStreamerInfoEditRequestInput = {
+  content: string;
+  streamerId: number;
+  streamerNickname: string;
+  requesterId: string;
+  requesterNickname: string | null;
+};

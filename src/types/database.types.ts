@@ -65,6 +65,54 @@ export type Database = {
                 }
                 Relationships: []
             }
+            streamer_hearts: {
+                Row: {
+                    streamer_id: number
+                    total_received: number
+                    updated_at: string
+                }
+                Insert: {
+                    streamer_id: number
+                    total_received?: number
+                    updated_at?: string
+                }
+                Update: {
+                    streamer_id?: number
+                    total_received?: number
+                    updated_at?: string
+                }
+                Relationships: []
+            }
+            streamer_heart_history: {
+                Row: {
+                    id: number
+                    from_user_id: string
+                    to_streamer_id: number
+                    amount: number
+                    description: string | null
+                    after_streamer_total: number
+                    created_at: string
+                }
+                Insert: {
+                    id?: number
+                    from_user_id: string
+                    to_streamer_id: number
+                    amount: number
+                    description?: string | null
+                    after_streamer_total: number
+                    created_at?: string
+                }
+                Update: {
+                    id?: number
+                    from_user_id?: string
+                    to_streamer_id?: number
+                    amount?: number
+                    description?: string | null
+                    after_streamer_total?: number
+                    created_at?: string
+                }
+                Relationships: []
+            }
             profiles: {
                 Row: {
                     avatar_url: string | null
@@ -106,46 +154,140 @@ export type Database = {
             }
             streamers: {
                 Row: {
+                    alias: string[] | null
+                    birthday: string | null
                     chzzk_id: string | null
                     created_at: string
                     crew_name: string[] | null
+                    fandom_name: string | null
+                    first_stream_date: string | null
+                    gender: string | null
+                    genre: string[] | null
                     group_name: string[] | null
                     id: number
                     image_url: string | null
+                    mbti: string | null
+                    nationality: string | null
                     nickname: string | null
                     platform: string | null
+                    platform_url: string | null
+                    public_id: string
                     soop_id: string | null
+                    youtube_url: string | null
                 }
                 Insert: {
+                    alias?: string[] | null
+                    birthday?: string | null
                     chzzk_id?: string | null
                     created_at?: string
                     crew_name?: string[] | null
+                    fandom_name?: string | null
+                    first_stream_date?: string | null
+                    gender?: string | null
+                    genre?: string[] | null
                     group_name?: string[] | null
                     id?: number
                     image_url?: string | null
+                    mbti?: string | null
+                    nationality?: string | null
                     nickname?: string | null
                     platform?: string | null
+                    platform_url?: string | null
+                    public_id?: string
                     soop_id?: string | null
+                    youtube_url?: string | null
                 }
                 Update: {
+                    alias?: string[] | null
+                    birthday?: string | null
                     chzzk_id?: string | null
                     created_at?: string
                     crew_name?: string[] | null
+                    fandom_name?: string | null
+                    first_stream_date?: string | null
+                    gender?: string | null
+                    genre?: string[] | null
                     group_name?: string[] | null
                     id?: number
                     image_url?: string | null
+                    mbti?: string | null
+                    nationality?: string | null
                     nickname?: string | null
                     platform?: string | null
+                    platform_url?: string | null
+                    public_id?: string
                     soop_id?: string | null
+                    youtube_url?: string | null
+                }
+                Relationships: []
+            }
+            streamer_info_edit_requests: {
+                Row: {
+                    content: string
+                    created_at: string
+                    id: number
+                    requester_id: string
+                    requester_nickname: string | null
+                    streamer_id: number
+                    streamer_nickname: string
+                }
+                Insert: {
+                    content: string
+                    created_at?: string
+                    id?: number
+                    requester_id: string
+                    requester_nickname?: string | null
+                    streamer_id: number
+                    streamer_nickname: string
+                }
+                Update: {
+                    content?: string
+                    created_at?: string
+                    id?: number
+                    requester_id?: string
+                    requester_nickname?: string | null
+                    streamer_id?: number
+                    streamer_nickname?: string
                 }
                 Relationships: []
             }
         }
         Views: {
-            [_ in never]: never
+            streamer_heart_rank: {
+                Row: {
+                    streamer_id: number | null
+                    nickname: string | null
+                    platform: string | null
+                    total_received: number | null
+                    rank: number | null
+                }
+                Relationships: []
+            }
+            streamer_top_donors: {
+                Row: {
+                    streamer_id: number | null
+                    user_id: string | null
+                    user_nickname: string | null
+                    total_sent: number | null
+                    last_sent_at: string | null
+                    donor_rank: number | null
+                }
+                Relationships: []
+            }
         }
         Functions: {
-            [_ in never]: never
+            gift_heart_to_streamer: {
+                Args: {
+                    p_from_user_id: string
+                    p_to_streamer_id: number
+                    p_amount: number
+                    p_description?: string | null
+                }
+                Returns: {
+                    user_after_point: number
+                    streamer_after_total: number
+                }[]
+            }
         }
         Enums: {
             [_ in never]: never

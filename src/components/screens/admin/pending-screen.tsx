@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePendingStreamerRequests } from "@/hooks/queries/admin/use-pending-streamer-requests";
-import { useUpdateStreamerRequestStatus } from "@/hooks/mutations/admin/use-update-streamer-request-status";
+import { useDeleteStreamerRequest } from "@/hooks/mutations/admin/use-delete-streamer-request";
 import { useRegisterStreamerFromRequest } from "@/hooks/mutations/admin/use-register-streamer-from-request";
 import { useChzzkChannelProfile } from "@/hooks/queries/admin/use-chzzk-channel-profile";
 import type { StreamerRegistrationRequest } from "@/types/admin";
@@ -16,8 +16,8 @@ function RequestRow({ request }: { request: StreamerRegistrationRequest }) {
     const [nickname, setNickname] = useState("");
     const [imageUrl, setImageUrl] = useState("");
     const [groupNameInput, setGroupNameInput] = useState("");
-    const { mutate: rejectRequest, isPending: isRejecting } =
-        useUpdateStreamerRequestStatus();
+    const { mutate: deleteRequest, isPending: isRejecting } =
+        useDeleteStreamerRequest();
     const { mutate: registerStreamer, isPending: isRegistering } =
         useRegisterStreamerFromRequest();
     const {
@@ -64,8 +64,8 @@ function RequestRow({ request }: { request: StreamerRegistrationRequest }) {
             <td className="px-4 py-3 text-sm">
                 <span
                     className={`px-2 py-0.5 rounded-full text-xs font-medium ${request.platform === "chzzk"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-blue-100 text-blue-700"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-blue-100 text-blue-700"
                         }`}
                 >
                     {request.platform.toUpperCase()}
@@ -143,9 +143,7 @@ function RequestRow({ request }: { request: StreamerRegistrationRequest }) {
                     <Button
                         size="sm"
                         variant="outline"
-                        onClick={() =>
-                            rejectRequest({ requestId: request.id, status: "rejected" })
-                        }
+                        onClick={() => deleteRequest(request.id)}
                         disabled={isPendingAction}
                         className="cursor-pointer border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
                     >
@@ -166,7 +164,7 @@ export default function PendingScreen() {
             <div className="mb-8">
                 <div className="flex items-center gap-2 mb-1">
                     <Clock className="w-5 h-5 text-amber-500" />
-                    <h1 className="text-2xl font-bold text-gray-900">등록 대기</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">스트리머 등록 대기</h1>
                 </div>
                 <p className="text-sm text-gray-500">
                     유저가 요청한 스트리머 등록 대기 목록입니다.

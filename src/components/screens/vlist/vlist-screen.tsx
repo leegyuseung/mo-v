@@ -170,7 +170,7 @@ export default function VlistScreen() {
           {streamers.map((streamer) => (
             <Link
               key={streamer.id}
-              href={`/vlist/${streamer.id}`}
+              href={`/vlist/${streamer.public_id ?? streamer.id}`}
               className="group rounded-xl border border-gray-100 bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
             >
               <div className="relative mb-2 h-28 overflow-hidden rounded-lg bg-gray-100">
