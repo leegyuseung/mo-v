@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-const defaultSiteUrl = "https://mo-v.vercel.app";
+const defaultSiteUrl = "https://www.mo-v.co.kr";
 
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.trim() || defaultSiteUrl;
