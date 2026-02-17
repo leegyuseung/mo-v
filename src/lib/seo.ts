@@ -1,9 +1,23 @@
 import type { Metadata } from "next";
 
-const defaultSiteUrl = "https://www.mo-v.co.kr";
+const defaultSiteUrl = "https://www.mo-v.kr";
 
-export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.trim() || defaultSiteUrl;
+function resolveSiteUrl(rawValue: string | undefined): string {
+  const trimmed = rawValue?.trim();
+  if (!trimmed) return defaultSiteUrl;
+
+  try {
+    return new URL(trimmed).toString().replace(/\/$/, "");
+  } catch {
+    try {
+      return new URL(`https://${trimmed}`).toString().replace(/\/$/, "");
+    } catch {
+      return defaultSiteUrl;
+    }
+  }
+}
+
+export const SITE_URL = resolveSiteUrl(process.env.NEXT_PUBLIC_SITE_URL);
 
 export const SITE_NAME = "mo-v";
 export const SITE_TITLE = "mo-v | 모두의 버추얼";
