@@ -87,8 +87,8 @@ export default function VlistDetailScreen({
   const groupTags = streamer.group_name?.filter(Boolean) ?? [];
   const crewTags = streamer.crew_name?.filter(Boolean) ?? [];
   const identityTags = [
-    ...groupTags.map((name) => ({ type: "group", name })),
-    ...crewTags.map((name) => ({ type: "crew", name })),
+    ...groupTags.map((name: string) => ({ type: "group" as const, name })),
+    ...crewTags.map((name: string) => ({ type: "crew" as const, name })),
   ];
 
   const openInfoEditRequestModal = () => {

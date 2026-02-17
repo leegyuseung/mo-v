@@ -19,6 +19,16 @@ export function useUpdateStreamer() {
                 image_url?: string | null;
                 group_name?: string[] | null;
                 crew_name?: string[] | null;
+                birthday?: string | null;
+                nationality?: string | null;
+                gender?: string | null;
+                genre?: string[] | null;
+                first_stream_date?: string | null;
+                fandom_name?: string | null;
+                mbti?: string | null;
+                alias?: string[] | null;
+                platform_url?: string | null;
+                youtube_url?: string | null;
             };
         }) => updateStreamer(streamerId, updates),
         onSuccess: () => {

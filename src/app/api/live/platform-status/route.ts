@@ -192,8 +192,9 @@ async function fetchChzzkLiveStatus(channelId: string) {
       pageCount += 1;
     }
 
+    const nestedLive = (live?.live ?? null) as Record<string, unknown> | null;
     const statusText = String(
-      live?.status ?? live?.liveStatus ?? live?.live?.status ?? ""
+      live?.status ?? live?.liveStatus ?? nestedLive?.status ?? ""
     ).toUpperCase();
     const viewerCount = parseNumber(
       live?.concurrentUserCount ?? live?.viewerCount ?? live?.watchingCount
