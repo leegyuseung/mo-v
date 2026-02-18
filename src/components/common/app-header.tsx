@@ -15,7 +15,7 @@ export default function AppHeader() {
   const { toggleSidebar } = useSidebar();
 
   return (
-    <div className="relative z-30 flex items-center justify-between px-3 md:px-6 h-16 w-full bg-white">
+    <div className="relative z-30 flex items-center justify-between px-3 md:px-6 h-[72px] w-full bg-white">
       <div className="flex items-center gap-2">
         <button
           onClick={toggleSidebar}
@@ -37,20 +37,30 @@ export default function AppHeader() {
         </Link>
       </div>
       <div className="flex items-center gap-2 md:gap-3">
-        <button
-          type="button"
-          aria-label="즐겨찾기(준비중)"
-          className="h-10 w-10 inline-flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 cursor-pointer"
-        >
-          <Star className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          aria-label="출석 이벤트(준비중)"
-          className="h-10 w-10 inline-flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 cursor-pointer"
-        >
-          <CalendarDays className="w-4 h-4" />
-        </button>
+        <div className="group relative">
+          <button
+            type="button"
+            aria-label="즐겨찾기(준비중)"
+            className="h-10 w-10 inline-flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer"
+          >
+            <Star className="w-4 h-4" />
+          </button>
+          <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+            즐겨찾기
+          </span>
+        </div>
+        <div className="group relative">
+          <button
+            type="button"
+            aria-label="출석 이벤트(준비중)"
+            className="h-10 w-10 inline-flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer"
+          >
+            <CalendarDays className="w-4 h-4" />
+          </button>
+          <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+            출석이벤트
+          </span>
+        </div>
         {isLoading ? (
           <div className="w-16 md:w-20 h-8 bg-gray-100 animate-pulse rounded-xl" />
         ) : user ? (

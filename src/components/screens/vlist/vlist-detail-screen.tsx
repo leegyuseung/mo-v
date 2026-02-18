@@ -219,11 +219,10 @@ export default function VlistDetailScreen({
                   {identityTags.map((tag) => (
                     <span
                       key={`${tag.type}-${tag.name}`}
-                      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
-                        tag.type === "group"
+                      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${tag.type === "group"
                           ? "bg-pink-50 text-pink-700 border border-pink-100"
                           : "bg-sky-50 text-sky-700 border border-sky-100"
-                      }`}
+                        }`}
                     >
                       {tag.name}
                     </span>

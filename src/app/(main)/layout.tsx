@@ -14,7 +14,7 @@ export default function MainLayout({
         <AppHeader />
         <div className="flex flex-1">
           <AppSideBar />
-          <div className="w-full flex flex-col min-h-[calc(100vh-4rem)]">
+          <div className="w-full flex flex-col min-h-[calc(100vh-72px)]">
             <main className="flex-1">{children}</main>
             <AppFooter />
           </div>

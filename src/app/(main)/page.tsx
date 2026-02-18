@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import HomeScreen from "@/components/screens/home/home-screen";
 import { SITE_DESCRIPTION, SITE_TITLE } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -12,5 +13,5 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
-  return <div className="p-4 md:p-6">메인화면</div>;
+  return <HomeScreen />;
 }
