@@ -70,9 +70,9 @@ export default function InfoEditRequestsScreen() {
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-1">
           <UserRoundPen className="w-5 h-5 text-indigo-500" />
-          <h1 className="text-2xl font-bold text-gray-900">스트리머 정보 수정 요청</h1>
+          <h1 className="text-2xl font-bold text-gray-900">정보 수정 요청</h1>
         </div>
-        <p className="text-sm text-gray-500">유저가 보낸 스트리머 정보 수정 요청 목록입니다.</p>
+        <p className="text-sm text-gray-500">유저가 보낸 정보 수정 요청 목록입니다.</p>
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">

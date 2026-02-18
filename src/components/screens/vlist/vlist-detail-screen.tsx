@@ -92,8 +92,8 @@ export default function VlistDetailScreen({
   });
   const groupTags =
     streamer.group_name
-      ?.filter(Boolean)
-      .map((group) => groupNameByCode.get(group.trim().toLowerCase()) || group) ?? [];
+      ?.filter((group: unknown): group is string => Boolean(group))
+      .map((group: string) => groupNameByCode.get(group.trim().toLowerCase()) || group) ?? [];
   const crewTags = streamer.crew_name?.filter(Boolean) ?? [];
   const identityTags = [
     ...groupTags.map((name: string) => ({ type: "group" as const, name })),
