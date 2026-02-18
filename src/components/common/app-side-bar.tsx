@@ -33,7 +33,7 @@ const menuItems = [
   { title: "mo-v", url: "/", icon: House },
   { title: "라이브", url: "/live", icon: TvMinimalPlay },
   { title: "버추얼", url: "/vlist", icon: Gem },
-  { title: "그룹", icon: MicVocal },
+  { title: "그룹", url: "/group", icon: MicVocal },
   { title: "크루", icon: UsersRound },
   { title: "콘텐츠", icon: Clapperboard },
 ] satisfies MenuItem[];

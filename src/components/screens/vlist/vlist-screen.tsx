@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { useStreamers } from "@/hooks/queries/streamers/use-streamers";
+import { useIdolGroupCodeNames } from "@/hooks/queries/groups/use-idol-group-code-names";
 import type {
   StreamerPlatform,
   StreamerSortOrder,
@@ -15,7 +16,6 @@ import { ChevronLeft, ChevronRight, UserRound } from "lucide-react";
 import {
   STREAMER_PAGE_SIZE,
   STREAMER_PLATFORM_OPTIONS,
-  STREAMER_SORT_OPTIONS,
 } from "@/lib/constant";
 import StreamerRequestModal from "@/components/screens/vlist/streamer-request-modal";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -36,10 +36,18 @@ export default function VlistScreen() {
     sortOrder,
     keyword,
   });
+  const { data: idolGroups } = useIdolGroupCodeNames();
 
   const streamers = data?.data || [];
   const totalCount = data?.count || 0;
   const totalPages = Math.max(1, Math.ceil(totalCount / STREAMER_PAGE_SIZE));
+  const groupNameByCode = useMemo(() => {
+    const map = new Map<string, string>();
+    (idolGroups || []).forEach((group) => {
+      map.set(group.group_code.trim().toLowerCase(), group.name);
+    });
+    return map;
+  }, [idolGroups]);
 
   const pageNumbers = useMemo(() => {
     const size = 5;
@@ -138,18 +146,15 @@ export default function VlistScreen() {
 
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm text-gray-500">정렬</span>
-          {STREAMER_SORT_OPTIONS.map((item) => (
-            <Button
-              key={item.value}
-              type="button"
-              size="sm"
-              variant={sortOrder === item.value ? "default" : "outline"}
-              onClick={() => onChangeSort(item.value)}
-              className={`cursor-pointer ${sortOrder === item.value ? "bg-gray-800 hover:bg-gray-900 text-white" : ""}`}
-            >
-              {item.label}
-            </Button>
-          ))}
+          <Button
+            type="button"
+            size="sm"
+            variant="default"
+            onClick={() => onChangeSort(sortOrder === "asc" ? "desc" : "asc")}
+            className="cursor-pointer bg-gray-800 hover:bg-gray-900 text-white"
+          >
+            가나다순
+          </Button>
         </div>
       </div>
 
@@ -211,7 +216,7 @@ export default function VlistScreen() {
                       key={`${streamer.id}-group-${group}`}
                       className="inline-flex items-center rounded-full border border-pink-100 bg-pink-50 px-2 py-0.5 text-[10px] font-medium text-pink-700"
                     >
-                      {group}
+                      {groupNameByCode.get(group.trim().toLowerCase()) || group}
                     </span>
                   ))}
                   {streamer.crew_name?.map((crew) => (

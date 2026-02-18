@@ -8,19 +8,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { useLiveStreamers } from "@/hooks/queries/live/use-live-streamers";
+import { useIdolGroupCodeNames } from "@/hooks/queries/groups/use-idol-group-code-names";
 import type { StreamerPlatform } from "@/types/streamer";
 import { STREAMER_PLATFORM_OPTIONS } from "@/lib/constant";
 
 export default function LiveScreen() {
   const [platform, setPlatform] = useState<StreamerPlatform>("all");
   const [keyword, setKeyword] = useState("");
-  const [sortOrder, setSortOrder] = useState<"name_asc" | "viewer_desc">(
-    "name_asc"
-  );
+  const [sortOrder, setSortOrder] = useState<
+    "name_asc" | "name_desc" | "viewer_desc" | "viewer_asc"
+  >("name_asc");
   const [brokenImageByStreamerId, setBrokenImageByStreamerId] = useState<
     Record<number, boolean>
   >({});
   const { data, isLoading, isFetching } = useLiveStreamers();
+  const { data: idolGroups } = useIdolGroupCodeNames();
 
   const filteredLiveStreamers = useMemo(() => {
     const source = data || [];
@@ -37,12 +39,24 @@ export default function LiveScreen() {
         return (item.nickname || "").toLowerCase().includes(keywordLower);
       })
       .sort((a, b) => {
-        if (sortOrder === "viewer_desc") {
-          return (b.viewerCount ?? 0) - (a.viewerCount ?? 0);
+        if (sortOrder === "viewer_desc" || sortOrder === "viewer_asc") {
+          const diff = (b.viewerCount ?? 0) - (a.viewerCount ?? 0);
+          return sortOrder === "viewer_desc" ? diff : -diff;
         }
-        return (a.nickname || "").localeCompare(b.nickname || "ko");
+        const diff = (a.nickname || "").localeCompare(b.nickname || "", "ko");
+        return sortOrder === "name_asc" ? diff : -diff;
       });
   }, [data, keyword, platform, sortOrder]);
+
+  const isNameSort = sortOrder === "name_asc" || sortOrder === "name_desc";
+  const isViewerSort = sortOrder === "viewer_desc" || sortOrder === "viewer_asc";
+  const groupNameByCode = useMemo(() => {
+    const map = new Map<string, string>();
+    (idolGroups || []).forEach((group) => {
+      map.set(group.group_code.trim().toLowerCase(), group.name);
+    });
+    return map;
+  }, [idolGroups]);
 
   const getPlatformActiveClass = (value: StreamerPlatform) => {
     if (value === "all") {
@@ -103,8 +117,16 @@ export default function LiveScreen() {
             type="button"
             size="sm"
             variant="default"
-            onClick={() => setSortOrder("name_asc")}
-            className={`cursor-pointer ${sortOrder === "name_asc"
+            onClick={() =>
+              setSortOrder((prev) =>
+                prev === "name_asc"
+                  ? "name_desc"
+                  : prev === "name_desc"
+                    ? "name_asc"
+                    : "name_asc"
+              )
+            }
+            className={`cursor-pointer ${isNameSort
               ? "bg-gray-800 hover:bg-gray-900 text-white"
               : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
               }`}
@@ -115,8 +137,16 @@ export default function LiveScreen() {
             type="button"
             size="sm"
             variant="default"
-            onClick={() => setSortOrder("viewer_desc")}
-            className={`cursor-pointer ${sortOrder === "viewer_desc"
+            onClick={() =>
+              setSortOrder((prev) =>
+                prev === "viewer_desc"
+                  ? "viewer_asc"
+                  : prev === "viewer_asc"
+                    ? "viewer_desc"
+                    : "viewer_desc"
+              )
+            }
+            className={`cursor-pointer ${isViewerSort
               ? "bg-gray-800 hover:bg-gray-900 text-white"
               : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
               }`}
@@ -236,7 +266,7 @@ export default function LiveScreen() {
                         key={`${streamer.id}-group-${group}`}
                         className="inline-flex items-center rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[10px] font-medium text-gray-600"
                       >
-                        {group}
+                        {groupNameByCode.get(group.trim().toLowerCase()) || group}
                       </span>
                     ))}
                     {streamer.crew_name?.map((crew) => (

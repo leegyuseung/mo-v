@@ -163,6 +163,7 @@ export type Database = {
                     first_stream_date: string | null
                     gender: string | null
                     genre: string[] | null
+                    group_codes: string[] | null
                     group_name: string[] | null
                     id: number
                     image_url: string | null
@@ -185,6 +186,7 @@ export type Database = {
                     first_stream_date?: string | null
                     gender?: string | null
                     genre?: string[] | null
+                    group_codes?: string[] | null
                     group_name?: string[] | null
                     id?: number
                     image_url?: string | null
@@ -207,6 +209,7 @@ export type Database = {
                     first_stream_date?: string | null
                     gender?: string | null
                     genre?: string[] | null
+                    group_codes?: string[] | null
                     group_name?: string[] | null
                     id?: number
                     image_url?: string | null
@@ -217,6 +220,60 @@ export type Database = {
                     platform_url?: string | null
                     public_id?: string
                     soop_id?: string | null
+                    youtube_url?: string | null
+                }
+                Relationships: []
+            }
+            idol_groups: {
+                Row: {
+                    agency: string | null
+                    bg_color: boolean | null
+                    created_at: string
+                    debut_at: string | null
+                    fancafe_url: string | null
+                    fandom_name: string | null
+                    formed_at: string | null
+                    group_code: string
+                    id: number
+                    image_url: string | null
+                    leader: string | null
+                    members: string[]
+                    name: string
+                    updated_at: string | null
+                    youtube_url: string | null
+                }
+                Insert: {
+                    agency?: string | null
+                    bg_color?: boolean | null
+                    created_at?: string
+                    debut_at?: string | null
+                    fancafe_url?: string | null
+                    fandom_name?: string | null
+                    formed_at?: string | null
+                    group_code: string
+                    id?: number
+                    image_url?: string | null
+                    leader?: string | null
+                    members?: string[]
+                    name: string
+                    updated_at?: string | null
+                    youtube_url?: string | null
+                }
+                Update: {
+                    agency?: string | null
+                    bg_color?: boolean | null
+                    created_at?: string
+                    debut_at?: string | null
+                    fancafe_url?: string | null
+                    fandom_name?: string | null
+                    formed_at?: string | null
+                    group_code?: string
+                    id?: number
+                    image_url?: string | null
+                    leader?: string | null
+                    members?: string[]
+                    name?: string
+                    updated_at?: string | null
                     youtube_url?: string | null
                 }
                 Relationships: []

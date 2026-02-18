@@ -33,6 +33,15 @@ export const STREAMER_INFO_EDIT_REQUEST_MODAL_TEXT = {
   cancelButton: "취소",
 } as const;
 
+export const GROUP_INFO_EDIT_REQUEST_MODAL_TEXT = {
+  title: "그룹 정보 수정 요청",
+  description: "수정이 필요한 내용을 입력해 주세요. 관리자가 확인 후 반영합니다.",
+  contentRequired: "수정 요청 내용을 입력해 주세요.",
+  submitSuccess: "정보 수정 요청이 접수되었습니다.",
+  submitButton: "확인",
+  cancelButton: "취소",
+} as const;
+
 export const STREAMER_TABLE = "streamers";
 export const STREAMER_REQUEST_TABLE = "streamer_registration_requests";
 export const STREAMER_INFO_EDIT_REQUEST_TABLE = "streamer_info_edit_requests";

@@ -7,6 +7,7 @@ import {
     Clock,
     ArrowLeft,
     UserRoundPen,
+    MicVocal,
 } from "lucide-react";
 import {
     Sidebar,
@@ -25,6 +26,7 @@ import {
 const adminMenuItems = [
     { title: "대시보드", url: "/admin", icon: LayoutDashboard },
     { title: "유저/스트리머 관리", url: "/admin/users", icon: Users },
+    { title: "그룹 관리", url: "/admin/groups", icon: MicVocal },
     { title: "스트리머 등록 대기", url: "/admin/pending", icon: Clock },
     { title: "스트리머 정보 수정 요청", url: "/admin/infoeditrq", icon: UserRoundPen },
 ];

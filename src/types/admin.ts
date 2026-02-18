@@ -6,9 +6,11 @@ export type DashboardStats = {
     googleUsers: number;
     kakaoUsers: number;
     totalStreamers: number;
+    totalGroups: number;
 };
 
 export type Streamer = Tables<"streamers">;
+export type IdolGroup = Tables<"idol_groups">;
 
 export type StreamerRequestStatus =
     | "pending"
@@ -43,4 +45,18 @@ export type StreamerInfoEditRequest = {
     streamer_nickname: string;
     requester_id: string;
     requester_nickname: string | null;
+};
+
+export type IdolGroupUpsertInput = {
+    group_code: string;
+    name: string;
+    leader: string | null;
+    fandom_name: string | null;
+    agency: string | null;
+    formed_at: string | null;
+    debut_at: string | null;
+    fancafe_url: string | null;
+    youtube_url: string | null;
+    image_url: string | null;
+    bg_color: boolean | null;
 };

@@ -7,6 +7,7 @@ import {
     Globe,
     MessageCircle,
     TvMinimalPlay,
+    UsersRound,
 } from "lucide-react";
 import { StatCard, StatCardSkeleton } from "@/components/screens/admin/stat-card";
 
@@ -55,6 +56,14 @@ export default function DashboardScreen() {
                 bgLight: "bg-purple-50",
                 textColor: "text-purple-600",
             },
+            {
+                title: "등록된 그룹",
+                value: stats.totalGroups,
+                icon: UsersRound,
+                color: "from-indigo-500 to-indigo-600",
+                bgLight: "bg-indigo-50",
+                textColor: "text-indigo-600",
+            },
         ]
         : [];
 
@@ -71,7 +80,7 @@ export default function DashboardScreen() {
             {/* 통계 카드 */}
             {isLoading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {[...Array(5)].map((_, i) => (
+                    {[...Array(6)].map((_, i) => (
                         <StatCardSkeleton key={i} />
                     ))}
                 </div>

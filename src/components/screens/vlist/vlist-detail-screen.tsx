@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useStreamerDetail } from "@/hooks/queries/streamers/use-streamer-detail";
+import { useIdolGroupCodeNames } from "@/hooks/queries/groups/use-idol-group-code-names";
 import { useCreateStreamerInfoEditRequest } from "@/hooks/mutations/streamers/use-create-streamer-info-edit-request";
 import { Button } from "@/components/ui/button";
 import { ArrowBigLeft, UserRoundPen } from "lucide-react";
@@ -25,6 +26,7 @@ export default function VlistDetailScreen({
     mutateAsync: createInfoEditRequest,
     isPending: isInfoEditRequestSubmitting,
   } = useCreateStreamerInfoEditRequest();
+  const { data: idolGroups } = useIdolGroupCodeNames();
 
   if (isLoading) {
     return (
@@ -84,7 +86,14 @@ export default function VlistDetailScreen({
     canonicalPlatform === "chzzk"
       ? "border-green-200 bg-green-50 hover:bg-green-100"
       : "border-blue-200 bg-blue-50 hover:bg-blue-100";
-  const groupTags = streamer.group_name?.filter(Boolean) ?? [];
+  const groupNameByCode = new Map<string, string>();
+  (idolGroups || []).forEach((group) => {
+    groupNameByCode.set(group.group_code.trim().toLowerCase(), group.name);
+  });
+  const groupTags =
+    streamer.group_name
+      ?.filter(Boolean)
+      .map((group) => groupNameByCode.get(group.trim().toLowerCase()) || group) ?? [];
   const crewTags = streamer.crew_name?.filter(Boolean) ?? [];
   const identityTags = [
     ...groupTags.map((name: string) => ({ type: "group" as const, name })),
@@ -241,7 +250,7 @@ export default function VlistDetailScreen({
               <div className="flex items-start gap-2 text-sm">
                 <span className="w-20 shrink-0 text-gray-500">그룹</span>
                 <span className="font-medium text-gray-800 break-all">
-                  {streamer.group_name?.join(", ") || "-"}
+                  {groupTags.join(", ") || "-"}
                 </span>
               </div>
               <div className="flex items-start gap-2 text-sm">
