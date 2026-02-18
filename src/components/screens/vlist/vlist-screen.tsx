@@ -20,6 +20,7 @@ import {
 import StreamerRequestModal from "@/components/screens/vlist/streamer-request-modal";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function VlistScreen() {
   const [page, setPage] = useState(1);
@@ -28,10 +29,12 @@ export default function VlistScreen() {
   const [keyword, setKeyword] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const { user } = useAuthStore();
+  const isMobile = useIsMobile();
+  const pageSize = isMobile ? 14 : STREAMER_PAGE_SIZE;
 
   const { data, isLoading, isFetching } = useStreamers({
     page,
-    pageSize: STREAMER_PAGE_SIZE,
+    pageSize,
     platform,
     sortOrder,
     keyword,
@@ -40,7 +43,7 @@ export default function VlistScreen() {
 
   const streamers = data?.data || [];
   const totalCount = data?.count || 0;
-  const totalPages = Math.max(1, Math.ceil(totalCount / STREAMER_PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const groupNameByCode = useMemo(() => {
     const map = new Map<string, string>();
     (idolGroups || []).forEach((group) => {

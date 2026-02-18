@@ -4,33 +4,58 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo } from "react";
 import { UserRound } from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useLiveStreamers } from "@/hooks/queries/live/use-live-streamers";
 
 export default function HomeScreen() {
   const { data, isLoading } = useLiveStreamers();
 
   const topLiveStreamers = useMemo(() => {
-    const source = data || [];
-    return source
-      .filter((item) => item.isLive)
-      .sort((a, b) => (b.viewerCount ?? 0) - (a.viewerCount ?? 0))
+    const source = (data || []).filter((item) => item.isLive);
+
+    const score = (id: number) => {
+      const value = (id * 1103515245 + 12345) >>> 0;
+      return value % 1000003;
+    };
+
+    return [...source]
+      .sort((a, b) => score(a.id) - score(b.id))
       .slice(0, 4);
   }, [data]);
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
-      <section className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-        <h2 className="text-lg font-semibold text-gray-800">배너 영역</h2>
-        <p className="mt-2 text-sm text-gray-500">
-          버추얼 광고(생일, 앨범홍보, 컨텐츠홍보) 배너등록 준비중
-        </p>
+      <section className="mx-auto w-full max-w-[1200px]">
+        <div className="h-[200px] md:h-[200px] rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center flex flex-col items-center justify-center">
+          <h2 className="text-lg font-semibold text-gray-800">배너 영역</h2>
+          <p className="mt-2 text-sm text-gray-500">
+            버추얼 광고(생일, 앨범홍보, 컨텐츠홍보) 배너등록 준비중
+          </p>
+        </div>
       </section>
 
       <section className="p-4 md:p-6">
         {isLoading ? (
-          <div className="flex min-h-40 items-center justify-center">
-            <Spinner />
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {[0, 1].map((cardIndex) => (
+              <div
+                key={`home-skeleton-card-${cardIndex}`}
+                className="rounded-2xl border border-gray-100 bg-white p-4"
+              >
+                <Skeleton className="mb-4 h-5 w-16 rounded-full" />
+                <div className="grid grid-cols-4 gap-2 md:gap-3">
+                  {[0, 1, 2, 3].map((slotIndex) => (
+                    <div
+                      key={`home-skeleton-slot-${cardIndex}-${slotIndex}`}
+                      className="rounded-xl p-2 text-center"
+                    >
+                      <Skeleton className="mx-auto mb-2 h-14 w-14 rounded-full md:h-20 md:w-20" />
+                      <Skeleton className="mx-auto hidden h-3 w-16 md:block" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -40,7 +65,7 @@ export default function HomeScreen() {
                   라이브
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="grid grid-cols-4 gap-2 md:gap-3">
                 {[0, 1, 2, 3].map((index) => {
                   const streamer = topLiveStreamers[index];
                   if (!streamer) {
@@ -49,10 +74,10 @@ export default function HomeScreen() {
                         key={`live-empty-${index}`}
                         className="rounded-xl p-2 text-center"
                       >
-                        <div className="mx-auto mb-2 flex h-20 w-20 items-center justify-center rounded-full border-2 border-gray-200 bg-gray-50">
-                          <UserRound className="h-7 w-7 text-gray-300" />
+                        <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full border-2 border-gray-200 bg-gray-50/70 md:h-20 md:w-20">
+                          <UserRound className="h-5 w-5 text-gray-300 md:h-7 md:w-7" />
                         </div>
-                        <p className="truncate text-xs text-gray-400">대기중</p>
+                        <p className="hidden truncate text-xs text-transparent md:block">.</p>
                       </div>
                     );
                   }
@@ -71,7 +96,7 @@ export default function HomeScreen() {
                         className="inline-flex cursor-pointer"
                       >
                         <div
-                          className={`mx-auto mb-2 flex h-20 w-20 items-center justify-center rounded-full border-2 bg-gray-100 p-0.5 ${ringClass}`}
+                          className={`mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full border-2 bg-gray-100 p-0.5 md:h-20 md:w-20 ${ringClass}`}
                         >
                           <div className="relative h-full w-full overflow-hidden rounded-full">
                             {streamer.image_url ? (
@@ -90,7 +115,7 @@ export default function HomeScreen() {
                           </div>
                         </div>
                       </Link>
-                      <p className="truncate text-xs font-semibold text-gray-900">
+                      <p className="hidden truncate text-xs font-semibold text-gray-900 md:block">
                         {streamer.nickname || "이름 미등록"}
                       </p>
                     </div>
@@ -105,13 +130,13 @@ export default function HomeScreen() {
                   즐겨찾기
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="grid grid-cols-4 gap-2 md:gap-3">
                 {[0, 1, 2, 3].map((index) => (
                   <div key={`favorite-${index}`} className="rounded-xl p-2 text-center">
-                    <div className="mx-auto mb-2 flex h-20 w-20 items-center justify-center rounded-full border-2 border-gray-200 bg-gray-50">
-                      <UserRound className="h-7 w-7 text-gray-300" />
+                    <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full border-2 border-gray-200 bg-gray-50 md:h-20 md:w-20">
+                      <UserRound className="h-5 w-5 text-gray-300 md:h-7 md:w-7" />
                     </div>
-                    <p className="truncate text-xs text-gray-400">준비중</p>
+                    <p className="hidden truncate text-xs text-gray-400 md:block">준비중</p>
                   </div>
                 ))}
               </div>

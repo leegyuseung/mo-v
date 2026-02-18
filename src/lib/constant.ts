@@ -1,6 +1,6 @@
 import type { StreamerPlatform, StreamerSortOrder } from "@/types/streamer";
 
-export const STREAMER_PAGE_SIZE = 12;
+export const STREAMER_PAGE_SIZE = 15;
 
 export const STREAMER_PLATFORM_OPTIONS: { label: string; value: StreamerPlatform }[] = [
   { label: "전체", value: "all" },

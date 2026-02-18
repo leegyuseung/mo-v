@@ -47,7 +47,11 @@ export default function AppSideBar() {
   const isAdmin = profile?.role === "admin";
 
   return (
-    <Sidebar variant="sidebar" collapsible="icon" className="border-none p-1.5">
+    <Sidebar
+      variant="sidebar"
+      collapsible="icon"
+      className="border-none p-1.5 md:top-[72px]"
+    >
       <SidebarContent className="bg-white border-r-0 flex items-center pt-2 md:pt-3">
         <SidebarGroup>
           <SidebarGroupContent>

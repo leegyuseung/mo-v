@@ -8,4 +8,13 @@ export type PlatformLiveStatus = {
   liveUrl: string;
 };
 
+export type ChzzkLiveListItem = {
+  channelId: string;
+  isLive: boolean;
+  viewerCount: number | null;
+  liveTitle: string | null;
+  liveThumbnailImageUrl: string | null;
+  liveUrl: string;
+};
+
 export type LiveStreamer = Streamer & PlatformLiveStatus;

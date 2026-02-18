@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { ExternalLink, Eye, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useLiveStreamers } from "@/hooks/queries/live/use-live-streamers";
 import { useIdolGroupCodeNames } from "@/hooks/queries/groups/use-idol-group-code-names";
 import type { StreamerPlatform } from "@/types/streamer";
@@ -21,7 +21,7 @@ export default function LiveScreen() {
   const [brokenImageByStreamerId, setBrokenImageByStreamerId] = useState<
     Record<number, boolean>
   >({});
-  const { data, isLoading, isFetching } = useLiveStreamers();
+  const { data, isLoading } = useLiveStreamers();
   const { data: idolGroups } = useIdolGroupCodeNames();
 
   const filteredLiveStreamers = useMemo(() => {
@@ -158,13 +158,23 @@ export default function LiveScreen() {
 
       <div className="mb-4 text-sm text-gray-500">
         {isLoading
-          ? "로딩중..."
+          ? "현재 라이브 데이터를 불러오는 중"
           : `현재 라이브 중 ${filteredLiveStreamers.length.toLocaleString()}명`}
       </div>
 
       {isLoading ? (
-        <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 flex items-center justify-center">
-          <Spinner />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {[...Array(10)].map((_, index) => (
+            <div
+              key={`live-skeleton-${index}`}
+              className="rounded-xl border border-gray-100 bg-white p-2.5 shadow-sm"
+            >
+              <Skeleton className="mb-2 h-28 w-full rounded-lg" />
+              <Skeleton className="mb-1 h-4 w-2/3" />
+              <Skeleton className="mb-1 h-3 w-full" />
+              <Skeleton className="h-3 w-1/2" />
+            </div>
+          ))}
         </div>
       ) : filteredLiveStreamers.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 text-center text-gray-400">
@@ -190,7 +200,11 @@ export default function LiveScreen() {
                 href={streamer.liveUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="group rounded-xl border border-red-100 bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                className={`group rounded-xl border bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
+                  streamer.platform === "chzzk"
+                    ? "border-green-200"
+                    : "border-blue-200"
+                }`}
               >
                 <div className="relative mb-2 h-28 overflow-hidden rounded-lg bg-gray-100">
                   {imageSrc ? (
@@ -282,12 +296,6 @@ export default function LiveScreen() {
               </Link>
             );
           })}
-        </div>
-      )}
-
-      {isFetching && !isLoading && (
-        <div className="mt-3 flex justify-center">
-          <Spinner className="h-5 w-5 border-2" />
         </div>
       )}
     </div>

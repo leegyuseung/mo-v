@@ -10,13 +10,15 @@ export default function MainLayout({
 }>) {
   return (
     <SidebarProvider>
-      <div className="w-full min-h-screen flex flex-col">
+      <div className="w-full h-screen overflow-hidden flex flex-col">
         <AppHeader />
-        <div className="flex flex-1">
+        <div className="flex h-[calc(100vh-72px)] overflow-hidden">
           <AppSideBar />
-          <div className="w-full flex flex-col min-h-[calc(100vh-72px)]">
-            <main className="flex-1">{children}</main>
-            <AppFooter />
+          <div className="w-full min-h-0 overflow-y-auto">
+            <div className="flex min-h-full flex-col">
+              <main className="flex-1">{children}</main>
+              <AppFooter />
+            </div>
           </div>
         </div>
       </div>

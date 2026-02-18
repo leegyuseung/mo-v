@@ -93,10 +93,20 @@ export default function VlistDetailScreen({
   const groupTags =
     streamer.group_name
       ?.filter((group: unknown): group is string => Boolean(group))
-      .map((group: string) => groupNameByCode.get(group.trim().toLowerCase()) || group) ?? [];
+      .map((group: string) => {
+        const code = group.trim().toLowerCase();
+        return {
+          code,
+          name: groupNameByCode.get(code) || group,
+        };
+      }) ?? [];
   const crewTags = streamer.crew_name?.filter(Boolean) ?? [];
   const identityTags = [
-    ...groupTags.map((name: string) => ({ type: "group" as const, name })),
+    ...groupTags.map((group: { code: string; name: string }) => ({
+      type: "group" as const,
+      name: group.name,
+      href: `/group/${group.code}`,
+    })),
     ...crewTags.map((name: string) => ({ type: "crew" as const, name })),
   ];
 
@@ -226,15 +236,22 @@ export default function VlistDetailScreen({
               {identityTags.length > 0 ? (
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   {identityTags.map((tag) => (
-                    <span
-                      key={`${tag.type}-${tag.name}`}
-                      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${tag.type === "group"
-                          ? "bg-pink-50 text-pink-700 border border-pink-100"
-                          : "bg-sky-50 text-sky-700 border border-sky-100"
-                        }`}
-                    >
-                      {tag.name}
-                    </span>
+                    tag.type === "group" ? (
+                      <Link
+                        key={`${tag.type}-${tag.name}`}
+                        href={tag.href}
+                        className="inline-flex items-center rounded-full border border-pink-100 bg-pink-50 px-2.5 py-1 text-xs font-medium text-pink-700 hover:bg-pink-100"
+                      >
+                        {tag.name}
+                      </Link>
+                    ) : (
+                      <span
+                        key={`${tag.type}-${tag.name}`}
+                        className="inline-flex items-center rounded-full border border-sky-100 bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-700"
+                      >
+                        {tag.name}
+                      </span>
+                    )
                   ))}
                 </div>
               ) : null}
@@ -250,7 +267,21 @@ export default function VlistDetailScreen({
               <div className="flex items-start gap-2 text-sm">
                 <span className="w-20 shrink-0 text-gray-500">그룹</span>
                 <span className="font-medium text-gray-800 break-all">
-                  {groupTags.join(", ") || "-"}
+                  {groupTags.length > 0 ? (
+                    <span className="inline-flex flex-wrap gap-1.5">
+                      {groupTags.map((group: { code: string; name: string }) => (
+                        <Link
+                          key={`group-link-${group.code}`}
+                          href={`/group/${group.code}`}
+                          className="underline-offset-2 hover:underline"
+                        >
+                          {group.name}
+                        </Link>
+                      ))}
+                    </span>
+                  ) : (
+                    "-"
+                  )}
                 </span>
               </div>
               <div className="flex items-start gap-2 text-sm">
