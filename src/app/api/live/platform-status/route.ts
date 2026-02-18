@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 
 type Platform = "chzzk";
 
-// 문자열/숫자 혼합으로 내려오는 시청자 수를 안전하게 number로 변환한다.
 function parseNumber(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string") {
@@ -12,7 +11,6 @@ function parseNumber(value: unknown): number | null {
   return null;
 }
 
-// 플랫폼 응답 이미지 URL을 브라우저에서 바로 쓸 수 있는 형태로 정규화한다.
 function normalizeImageUrl(value: unknown): string | null {
   if (typeof value !== "string") return null;
 
@@ -26,13 +24,11 @@ function normalizeImageUrl(value: unknown): string | null {
     normalized = normalized.replace(/^http:\/\//i, "https://");
   }
 
-  // 일부 썸네일 URL은 템플릿 토큰을 포함할 수 있어 기본 해상도 값으로 치환
   normalized = normalized
     .replace(/\{type\}/gi, "f320_180")
     .replace(/\{width\}/gi, "640")
     .replace(/\{height\}/gi, "360");
 
-  // 토큰이 남아있으면 브라우저에서 깨지는 URL이므로 사용하지 않음
   if (/[{}]/.test(normalized)) {
     return null;
   }
@@ -40,180 +36,57 @@ function normalizeImageUrl(value: unknown): string | null {
   return normalized;
 }
 
-// open/v1/lives 페이지 응답에서 특정 channelId의 live row를 찾는다.
-function pickChzzkLive(raw: unknown, channelId: string) {
-  const data = raw as Record<string, unknown> | null;
-  if (!data) return null;
-
-  const content = data.content as Record<string, unknown> | unknown[] | undefined;
-
-  let candidates: unknown[] = [];
-
-  if (content && !Array.isArray(content)) {
-    const nestedData = content.data as unknown[] | undefined;
-    if (Array.isArray(nestedData)) {
-      candidates = nestedData;
-    }
-  } else if (Array.isArray(content)) {
-    candidates = content;
-  }
-
-  if (!candidates.length) {
-    const topData = data.data as unknown[] | undefined;
-    if (Array.isArray(topData)) {
-      candidates = topData;
-    }
-  }
-
-  const normalizedTarget = channelId.trim().toLowerCase();
-  const matched = candidates.find((item) => {
-    const row = item as Record<string, unknown> | null;
-    if (!row) return false;
-    const sourceId =
-      row.channelId ?? row.channelID ?? row.id ?? row.channel_id ?? "";
-    return String(sourceId).trim().toLowerCase() === normalizedTarget;
-  });
-
-  if (matched) {
-    return matched as Record<string, unknown>;
-  }
-
-  if (candidates.length === 1) {
-    return candidates[0] as Record<string, unknown>;
-  }
-
-  return null;
-}
-
-// CHZZK 응답 포맷 차이를 흡수해 live 배열만 추출한다.
-function pickChzzkLives(raw: unknown) {
-  const data = raw as Record<string, unknown> | null;
-  if (!data) return [] as Record<string, unknown>[];
-
-  const content = data.content as Record<string, unknown> | unknown[] | undefined;
-
-  if (content && !Array.isArray(content)) {
-    const nestedData = content.data as unknown[] | undefined;
-    if (Array.isArray(nestedData)) {
-      return nestedData.filter(Boolean) as Record<string, unknown>[];
-    }
-  }
-
-  if (Array.isArray(content)) {
-    return content.filter(Boolean) as Record<string, unknown>[];
-  }
-
-  const topData = data.data as unknown[] | undefined;
-  if (Array.isArray(topData)) {
-    return topData.filter(Boolean) as Record<string, unknown>[];
-  }
-
-  return [] as Record<string, unknown>[];
-}
-
-// 페이지네이션 커서(next) 위치가 포맷마다 달라서 안전하게 읽어온다.
-function pickNextCursor(raw: unknown): string | null {
-  const data = raw as Record<string, unknown> | null;
-  if (!data) return null;
-
-  const content = data.content as Record<string, unknown> | undefined;
-  const pageFromContent = content?.page as Record<string, unknown> | undefined;
-  const nextFromContent = pageFromContent?.next;
-  if (typeof nextFromContent === "string" && nextFromContent.trim()) {
-    return nextFromContent;
-  }
-
-  const pageFromTop = data.page as Record<string, unknown> | undefined;
-  const nextFromTop = pageFromTop?.next;
-  if (typeof nextFromTop === "string" && nextFromTop.trim()) {
-    return nextFromTop;
-  }
-
-  return null;
-}
-
-async function fetchChzzkLiveStatus(channelId: string) {
+async function fetchChzzkLiveStatusByChannelId(channelId: string) {
   const liveUrl = `https://chzzk.naver.com/live/${channelId}`;
 
   try {
-    const headers: HeadersInit = {};
-    const clientId =
-      process.env.CHZZK_CLIENT_ID || process.env.NEXT_PUBLIC_CHZZK_CLIENT_ID;
-
-    if (clientId) {
-      headers["Client-Id"] = clientId;
-    }
-    if (process.env.CHZZK_CLIENT_SECRET) {
-      headers["Client-Secret"] = process.env.CHZZK_CLIENT_SECRET;
-    }
-
-    // /open/v1/lives는 channelId 직접 조회가 없어 next 커서를 순회해 매칭한다.
-    const maxPages = 30;
-    let pageCount = 0;
-    let nextCursor: string | null = null;
-    let live: Record<string, unknown> | null = null;
-
-    while (pageCount < maxPages) {
-      const query = nextCursor
-        ? `size=20&next=${encodeURIComponent(nextCursor)}`
-        : "size=20";
-
-      const response = await fetch(
-        `https://openapi.chzzk.naver.com/open/v1/lives?${query}`,
-        {
-          method: "GET",
-          headers,
-          cache: "no-store",
-        }
-      );
-
-      if (!response.ok) {
-        return {
-          isLive: false,
-          viewerCount: null,
-          liveTitle: null,
-          liveThumbnailImageUrl: null,
-          liveUrl,
-        };
+    const response = await fetch(
+      `https://api.chzzk.naver.com/polling/v3.1/channels/${encodeURIComponent(
+        channelId
+      )}/live-status`,
+      {
+        method: "GET",
+        cache: "no-store",
       }
-
-      const payload = await response.json();
-      const candidates = pickChzzkLives(payload);
-      live = pickChzzkLive({ content: { data: candidates } }, channelId);
-      if (live) {
-        break;
-      }
-
-      nextCursor = pickNextCursor(payload);
-      if (!nextCursor) {
-        break;
-      }
-
-      pageCount += 1;
-    }
-
-    const nestedLive = (live?.live ?? null) as Record<string, unknown> | null;
-    const statusText = String(
-      live?.status ?? live?.liveStatus ?? nestedLive?.status ?? ""
-    ).toUpperCase();
-    const viewerCount = parseNumber(
-      live?.concurrentUserCount ?? live?.viewerCount ?? live?.watchingCount
     );
-    const liveTitle =
-      (live?.liveTitle as string | undefined) ||
-      (live?.title as string | undefined) ||
-      null;
-    const liveThumbnailImageUrl =
-      normalizeImageUrl(live?.liveThumbnailImageUrl) ||
-      normalizeImageUrl(live?.thumbnailImageUrl) ||
-      normalizeImageUrl(live?.thumbnailUrl);
 
-    // 목록에서 채널을 찾았으면 라이브로 판단한다.
+    if (!response.ok) {
+      return {
+        isLive: false,
+        viewerCount: null,
+        liveTitle: null,
+        liveThumbnailImageUrl: null,
+        liveUrl,
+      };
+    }
+
+    const payload = (await response.json()) as Record<string, unknown>;
+    const content = (payload.content ??
+      payload.data ??
+      payload) as Record<string, unknown>;
+
+    const statusText = String(
+      content.status ?? content.liveStatus ?? ""
+    ).toUpperCase();
+
+    const viewerCount = parseNumber(
+      content.concurrentUserCount ?? content.viewerCount ?? content.watchingCount
+    );
+
+    const liveTitle =
+      (content.liveTitle as string | undefined) ||
+      (content.title as string | undefined) ||
+      null;
+
+    const liveThumbnailImageUrl =
+      normalizeImageUrl(content.liveThumbnailImageUrl) ||
+      normalizeImageUrl(content.thumbnailImageUrl) ||
+      normalizeImageUrl(content.thumbnailUrl);
+
     const isLive =
-      Boolean(live) ||
-      live?.openLive === true ||
       statusText === "OPEN" ||
-      statusText === "LIVE";
+      statusText === "LIVE" ||
+      content.openLive === true;
 
     return {
       isLive,
@@ -233,112 +106,18 @@ async function fetchChzzkLiveStatus(channelId: string) {
   }
 }
 
-async function fetchAllChzzkLiveStatuses() {
-  try {
-    const headers: HeadersInit = {};
-    const clientId =
-      process.env.CHZZK_CLIENT_ID || process.env.NEXT_PUBLIC_CHZZK_CLIENT_ID;
-    if (clientId) {
-      headers["Client-Id"] = clientId;
-    }
-    if (process.env.CHZZK_CLIENT_SECRET) {
-      headers["Client-Secret"] = process.env.CHZZK_CLIENT_SECRET;
-    }
-
-    const maxPages = 30;
-    let pageCount = 0;
-    let nextCursor: string | null = null;
-    const items: Array<{
-      channelId: string;
-      isLive: boolean;
-      viewerCount: number | null;
-      liveTitle: string | null;
-      liveThumbnailImageUrl: string | null;
-      liveUrl: string;
-    }> = [];
-
-    while (pageCount < maxPages) {
-      const query = nextCursor
-        ? `size=20&next=${encodeURIComponent(nextCursor)}`
-        : "size=20";
-
-      const response = await fetch(
-        `https://openapi.chzzk.naver.com/open/v1/lives?${query}`,
-        {
-          method: "GET",
-          headers,
-          cache: "no-store",
-        }
-      );
-
-      if (!response.ok) {
-        break;
-      }
-
-      const payload = await response.json();
-      const candidates = pickChzzkLives(payload);
-      candidates.forEach((live) => {
-        const channelId = String(
-          live.channelId ?? live.channelID ?? live.id ?? live.channel_id ?? ""
-        ).trim();
-        if (!channelId) return;
-
-        items.push({
-          channelId,
-          // /open/v1/lives 목록에 포함된 항목은 라이브로 간주한다.
-          isLive: true,
-          viewerCount: parseNumber(
-            live.concurrentUserCount ?? live.viewerCount ?? live.watchingCount
-          ),
-          liveTitle:
-            (live.liveTitle as string | undefined) ||
-            (live.title as string | undefined) ||
-            null,
-          liveThumbnailImageUrl:
-            normalizeImageUrl(live.liveThumbnailImageUrl) ||
-            normalizeImageUrl(live.thumbnailImageUrl) ||
-            normalizeImageUrl(live.thumbnailUrl),
-          liveUrl: `https://chzzk.naver.com/live/${channelId}`,
-        });
-      });
-
-      nextCursor = pickNextCursor(payload);
-      if (!nextCursor) break;
-      pageCount += 1;
-    }
-
-    return { items };
-  } catch {
-    return { items: [] as Array<{
-      channelId: string;
-      isLive: boolean;
-      viewerCount: number | null;
-      liveTitle: string | null;
-      liveThumbnailImageUrl: string | null;
-      liveUrl: string;
-    }> };
-  }
-}
-
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const platform = searchParams.get("platform") as Platform | null;
   const id = searchParams.get("id");
 
-  if (!platform || platform !== "chzzk") {
+  if (!platform || platform !== "chzzk" || !id) {
     return NextResponse.json(
       { message: "Invalid platform or id" },
       { status: 400 }
     );
   }
 
-  // id 없이 요청되면 치지직 라이브 목록 전체를 반환한다.
-  if (!id) {
-    const result = await fetchAllChzzkLiveStatuses();
-    return NextResponse.json(result);
-  }
-
-  const result = await fetchChzzkLiveStatus(id);
-
+  const result = await fetchChzzkLiveStatusByChannelId(id);
   return NextResponse.json(result);
 }
