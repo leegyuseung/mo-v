@@ -12,15 +12,12 @@ export default function HomeScreen() {
 
   const topLiveStreamers = useMemo(() => {
     const source = (data || []).filter((item) => item.isLive);
-
-    const score = (id: number) => {
-      const value = (id * 1103515245 + 12345) >>> 0;
-      return value % 1000003;
-    };
-
-    return [...source]
-      .sort((a, b) => score(a.id) - score(b.id))
-      .slice(0, 4);
+    const shuffled = [...source];
+    for (let i = shuffled.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled.slice(0, 4);
   }, [data]);
 
   return (
