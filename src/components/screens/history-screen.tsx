@@ -105,8 +105,8 @@ export default function HistoryScreen() {
                                     <div>
                                         <p className="text-sm font-medium text-gray-900">
                                             {item.description ||
-                                                typeLabels[item.type] ||
-                                                item.type}
+                                                (item.type && typeLabels[item.type]) ||
+                                                item.type || "기타"}
                                         </p>
                                         <p className="text-xs text-gray-400">
                                             {formatDate(item.created_at)}

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchChzzkChannelProfile } from "@/api/admin";
+import { fetchChzzkChannelProfile } from "@/api/admin-streamers";
 
 export function useChzzkChannelProfile(channelId: string, enabled: boolean) {
     return useQuery({

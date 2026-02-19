@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteIdolGroup } from "@/api/admin";
+import { deleteIdolGroup } from "@/api/admin-groups";
 import { toast } from "sonner";
 
 export function useDeleteIdolGroup() {

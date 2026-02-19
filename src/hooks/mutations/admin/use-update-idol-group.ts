@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { updateIdolGroup } from "@/api/admin";
+import { updateIdolGroup } from "@/api/admin-groups";
 import type { IdolGroupUpsertInput } from "@/types/admin";
 import { toast } from "sonner";
 

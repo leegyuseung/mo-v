@@ -90,7 +90,7 @@ export default function GroupScreen() {
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {groups.map((group) => {
-            const visibleMembers = group.members.slice(0, 8);
+            const visibleMembers = group.members.slice(0, 13);
             const remainCount = Math.max(0, group.member_count - visibleMembers.length);
 
             return (
@@ -150,7 +150,7 @@ export default function GroupScreen() {
                       key={`${group.id}-${member.id}`}
                       href={`/vlist/${member.public_id || member.id}`}
                       className="group/member relative"
-                      title={member.nickname || "스트리머"}
+                      title={member.nickname || "버츄얼"}
                       onClick={(event) => event.stopPropagation()}
                     >
                       <div className="relative h-8 w-8 overflow-hidden rounded-full border border-gray-200 bg-white transition group-hover/member:scale-[1.03]">

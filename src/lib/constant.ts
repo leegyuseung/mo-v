@@ -14,7 +14,7 @@ export const STREAMER_SORT_OPTIONS: { label: string; value: StreamerSortOrder }[
 ];
 
 export const STREAMER_REQUEST_MODAL_TEXT = {
-  title: "스트리머 추가 요청",
+  title: "버츄얼 추가 요청",
   description: "관리자가 확인 후 등록합니다. 플랫폼과 채널/방송국 주소를 입력해 주세요.",
   urlRequired: "주소를 입력해 주세요.",
   urlInvalid: "올바른 플랫폼 주소 형식으로 입력해 주세요.",

@@ -10,8 +10,9 @@ import { useStreamers } from "@/hooks/queries/admin/use-streamers";
 import { useCreateIdolGroup } from "@/hooks/mutations/admin/use-create-idol-group";
 import { useUpdateIdolGroup } from "@/hooks/mutations/admin/use-update-idol-group";
 import { useDeleteIdolGroup } from "@/hooks/mutations/admin/use-delete-idol-group";
-import { uploadIdolGroupImage } from "@/api/admin";
-import type { IdolGroup, IdolGroupUpsertInput } from "@/types/admin";
+import { uploadIdolGroupImage } from "@/api/admin-groups";
+import type { IdolGroupUpsertInput } from "@/types/admin";
+import type { IdolGroup } from "@/types/group";
 import { Pencil, Check, X, Trash2, UsersRound } from "lucide-react";
 import { toast } from "sonner";
 
@@ -103,9 +104,8 @@ function GroupFormFields({
           size="sm"
           variant={form.bg_color ? "default" : "outline"}
           onClick={() => onChange("bg_color", !form.bg_color)}
-          className={`cursor-pointer ${
-            form.bg_color ? "bg-rose-900 hover:bg-rose-950 text-white" : ""
-          }`}
+          className={`cursor-pointer ${form.bg_color ? "bg-rose-900 hover:bg-rose-950 text-white" : ""
+            }`}
         >
           {form.bg_color ? "ON" : "OFF"}
         </Button>
@@ -163,7 +163,7 @@ function GroupRow({
     rawValue: string | boolean | null
   ) => {
     if (key === "bg_color") {
-      setForm((prev) => ({ ...prev, bg_color: Boolean(rawValue) }));
+      setForm((prev) => ({ ...prev, bg_color: rawValue ? "true" : null }));
       return;
     }
 
@@ -332,7 +332,7 @@ export default function GroupsScreen() {
     fancafe_url: null,
     youtube_url: null,
     image_url: null,
-    bg_color: false,
+    bg_color: null,
   });
 
   const setField = (
@@ -340,7 +340,7 @@ export default function GroupsScreen() {
     rawValue: string | boolean | null
   ) => {
     if (key === "bg_color") {
-      setForm((prev) => ({ ...prev, bg_color: Boolean(rawValue) }));
+      setForm((prev) => ({ ...prev, bg_color: rawValue ? "true" : null }));
       return;
     }
 
@@ -375,7 +375,7 @@ export default function GroupsScreen() {
       fancafe_url: null,
       youtube_url: null,
       image_url: null,
-      bg_color: false,
+      bg_color: null,
     });
   };
 
@@ -461,7 +461,7 @@ export default function GroupsScreen() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">그룹 관리</h1>
             <p className="text-sm text-gray-500">
-              그룹 정보 CRUD 및 스트리머 그룹코드 기반 멤버 자동 매칭
+              그룹 정보 CRUD 및 버츄얼 그룹코드 기반 멤버 자동 매칭
             </p>
           </div>
         </div>

@@ -78,7 +78,7 @@ export default function VlistScreen() {
 
   const onClickAddStreamer = () => {
     if (!user) {
-      toast.error("로그인 후 스트리머 추가 요청이 가능합니다.");
+      toast.error("로그인 후 버츄얼 추가 요청이 가능합니다.");
       return;
     }
     setIsAddModalOpen(true);
@@ -132,7 +132,7 @@ export default function VlistScreen() {
             <Input
               value={keyword}
               onChange={(e) => onChangeKeyword(e.target.value)}
-              placeholder="스트리머 명을 입력해 주세요"
+              placeholder="버츄얼 명을 입력해 주세요"
               className="h-9 border-gray-200 bg-white md:w-80"
             />
             <Button
@@ -142,7 +142,7 @@ export default function VlistScreen() {
               disabled={!user}
               className="h-9 cursor-pointer whitespace-nowrap border-gray-200 text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              스트리머 추가
+              버츄얼 추가
             </Button>
           </div>
         </div>
@@ -162,7 +162,7 @@ export default function VlistScreen() {
       </div>
 
       <div className="mb-4 text-sm text-gray-500">
-        {isLoading ? "로딩중..." : `총 ${totalCount.toLocaleString()}명의 스트리머`}
+        {isLoading ? "로딩중..." : `총 ${totalCount.toLocaleString()}명의 버츄얼`}
       </div>
 
       {isLoading ? (
@@ -171,7 +171,7 @@ export default function VlistScreen() {
         </div>
       ) : streamers.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 text-center text-gray-400">
-          스트리머 정보가 없습니다.
+          버츄얼 정보가 없습니다.
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">

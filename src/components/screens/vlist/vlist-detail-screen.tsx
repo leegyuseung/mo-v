@@ -37,7 +37,7 @@ export default function VlistDetailScreen({
   }
 
   if (!streamer) {
-    return <div className="p-6 text-center text-gray-400">스트리머 정보가 없습니다.</div>;
+    return <div className="p-6 text-center text-gray-400">버츄얼 정보가 없습니다.</div>;
   }
 
   // platform 컬럼 값이 오래된 경우를 대비해 URL/ID 기반으로 플랫폼을 보정한다.

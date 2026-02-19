@@ -80,7 +80,7 @@ export default function InfoEditRequestsScreen() {
           <thead>
             <tr className="bg-gray-50/80 border-b border-gray-100">
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">요청일시</th>
-              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">스트리머</th>
+              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">버츄얼</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">요청자</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">수정 요청 내용</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-28">처리</th>

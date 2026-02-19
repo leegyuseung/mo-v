@@ -66,7 +66,7 @@ export default function UsersScreen() {
               <TvMinimalPlay className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900">스트리머 관리</h2>
+              <h2 className="text-lg font-bold text-gray-900">버츄얼 관리</h2>
               <p className="text-xs text-gray-400">
                 {streamers ? `총 ${streamers.length}명` : "로딩 중..."}
               </p>
@@ -75,7 +75,7 @@ export default function UsersScreen() {
           <Input
             value={streamerKeyword}
             onChange={(e) => setStreamerKeyword(e.target.value)}
-            placeholder="스트리머 닉네임 검색"
+            placeholder="버츄얼 닉네임 검색"
             className="h-9 w-full md:w-64"
           />
         </div>

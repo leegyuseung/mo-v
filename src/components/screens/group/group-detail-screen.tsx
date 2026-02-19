@@ -202,7 +202,7 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
                   key={member.id}
                   href={`/vlist/${member.public_id || member.id}`}
                   className="group/member relative"
-                  title={member.nickname || "스트리머"}
+                  title={member.nickname || "버츄얼"}
                 >
                   <div className="relative h-10 w-10 overflow-hidden rounded-full border border-gray-200 bg-white">
                     {member.image_url ? (

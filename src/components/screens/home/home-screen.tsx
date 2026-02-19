@@ -29,7 +29,7 @@ export default function HomeScreen() {
         <div className="h-[200px] md:h-[200px] rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center flex flex-col items-center justify-center">
           <h2 className="text-lg font-semibold text-gray-800">배너 영역</h2>
           <p className="mt-2 text-sm text-gray-500">
-            버추얼 광고(생일, 앨범홍보, 컨텐츠홍보) 배너등록 준비중
+            버츄얼 광고(생일, 앨범홍보, 컨텐츠홍보) 배너등록 준비중
           </p>
         </div>
       </section>

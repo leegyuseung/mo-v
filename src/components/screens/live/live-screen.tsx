@@ -105,7 +105,7 @@ export default function LiveScreen() {
             <Input
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              placeholder="스트리머 명을 입력해 주세요"
+              placeholder="버츄얼 명을 입력해 주세요"
               className="h-9 border-gray-200 bg-white md:w-80"
             />
           </div>
@@ -178,7 +178,7 @@ export default function LiveScreen() {
         </div>
       ) : filteredLiveStreamers.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 text-center text-gray-400">
-          현재 라이브중인 스트리머가 없습니다.
+          현재 라이브중인 버츄얼이 없습니다.
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">

@@ -49,7 +49,7 @@ export default function DashboardScreen() {
                 textColor: "text-yellow-600",
             },
             {
-                title: "등록된 스트리머",
+                title: "등록된 버츄얼",
                 value: stats.totalStreamers,
                 icon: TvMinimalPlay,
                 color: "from-purple-500 to-purple-600",

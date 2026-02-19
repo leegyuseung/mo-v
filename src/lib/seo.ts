@@ -20,20 +20,20 @@ function resolveSiteUrl(rawValue: string | undefined): string {
 export const SITE_URL = resolveSiteUrl(process.env.NEXT_PUBLIC_SITE_URL);
 
 export const SITE_NAME = "mo-v";
-export const SITE_TITLE = "mo-v | 모두의 버추얼";
+export const SITE_TITLE = "mo-v | 모두의 버츄얼";
 export const SITE_DESCRIPTION =
-  "mo-v는 치지직/플랫폼 기반 버추얼 스트리머 정보와 라이브 현황을 한눈에 보는 보드입니다.";
+  "mo-v는 치지직/플랫폼 기반 버츄얼 정보와 라이브 현황을 한눈에 보는 보드입니다.";
 
 export const SITE_KEYWORDS = [
   "mo-v",
-  "버추얼",
+  "버츄얼",
   "버튜버",
   "치지직",
-  "스트리머",
+  "버츄얼",
   "라이브",
-  "버추얼 리스트",
-  "버추얼 아이돌",
-  "버추얼 크루",
+  "버츄얼 리스트",
+  "버츄얼 아이돌",
+  "버츄얼 크루",
   "이세계아이돌",
   "하데스"
 ] as const;

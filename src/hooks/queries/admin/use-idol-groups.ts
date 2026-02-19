@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchIdolGroups } from "@/api/admin";
+import { fetchIdolGroups } from "@/api/admin-groups";
 
 export function useIdolGroups() {
   return useQuery({

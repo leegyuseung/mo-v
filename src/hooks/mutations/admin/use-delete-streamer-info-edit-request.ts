@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteStreamerInfoEditRequest } from "@/api/admin";
+import { deleteStreamerInfoEditRequest } from "@/api/admin-streamers";
 import { toast } from "sonner";
 
 export function useDeleteStreamerInfoEditRequest() {

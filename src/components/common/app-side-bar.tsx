@@ -32,7 +32,7 @@ type MenuItem = {
 const menuItems = [
   { title: "mo-v", url: "/", icon: House },
   { title: "라이브", url: "/live", icon: TvMinimalPlay },
-  { title: "버추얼", url: "/vlist", icon: Gem },
+  { title: "버츄얼", url: "/vlist", icon: Gem },
   { title: "그룹", url: "/group", icon: MicVocal },
   { title: "크루", icon: UsersRound },
   { title: "콘텐츠", icon: Clapperboard },
@@ -50,7 +50,7 @@ export default function AppSideBar() {
     <Sidebar
       variant="sidebar"
       collapsible="icon"
-      className="border-none p-1.5 md:top-[72px]"
+      className="border-none p-1.5 md:top-[72px] md:!h-[calc(100svh-72px)] md:z-20"
     >
       <SidebarContent className="bg-white border-r-0 flex items-center pt-2 md:pt-3">
         <SidebarGroup>
@@ -88,7 +88,7 @@ export default function AppSideBar() {
 
       {/* 관리자 메뉴 */}
       {isAdmin && (
-        <SidebarFooter className="bg-white">
+        <SidebarFooter className="bg-white mt-auto">
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton

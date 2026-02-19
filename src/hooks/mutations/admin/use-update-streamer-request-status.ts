@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { updateStreamerRequestStatus } from "@/api/admin";
+import { updateStreamerRequestStatus } from "@/api/admin-streamers";
 import type { StreamerRequestStatus } from "@/types/admin";
 import { toast } from "sonner";
 

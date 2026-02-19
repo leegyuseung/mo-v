@@ -6,7 +6,7 @@ import { useUpdateStreamer } from "@/hooks/mutations/admin/use-update-streamer";
 import { useDeleteUser } from "@/hooks/mutations/admin/use-delete-user";
 import { useDeleteStreamer } from "@/hooks/mutations/admin/use-delete-streamer";
 import type { Profile } from "@/types/profile";
-import type { Streamer } from "@/types/admin";
+import type { Streamer } from "@/types/streamer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -73,13 +73,12 @@ function UserRow({ user }: { user: Profile }) {
         <td className="px-4 py-3 text-sm text-gray-700">{user.email || "-"}</td>
         <td className="px-4 py-3 text-sm">
           <span
-            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-              user.provider === "google"
+            className={`px-2 py-0.5 rounded-full text-xs font-medium ${user.provider === "google"
                 ? "bg-red-50 text-red-600"
                 : user.provider === "kakao"
                   ? "bg-yellow-100 text-yellow-700"
                   : "bg-emerald-50 text-emerald-600"
-            }`}
+              }`}
           >
             {user.provider || "email"}
           </span>
@@ -107,11 +106,10 @@ function UserRow({ user }: { user: Profile }) {
             </select>
           ) : (
             <span
-              className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                user.role === "admin"
+              className={`px-2 py-0.5 rounded-full text-xs font-medium ${user.role === "admin"
                   ? "bg-indigo-100 text-indigo-700"
                   : "bg-gray-100 text-gray-600"
-              }`}
+                }`}
             >
               {user.role}
             </span>
@@ -308,11 +306,10 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
             </select>
           ) : (
             <span
-              className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                streamer.platform === "chzzk"
+              className={`px-2 py-0.5 rounded-full text-xs font-medium ${streamer.platform === "chzzk"
                   ? "bg-green-100 text-green-700"
                   : "bg-blue-100 text-blue-700"
-              }`}
+                }`}
             >
               {streamer.platform}
             </span>
@@ -545,8 +542,8 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
 
       <ConfirmAlert
         open={isDeleteAlertOpen}
-        title="스트리머 삭제"
-        description="정말 이 스트리머를 삭제하시겠습니까?"
+        title="버츄얼 삭제"
+        description="정말 이 버츄얼을 삭제하시겠습니까?"
         confirmText="삭제"
         cancelText="취소"
         isPending={isDeleting}
@@ -636,7 +633,7 @@ export function StreamerTable({ streamers, isLoading }: StreamerTableProps) {
           ) : (
             <tr>
               <td colSpan={18} className="px-4 py-12 text-center text-gray-400 text-sm">
-                등록된 스트리머가 없습니다.
+                등록된 버츄얼이 없습니다.
               </td>
             </tr>
           )}

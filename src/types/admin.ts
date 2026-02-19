@@ -1,5 +1,3 @@
-import { Tables } from "@/types/database.types";
-
 export type DashboardStats = {
     totalUsers: number;
     emailUsers: number;
@@ -8,9 +6,6 @@ export type DashboardStats = {
     totalStreamers: number;
     totalGroups: number;
 };
-
-export type Streamer = Tables<"streamers">;
-export type IdolGroup = Tables<"idol_groups">;
 
 export type StreamerRequestStatus =
     | "pending"
@@ -58,5 +53,5 @@ export type IdolGroupUpsertInput = {
     fancafe_url: string | null;
     youtube_url: string | null;
     image_url: string | null;
-    bg_color: boolean | null;
+    bg_color: string | null;
 };

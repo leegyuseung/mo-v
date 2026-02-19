@@ -164,10 +164,10 @@ export default function PendingScreen() {
             <div className="mb-8">
                 <div className="flex items-center gap-2 mb-1">
                     <Clock className="w-5 h-5 text-amber-500" />
-                    <h1 className="text-2xl font-bold text-gray-900">스트리머 등록 대기</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">버츄얼 등록 대기</h1>
                 </div>
                 <p className="text-sm text-gray-500">
-                    유저가 요청한 스트리머 등록 대기 목록입니다.
+                    유저가 요청한 버츄얼 등록 대기 목록입니다.
                 </p>
             </div>
 
