@@ -60,11 +60,13 @@ export async function updateStreamer(
     return data;
 }
 
+/** 버켄얼을 삭제한다 */
 export async function deleteStreamer(streamerId: number) {
     const { error } = await supabase.from("streamers").delete().eq("id", streamerId);
     if (error) throw error;
 }
 
+/** 대기 중인 스트리머 등록 요청 목록을 조회한다 */
 export async function fetchPendingStreamerRequests(): Promise<
     StreamerRegistrationRequest[]
 > {
@@ -78,6 +80,7 @@ export async function fetchPendingStreamerRequests(): Promise<
     return (data || []) as StreamerRegistrationRequest[];
 }
 
+/** 등록 요청의 상태를 변경한다 (approved/rejected 등) */
 export async function updateStreamerRequestStatus(
     requestId: number,
     status: StreamerRequestStatus
@@ -96,6 +99,7 @@ export async function updateStreamerRequestStatus(
     return data;
 }
 
+/** 등록 요청을 삭제한다 */
 export async function deleteStreamerRequest(requestId: number) {
     const { error } = await supabase
         .from(STREAMER_REQUEST_TABLE)
@@ -105,6 +109,11 @@ export async function deleteStreamerRequest(requestId: number) {
     if (error) throw error;
 }
 
+/**
+ * 등록 요청을 승인하여 버켄얼을 생성한다.
+ * streamers 테이블에 삽입 후 streamer_hearts 초기 행도 함께 생성한다.
+ * 하트 초기화 실패 시 생성된 버켄얼도 롤백한다.
+ */
 export async function registerStreamerFromRequest(
     requestId: number,
     payload: { nickname: string; imageUrl: string; groupName: string[] | null }
@@ -158,6 +167,7 @@ export async function registerStreamerFromRequest(
     if (deleteError) throw deleteError;
 }
 
+/** 정보 수정 요청 목록을 최신순으로 조회한다 */
 export async function fetchStreamerInfoEditRequests(): Promise<
     StreamerInfoEditRequest[]
 > {
@@ -170,6 +180,7 @@ export async function fetchStreamerInfoEditRequests(): Promise<
     return (data || []) as StreamerInfoEditRequest[];
 }
 
+/** 정보 수정 요청을 삭제한다 */
 export async function deleteStreamerInfoEditRequest(requestId: number) {
     const { error } = await supabase
         .from(STREAMER_INFO_EDIT_REQUEST_TABLE)
@@ -179,6 +190,7 @@ export async function deleteStreamerInfoEditRequest(requestId: number) {
     if (error) throw error;
 }
 
+/** 치지직 채널 프로필 정보를 조회한다 (Next.js API 라우트 경유) */
 export async function fetchChzzkChannelProfile(
     channelId: string
 ): Promise<ChzzkChannelProfile> {

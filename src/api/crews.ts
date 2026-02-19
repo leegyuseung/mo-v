@@ -4,13 +4,17 @@ import type {
   CreateCrewInfoEditRequestInput,
   CrewCard,
   CrewDetail,
+  CrewRow,
+  StreamerCrewRow,
+  CrewDetailRow,
 } from "@/types/crew";
 import { STREAMER_INFO_EDIT_REQUEST_TABLE } from "@/lib/constant";
 
 const supabase = createClient();
 
+/** 크루 코드-이름 쌍 목록을 이름순으로 조회한다 (드롭다운 등에 사용) */
 export async function fetchCrewCodeNames(): Promise<CrewCodeName[]> {
-  const { data, error } = await (supabase as unknown as { from: (table: string) => any })
+  const { data, error } = await supabase
     .from("crews")
     .select("crew_code,name")
     .order("name", { ascending: true });
@@ -22,25 +26,9 @@ export async function fetchCrewCodeNames(): Promise<CrewCodeName[]> {
   return (data || []) as CrewCodeName[];
 }
 
-type CrewRow = {
-  id: number;
-  crew_code: string;
-  name: string;
-  image_url: string | null;
-  bg_color: string | null;
-};
-
-type StreamerCrewRow = {
-  id: number;
-  public_id: string;
-  nickname: string | null;
-  image_url: string | null;
-  crew_name: string[] | null;
-};
-
+/** 크루 카드 목록을 조회한다. 각 크루에 crew_name 기반 멤버 썸네일을 매칭하여 반환한다 */
 export async function fetchCrewCards(): Promise<CrewCard[]> {
-  // `crews`는 최신 DB 스키마에 추가된 테이블이라 타입 생성 이전에도 동작하도록 로우 타입을 명시한다.
-  const crewsQuery = (supabase as unknown as { from: (table: string) => any })
+  const crewsQuery = supabase
     .from("crews")
     .select("id,crew_code,name,image_url,bg_color")
     .order("name", { ascending: true });
@@ -97,30 +85,13 @@ export async function fetchCrewCards(): Promise<CrewCard[]> {
   });
 }
 
-type CrewDetailRow = {
-  id: number;
-  crew_code: string;
-  name: string;
-  members: string[];
-  leader: string | null;
-  fandom_name: string | null;
-  debut_at: string | null;
-  fancafe_url: string | null;
-  youtube_url: string | null;
-  soop_url: string | null;
-  chzzk_url: string | null;
-  image_url: string | null;
-  bg_color: string | null;
-  created_at: string;
-  updated_at: string | null;
-};
-
+/** crewCode로 크루 상세 정보를 조회한다. 멤버 상세 정보도 함께 반환한다 */
 export async function fetchCrewDetailByCode(
   crewCode: string
 ): Promise<CrewDetail | null> {
   const normalizedCode = crewCode.trim().toLowerCase();
 
-  const crewQuery = (supabase as unknown as { from: (table: string) => any })
+  const crewQuery = supabase
     .from("crews")
     .select("*")
     .ilike("crew_code", normalizedCode)
@@ -158,6 +129,10 @@ export async function fetchCrewDetailByCode(
   };
 }
 
+/**
+ * 크루 정보 수정 요청을 생성한다.
+ * streamer_info_edit_requests 테이블을 재사용하며, streamer_nickname에 [CREW] prefix를 사용해 구분한다
+ */
 export async function createCrewInfoEditRequest({
   content,
   streamerId,

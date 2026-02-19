@@ -1,9 +1,9 @@
 import { createClient } from "@/utils/supabase/client";
-import type { IdolGroupUpsertInput } from "@/types/admin";
-import type { IdolGroup } from "@/types/group";
+import type { IdolGroupUpsertInput, IdolGroup } from "@/types/group";
 
 const supabase = createClient();
 
+/** 전체 그룹 목록을 최신순으로 조회한다 */
 export async function fetchIdolGroups(): Promise<IdolGroup[]> {
     const { data, error } = await supabase
         .from("idol_groups")
@@ -14,6 +14,7 @@ export async function fetchIdolGroups(): Promise<IdolGroup[]> {
     return data || [];
 }
 
+/** 새 그룹을 생성한다. members 배열은 빈 배열로 초기화된다 */
 export async function createIdolGroup(payload: IdolGroupUpsertInput) {
     const { data, error } = await supabase
         .from("idol_groups")
@@ -28,6 +29,7 @@ export async function createIdolGroup(payload: IdolGroupUpsertInput) {
     return data;
 }
 
+/** 그룹 정보를 수정한다 */
 export async function updateIdolGroup(
     groupId: number,
     payload: IdolGroupUpsertInput
@@ -45,6 +47,7 @@ export async function updateIdolGroup(
     return data;
 }
 
+/** 그룹을 삭제한다 */
 export async function deleteIdolGroup(groupId: number) {
     const { error } = await supabase
         .from("idol_groups")
@@ -54,6 +57,7 @@ export async function deleteIdolGroup(groupId: number) {
     if (error) throw error;
 }
 
+/** 그룹 대표 이미지를 group-images 버킷에 업로드하고 publicUrl을 반환한다 */
 export async function uploadIdolGroupImage(file: File) {
     const fileExt = (file.name.split(".").pop() || "png").toLowerCase();
     const randomKey =

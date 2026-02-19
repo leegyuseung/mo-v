@@ -73,7 +73,7 @@ export async function fetchIdolGroupCards(): Promise<IdolGroupCard[]> {
       group_code: group.group_code,
       name: group.name,
       image_url: group.image_url,
-      bg_color: (group as { bg_color?: boolean | null }).bg_color ?? null,
+      bg_color: group.bg_color ?? null,
       members,
       member_count: members.length,
     };

@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateCrew } from "@/api/admin-crews";
-import type { CrewUpsertInput } from "@/types/admin";
+import type { CrewUpsertInput } from "@/types/crew";
 import { toast } from "sonner";
 
 export function useUpdateCrew() {

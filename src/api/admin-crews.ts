@@ -1,13 +1,11 @@
 import { createClient } from "@/utils/supabase/client";
-import type { Crew, CrewUpsertInput } from "@/types/admin";
+import type { Crew, CrewUpsertInput } from "@/types/crew";
 
 const supabase = createClient();
 
-const crewsTable = () =>
-  (supabase as unknown as { from: (table: string) => any }).from("crews");
-
+/** 전체 크루 목록을 최신순으로 조회한다 */
 export async function fetchCrews(): Promise<Crew[]> {
-  const { data, error } = await crewsTable()
+  const { data, error } = await supabase.from("crews")
     .select("*")
     .order("created_at", { ascending: false });
 
@@ -15,8 +13,9 @@ export async function fetchCrews(): Promise<Crew[]> {
   return (data || []) as Crew[];
 }
 
+/** 새 크루를 생성한다. members 배열은 빈 배열로 초기화된다 */
 export async function createCrew(payload: CrewUpsertInput) {
-  const { data, error } = await crewsTable()
+  const { data, error } = await supabase.from("crews")
     .insert({
       ...payload,
       members: [],
@@ -28,8 +27,9 @@ export async function createCrew(payload: CrewUpsertInput) {
   return data as Crew;
 }
 
+/** 크루 정보를 수정한다 */
 export async function updateCrew(crewId: number, payload: CrewUpsertInput) {
-  const { data, error } = await crewsTable()
+  const { data, error } = await supabase.from("crews")
     .update({
       ...payload,
     })
@@ -41,11 +41,13 @@ export async function updateCrew(crewId: number, payload: CrewUpsertInput) {
   return data as Crew;
 }
 
+/** 크루를 삭제한다 */
 export async function deleteCrew(crewId: number) {
-  const { error } = await crewsTable().delete().eq("id", crewId);
+  const { error } = await supabase.from("crews").delete().eq("id", crewId);
   if (error) throw error;
 }
 
+/** 크루 대표 이미지를 group-images 버킷에 업로드하고 publicUrl을 반환한다 */
 export async function uploadCrewImage(file: File) {
   const fileExt = (file.name.split(".").pop() || "png").toLowerCase();
   const randomKey =

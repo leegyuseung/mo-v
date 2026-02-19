@@ -19,7 +19,7 @@ export type IdolGroupCard = {
   group_code: string;
   name: string;
   image_url: string | null;
-  bg_color: boolean | null;
+  bg_color: string | null;
   members: IdolGroupMemberThumbnail[];
   member_count: number;
 };
@@ -34,4 +34,19 @@ export type CreateGroupInfoEditRequestInput = {
   groupName: string;
   requesterId: string;
   requesterNickname: string | null;
+};
+
+/** 그룹 CRUD 시 사용하는 입력 타입 */
+export type IdolGroupUpsertInput = {
+  group_code: string;
+  name: string;
+  leader: string | null;
+  fandom_name: string | null;
+  agency: string | null;
+  formed_at: string | null;
+  debut_at: string | null;
+  fancafe_url: string | null;
+  youtube_url: string | null;
+  image_url: string | null;
+  bg_color: string | null;
 };

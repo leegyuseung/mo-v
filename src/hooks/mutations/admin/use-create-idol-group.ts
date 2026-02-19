@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createIdolGroup } from "@/api/admin-groups";
-import type { IdolGroupUpsertInput } from "@/types/admin";
+import type { IdolGroupUpsertInput } from "@/types/group";
 import { toast } from "sonner";
 
 export function useCreateIdolGroup() {

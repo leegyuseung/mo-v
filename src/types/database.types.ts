@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      crews: {
+        Row: {
+          bg_color: string | null
+          chzzk_url: string | null
+          created_at: string
+          crew_code: string
+          debut_at: string | null
+          fancafe_url: string | null
+          fandom_name: string | null
+          id: number
+          image_url: string | null
+          leader: string | null
+          members: string[]
+          name: string
+          soop_url: string | null
+          updated_at: string | null
+          youtube_url: string | null
+        }
+        Insert: {
+          bg_color?: string | null
+          chzzk_url?: string | null
+          created_at?: string
+          crew_code: string
+          debut_at?: string | null
+          fancafe_url?: string | null
+          fandom_name?: string | null
+          id?: number
+          image_url?: string | null
+          leader?: string | null
+          members?: string[]
+          name: string
+          soop_url?: string | null
+          updated_at?: string | null
+          youtube_url?: string | null
+        }
+        Update: {
+          bg_color?: string | null
+          chzzk_url?: string | null
+          created_at?: string
+          crew_code?: string
+          debut_at?: string | null
+          fancafe_url?: string | null
+          fandom_name?: string | null
+          id?: number
+          image_url?: string | null
+          leader?: string | null
+          members?: string[]
+          name?: string
+          soop_url?: string | null
+          updated_at?: string | null
+          youtube_url?: string | null
+        }
+        Relationships: []
+      }
       heart_point_history: {
         Row: {
           after_point: number
@@ -198,6 +252,13 @@ export type Database = {
             foreignKeyName: "streamer_heart_history_to_streamer_id_fkey"
             columns: ["to_streamer_id"]
             isOneToOne: false
+            referencedRelation: "crew_streamers"
+            referencedColumns: ["streamer_id"]
+          },
+          {
+            foreignKeyName: "streamer_heart_history_to_streamer_id_fkey"
+            columns: ["to_streamer_id"]
+            isOneToOne: false
             referencedRelation: "idol_group_streamers"
             referencedColumns: ["streamer_id"]
           },
@@ -234,6 +295,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "streamer_hearts_streamer_id_fkey"
+            columns: ["streamer_id"]
+            isOneToOne: true
+            referencedRelation: "crew_streamers"
+            referencedColumns: ["streamer_id"]
+          },
           {
             foreignKeyName: "streamer_hearts_streamer_id_fkey"
             columns: ["streamer_id"]
@@ -292,6 +360,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "streamer_info_edit_requests_streamer_id_fkey"
+            columns: ["streamer_id"]
+            isOneToOne: false
+            referencedRelation: "crew_streamers"
+            referencedColumns: ["streamer_id"]
           },
           {
             foreignKeyName: "streamer_info_edit_requests_streamer_id_fkey"
@@ -435,6 +510,19 @@ export type Database = {
       }
     }
     Views: {
+      crew_streamers: {
+        Row: {
+          crew_code: string | null
+          crew_id: number | null
+          crew_name: string | null
+          image_url: string | null
+          platform: string | null
+          streamer_id: number | null
+          streamer_nickname: string | null
+          streamer_public_id: string | null
+        }
+        Relationships: []
+      }
       idol_group_streamers: {
         Row: {
           group_code: string | null
@@ -474,6 +562,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "streamer_heart_history_to_streamer_id_fkey"
+            columns: ["streamer_id"]
+            isOneToOne: false
+            referencedRelation: "crew_streamers"
+            referencedColumns: ["streamer_id"]
           },
           {
             foreignKeyName: "streamer_heart_history_to_streamer_id_fkey"
@@ -520,6 +615,11 @@ export type Database = {
         }[]
       }
       is_admin: { Args: never; Returns: boolean }
+      sync_all_crew_members: { Args: never; Returns: undefined }
+      sync_crew_members_by_code: {
+        Args: { p_crew_code: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

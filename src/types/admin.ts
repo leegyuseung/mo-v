@@ -1,3 +1,4 @@
+/** 관리자 대시보드 통계 */
 export type DashboardStats = {
     totalUsers: number;
     emailUsers: number;
@@ -7,12 +8,14 @@ export type DashboardStats = {
     totalGroups: number;
 };
 
+/** 스트리머 등록 요청 상태 */
 export type StreamerRequestStatus =
     | "pending"
     | "approved"
     | "rejected"
     | "cancelled";
 
+/** 스트리머 등록 요청 데이터 */
 export type StreamerRegistrationRequest = {
     id: number;
     requester_id: string;
@@ -27,11 +30,13 @@ export type StreamerRegistrationRequest = {
     reviewed_by?: string | null;
 };
 
+/** 치지직 채널 프로필 조회 결과 */
 export type ChzzkChannelProfile = {
     channelName: string | null;
     channelImageUrl: string | null;
 };
 
+/** 스트리머/그룹/크루 정보 수정 요청 데이터 */
 export type StreamerInfoEditRequest = {
     id: number;
     created_at: string;
@@ -40,50 +45,4 @@ export type StreamerInfoEditRequest = {
     streamer_nickname: string;
     requester_id: string;
     requester_nickname: string | null;
-};
-
-export type IdolGroupUpsertInput = {
-    group_code: string;
-    name: string;
-    leader: string | null;
-    fandom_name: string | null;
-    agency: string | null;
-    formed_at: string | null;
-    debut_at: string | null;
-    fancafe_url: string | null;
-    youtube_url: string | null;
-    image_url: string | null;
-    bg_color: string | null;
-};
-
-export type Crew = {
-    id: number;
-    crew_code: string;
-    name: string;
-    members: string[];
-    leader: string | null;
-    fandom_name: string | null;
-    debut_at: string | null;
-    fancafe_url: string | null;
-    youtube_url: string | null;
-    soop_url: string | null;
-    chzzk_url: string | null;
-    image_url: string | null;
-    bg_color: string | null;
-    created_at: string;
-    updated_at: string | null;
-};
-
-export type CrewUpsertInput = {
-    crew_code: string;
-    name: string;
-    leader: string | null;
-    fandom_name: string | null;
-    debut_at: string | null;
-    fancafe_url: string | null;
-    youtube_url: string | null;
-    soop_url: string | null;
-    chzzk_url: string | null;
-    image_url: string | null;
-    bg_color: string | null;
 };
