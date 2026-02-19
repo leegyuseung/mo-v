@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/client";
 import type {
+  CrewCodeName,
   CreateCrewInfoEditRequestInput,
   CrewCard,
   CrewDetail,
@@ -7,6 +8,19 @@ import type {
 import { STREAMER_INFO_EDIT_REQUEST_TABLE } from "@/lib/constant";
 
 const supabase = createClient();
+
+export async function fetchCrewCodeNames(): Promise<CrewCodeName[]> {
+  const { data, error } = await (supabase as unknown as { from: (table: string) => any })
+    .from("crews")
+    .select("crew_code,name")
+    .order("name", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data || []) as CrewCodeName[];
+}
 
 type CrewRow = {
   id: number;

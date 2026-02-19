@@ -41,3 +41,8 @@ export type CreateCrewInfoEditRequestInput = {
   requesterId: string;
   requesterNickname: string | null;
 };
+
+export type CrewCodeName = {
+  crew_code: string;
+  name: string;
+};

@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useStreamerDetail } from "@/hooks/queries/streamers/use-streamer-detail";
 import { useIdolGroupCodeNames } from "@/hooks/queries/groups/use-idol-group-code-names";
+import { useCrewCodeNames } from "@/hooks/queries/crews/use-crew-code-names";
 import { useCreateStreamerInfoEditRequest } from "@/hooks/mutations/streamers/use-create-streamer-info-edit-request";
 import { Button } from "@/components/ui/button";
 import { ArrowBigLeft, UserRoundPen } from "lucide-react";
@@ -27,6 +28,7 @@ export default function VlistDetailScreen({
     isPending: isInfoEditRequestSubmitting,
   } = useCreateStreamerInfoEditRequest();
   const { data: idolGroups } = useIdolGroupCodeNames();
+  const { data: crews } = useCrewCodeNames();
 
   if (isLoading) {
     return (
@@ -101,16 +103,35 @@ export default function VlistDetailScreen({
         };
       }) ?? [];
   const crewTags = streamer.crew_name?.filter(Boolean) ?? [];
+  const crewNameByCode = new Map<string, string>();
+  const crewCodeByName = new Map<string, string>();
+  (crews || []).forEach((crew) => {
+    const code = crew.crew_code.trim().toLowerCase();
+    const name = crew.name.trim();
+    crewNameByCode.set(code, name);
+    crewCodeByName.set(name.toLowerCase(), code);
+  });
+  const crewLinkItems = crewTags.map((rawCrew: string) => {
+    const normalizedCrew = rawCrew.trim().toLowerCase();
+    const crewCode =
+      crewNameByCode.has(normalizedCrew)
+        ? normalizedCrew
+        : crewCodeByName.get(normalizedCrew) || normalizedCrew;
+    return {
+      code: crewCode,
+      name: crewNameByCode.get(crewCode) || rawCrew,
+    };
+  });
   const identityTags = [
     ...groupTags.map((group: { code: string; name: string }) => ({
       type: "group" as const,
       name: group.name,
       href: `/group/${group.code}`,
     })),
-    ...crewTags.map((name: string) => ({
+    ...crewLinkItems.map((crew: { code: string; name: string }) => ({
       type: "crew" as const,
-      name,
-      href: `/crew/${encodeURIComponent(name.trim().toLowerCase())}`,
+      name: crew.name,
+      href: `/crew/${encodeURIComponent(crew.code)}`,
     })),
   ];
 
@@ -303,7 +324,21 @@ export default function VlistDetailScreen({
               <div className="flex items-start gap-2 text-sm">
                 <span className="w-20 shrink-0 text-gray-500">크루</span>
                 <span className="font-medium text-gray-800 break-all">
-                  {streamer.crew_name?.join(", ") || "-"}
+                  {crewLinkItems.length > 0 ? (
+                    <span className="inline-flex flex-wrap gap-1.5">
+                      {crewLinkItems.map((crew: { code: string; name: string }) => (
+                        <Link
+                          key={`crew-link-${crew.code}`}
+                          href={`/crew/${encodeURIComponent(crew.code)}`}
+                          className="underline-offset-2 hover:underline"
+                        >
+                          {crew.name}
+                        </Link>
+                      ))}
+                    </span>
+                  ) : (
+                    "-"
+                  )}
                 </span>
               </div>
             </div>
