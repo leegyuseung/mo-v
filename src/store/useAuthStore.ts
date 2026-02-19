@@ -3,6 +3,8 @@ import { User } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/client";
 import type { Profile, HeartPoints } from "@/types/profile";
 import type { AuthState, AuthActions } from "@/types/auth";
+import { useLoginMethodStore } from "@/store/useLoginMethodStore";
+import type { LoginProvider } from "@/store/useLoginMethodStore";
 
 export type { Profile, HeartPoints };
 
@@ -40,6 +42,14 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
             } = await supabase.auth.getSession();
 
             if (session?.user) {
+                // "로그인 상태 유지" 미체크 시: sessionStorage 마커가 없으면 브라우저가
+                // 닫혔다 열린 것이므로 세션을 만료시킨다.
+                const { rememberMe } = useLoginMethodStore.getState();
+                if (!rememberMe && !sessionStorage.getItem("session_active")) {
+                    await supabase.auth.signOut();
+                    set({ isLoading: false, isInitialized: true });
+                    return;
+                }
                 // 프로필 조회
                 const { data: profile } = await supabase
                     .from("profiles")
@@ -59,6 +69,13 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
                     profile: profile || null,
                     heartPoints: heartPoints || null,
                 });
+
+                // 세션의 provider 정보를 읽어 마지막 로그인 방식을 저장한다
+                const provider = session.user.app_metadata?.provider as string | undefined;
+                const validProviders: LoginProvider[] = ["email", "google", "kakao"];
+                if (provider && validProviders.includes(provider as LoginProvider)) {
+                    useLoginMethodStore.getState().setLastProvider(provider as LoginProvider);
+                }
             }
         } catch (error) {
             console.error("Failed to initialize session:", error);
