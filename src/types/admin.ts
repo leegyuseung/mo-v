@@ -55,3 +55,35 @@ export type IdolGroupUpsertInput = {
     image_url: string | null;
     bg_color: string | null;
 };
+
+export type Crew = {
+    id: number;
+    crew_code: string;
+    name: string;
+    members: string[];
+    leader: string | null;
+    fandom_name: string | null;
+    debut_at: string | null;
+    fancafe_url: string | null;
+    youtube_url: string | null;
+    soop_url: string | null;
+    chzzk_url: string | null;
+    image_url: string | null;
+    bg_color: string | null;
+    created_at: string;
+    updated_at: string | null;
+};
+
+export type CrewUpsertInput = {
+    crew_code: string;
+    name: string;
+    leader: string | null;
+    fandom_name: string | null;
+    debut_at: string | null;
+    fancafe_url: string | null;
+    youtube_url: string | null;
+    soop_url: string | null;
+    chzzk_url: string | null;
+    image_url: string | null;
+    bg_color: string | null;
+};

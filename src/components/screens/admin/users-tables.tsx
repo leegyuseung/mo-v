@@ -202,6 +202,7 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
   const [mbti, setMbti] = useState(streamer.mbti || "");
   const [aliasInput, setAliasInput] = useState(streamer.alias?.join(", ") || "");
   const [platformUrl, setPlatformUrl] = useState(streamer.platform_url || "");
+  const [fancafeUrl, setFancafeUrl] = useState(streamer.fancafe_url || "");
   const [youtubeUrl, setYoutubeUrl] = useState(streamer.youtube_url || "");
 
   const { mutate: update, isPending } = useUpdateStreamer();
@@ -229,6 +230,7 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
           mbti: mbti || null,
           alias: parseTextArrayInput(aliasInput),
           platform_url: platformUrl || null,
+          fancafe_url: fancafeUrl || null,
           youtube_url: youtubeUrl || null,
         },
       },
@@ -253,6 +255,7 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
     setMbti(streamer.mbti || "");
     setAliasInput(streamer.alias?.join(", ") || "");
     setPlatformUrl(streamer.platform_url || "");
+    setFancafeUrl(streamer.fancafe_url || "");
     setYoutubeUrl(streamer.youtube_url || "");
     setIsEditing(false);
   };
@@ -486,6 +489,18 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
         <td className="px-4 py-3 text-sm">
           {isEditing ? (
             <Input
+              value={fancafeUrl}
+              onChange={(e) => setFancafeUrl(e.target.value)}
+              placeholder="팬카페 주소"
+              className="h-8 text-sm w-52"
+            />
+          ) : (
+            <span className="text-gray-500 text-xs">{streamer.fancafe_url || "-"}</span>
+          )}
+        </td>
+        <td className="px-4 py-3 text-sm">
+          {isEditing ? (
+            <Input
               value={youtubeUrl}
               onChange={(e) => setYoutubeUrl(e.target.value)}
               placeholder="유튜브 주소"
@@ -600,7 +615,7 @@ type StreamerTableProps = {
 export function StreamerTable({ streamers, isLoading }: StreamerTableProps) {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto overflow-y-auto max-h-[560px]">
-      <table className="min-w-[2500px] text-left">
+      <table className="min-w-[2680px] text-left">
         <thead>
           <tr className="bg-gray-50/80 border-b border-gray-100">
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">이미지</th>
@@ -619,20 +634,21 @@ export function StreamerTable({ streamers, isLoading }: StreamerTableProps) {
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">MBTI</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">별명</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">플랫폼 주소</th>
+            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">팬카페 주소</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">유튜브 주소</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-20">수정</th>
           </tr>
         </thead>
         <tbody>
           {isLoading ? (
-            <TableSkeleton cols={18} />
+            <TableSkeleton cols={19} />
           ) : streamers && streamers.length > 0 ? (
             streamers.map((streamer) => (
               <StreamerRow key={streamer.id} streamer={streamer} />
             ))
           ) : (
             <tr>
-              <td colSpan={18} className="px-4 py-12 text-center text-gray-400 text-sm">
+              <td colSpan={19} className="px-4 py-12 text-center text-gray-400 text-sm">
                 등록된 버츄얼이 없습니다.
               </td>
             </tr>

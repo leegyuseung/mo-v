@@ -107,7 +107,11 @@ export default function VlistDetailScreen({
       name: group.name,
       href: `/group/${group.code}`,
     })),
-    ...crewTags.map((name: string) => ({ type: "crew" as const, name })),
+    ...crewTags.map((name: string) => ({
+      type: "crew" as const,
+      name,
+      href: `/crew/${encodeURIComponent(name.trim().toLowerCase())}`,
+    })),
   ];
 
   const openInfoEditRequestModal = () => {
@@ -214,6 +218,17 @@ export default function VlistDetailScreen({
                   <Image src={platformIconSrc} alt="platform" width={18} height={18} />
                 </a>
               ) : null}
+              {streamer.fancafe_url ? (
+                <a
+                  href={streamer.fancafe_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-green-200 bg-green-50 hover:bg-green-100"
+                  aria-label="카페 이동"
+                >
+                  <Image src="/icons/cafe.svg" alt="cafe" width={18} height={18} />
+                </a>
+              ) : null}
               {streamer.youtube_url ? (
                 <a
                   href={streamer.youtube_url}
@@ -245,12 +260,13 @@ export default function VlistDetailScreen({
                         {tag.name}
                       </Link>
                     ) : (
-                      <span
+                      <Link
                         key={`${tag.type}-${tag.name}`}
+                        href={tag.href}
                         className="inline-flex items-center rounded-full border border-sky-100 bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-700"
                       >
                         {tag.name}
-                      </span>
+                      </Link>
                     )
                   ))}
                 </div>

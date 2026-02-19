@@ -45,6 +45,7 @@ export async function updateStreamer(
         mbti?: string | null;
         alias?: string[] | null;
         platform_url?: string | null;
+        fancafe_url?: string | null;
         youtube_url?: string | null;
     }
 ) {

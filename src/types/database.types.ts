@@ -365,6 +365,7 @@ export type Database = {
           chzzk_id: string | null
           created_at: string
           crew_name: string[] | null
+          fancafe_url: string | null
           fandom_name: string | null
           first_stream_date: string | null
           gender: string | null
@@ -388,6 +389,7 @@ export type Database = {
           chzzk_id?: string | null
           created_at?: string
           crew_name?: string[] | null
+          fancafe_url?: string | null
           fandom_name?: string | null
           first_stream_date?: string | null
           gender?: string | null
@@ -411,6 +413,7 @@ export type Database = {
           chzzk_id?: string | null
           created_at?: string
           crew_name?: string[] | null
+          fancafe_url?: string | null
           fandom_name?: string | null
           first_stream_date?: string | null
           gender?: string | null

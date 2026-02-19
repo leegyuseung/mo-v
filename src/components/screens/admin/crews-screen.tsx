@@ -5,26 +5,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import ConfirmAlert from "@/components/common/confirm-alert";
-import { useIdolGroups } from "@/hooks/queries/admin/use-idol-groups";
+import { useCrews } from "@/hooks/queries/admin/use-crews";
 import { useStreamers } from "@/hooks/queries/admin/use-streamers";
-import { useCreateIdolGroup } from "@/hooks/mutations/admin/use-create-idol-group";
-import { useUpdateIdolGroup } from "@/hooks/mutations/admin/use-update-idol-group";
-import { useDeleteIdolGroup } from "@/hooks/mutations/admin/use-delete-idol-group";
-import { uploadIdolGroupImage } from "@/api/admin-groups";
-import type { IdolGroupUpsertInput } from "@/types/admin";
-import type { IdolGroup } from "@/types/group";
+import { useCreateCrew } from "@/hooks/mutations/admin/use-create-crew";
+import { useUpdateCrew } from "@/hooks/mutations/admin/use-update-crew";
+import { useDeleteCrew } from "@/hooks/mutations/admin/use-delete-crew";
+import { uploadCrewImage } from "@/api/admin-crews";
+import type { Crew, CrewUpsertInput } from "@/types/admin";
 import { Pencil, Check, X, Trash2, UsersRound } from "lucide-react";
 import { toast } from "sonner";
 
-function GroupFormFields({
+function CrewFormFields({
   form,
   onChange,
   onUploadImage,
   isUploadingImage,
 }: {
-  form: IdolGroupUpsertInput;
+  form: CrewUpsertInput;
   onChange: (
-    key: keyof IdolGroupUpsertInput,
+    key: keyof CrewUpsertInput,
     value: string | boolean | null
   ) => void;
   onUploadImage: (file: File | null) => void;
@@ -33,9 +32,9 @@ function GroupFormFields({
   return (
     <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
       <Input
-        value={form.group_code}
-        onChange={(e) => onChange("group_code", e.target.value)}
-        placeholder="식별코드 (예: isedol)"
+        value={form.crew_code}
+        onChange={(e) => onChange("crew_code", e.target.value)}
+        placeholder="식별코드 (예: woowakgood-crew)"
         className="h-9"
       />
       <Input
@@ -57,18 +56,6 @@ function GroupFormFields({
         className="h-9"
       />
       <Input
-        value={form.agency || ""}
-        onChange={(e) => onChange("agency", e.target.value)}
-        placeholder="소속"
-        className="h-9"
-      />
-      <Input
-        value={form.formed_at || ""}
-        onChange={(e) => onChange("formed_at", e.target.value)}
-        placeholder="결성일"
-        className="h-9"
-      />
-      <Input
         value={form.debut_at || ""}
         onChange={(e) => onChange("debut_at", e.target.value)}
         placeholder="데뷔일"
@@ -87,16 +74,28 @@ function GroupFormFields({
         className="h-9"
       />
       <Input
+        value={form.soop_url || ""}
+        onChange={(e) => onChange("soop_url", e.target.value)}
+        placeholder="SOOP URL"
+        className="h-9"
+      />
+      <Input
+        value={form.chzzk_url || ""}
+        onChange={(e) => onChange("chzzk_url", e.target.value)}
+        placeholder="치지직 URL"
+        className="h-9"
+      />
+      <Input
         value={form.image_url || ""}
         onChange={(e) => onChange("image_url", e.target.value)}
         placeholder="대표이미지 URL"
-        className="h-9 md:col-span-2"
+        className="h-9"
       />
       <div className="md:col-span-2 flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2">
         <div>
           <p className="text-sm font-medium text-gray-700">대표 이미지 배경색</p>
           <p className="text-xs text-gray-500">
-            ON이면 그룹 이미지 배경을 와인색으로 표시합니다.
+            ON이면 크루 이미지 배경을 와인색으로 표시합니다.
           </p>
         </div>
         <Button
@@ -131,35 +130,35 @@ function GroupFormFields({
   );
 }
 
-function GroupRow({
-  group,
+function CrewRow({
+  crew,
   matchedMembers,
 }: {
-  group: IdolGroup;
+  crew: Crew;
   matchedMembers: string[];
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
-  const [form, setForm] = useState<IdolGroupUpsertInput>({
-    group_code: group.group_code,
-    name: group.name,
-    leader: group.leader,
-    fandom_name: group.fandom_name,
-    agency: group.agency,
-    formed_at: group.formed_at,
-    debut_at: group.debut_at,
-    fancafe_url: group.fancafe_url,
-    youtube_url: group.youtube_url,
-    image_url: group.image_url,
-    bg_color: group.bg_color,
+  const [form, setForm] = useState<CrewUpsertInput>({
+    crew_code: crew.crew_code,
+    name: crew.name,
+    leader: crew.leader,
+    fandom_name: crew.fandom_name,
+    debut_at: crew.debut_at,
+    fancafe_url: crew.fancafe_url,
+    youtube_url: crew.youtube_url,
+    soop_url: crew.soop_url,
+    chzzk_url: crew.chzzk_url,
+    image_url: crew.image_url,
+    bg_color: crew.bg_color,
   });
 
-  const { mutate: updateGroup, isPending: isUpdating } = useUpdateIdolGroup();
-  const { mutate: deleteGroup, isPending: isDeleting } = useDeleteIdolGroup();
+  const { mutate: updateCrew, isPending: isUpdating } = useUpdateCrew();
+  const { mutate: deleteCrew, isPending: isDeleting } = useDeleteCrew();
 
   const setField = (
-    key: keyof IdolGroupUpsertInput,
+    key: keyof CrewUpsertInput,
     rawValue: string | boolean | null
   ) => {
     if (key === "bg_color") {
@@ -168,14 +167,14 @@ function GroupRow({
     }
 
     const valueString = typeof rawValue === "string" ? rawValue : "";
-    const nullableKeys: Array<keyof IdolGroupUpsertInput> = [
+    const nullableKeys: Array<keyof CrewUpsertInput> = [
       "leader",
       "fandom_name",
-      "agency",
-      "formed_at",
       "debut_at",
       "fancafe_url",
       "youtube_url",
+      "soop_url",
+      "chzzk_url",
       "image_url",
     ];
 
@@ -187,17 +186,17 @@ function GroupRow({
   };
 
   const handleSave = () => {
-    if (!form.group_code.trim() || !form.name.trim()) {
+    if (!form.crew_code.trim() || !form.name.trim()) {
       toast.error("식별코드와 이름은 필수입니다.");
       return;
     }
 
-    updateGroup(
+    updateCrew(
       {
-        groupId: group.id,
+        crewId: crew.id,
         payload: {
           ...form,
-          group_code: form.group_code.trim(),
+          crew_code: form.crew_code.trim(),
           name: form.name.trim(),
         },
       },
@@ -208,7 +207,7 @@ function GroupRow({
   };
 
   const handleDelete = () => {
-    deleteGroup(group.id, {
+    deleteCrew(crew.id, {
       onSuccess: () => setIsDeleteAlertOpen(false),
     });
   };
@@ -217,7 +216,7 @@ function GroupRow({
     if (!file) return;
     setIsUploadingImage(true);
     try {
-      const publicUrl = await uploadIdolGroupImage(file);
+      const publicUrl = await uploadCrewImage(file);
       setForm((prev) => ({ ...prev, image_url: publicUrl }));
       toast.success("대표이미지를 업로드했습니다.");
     } catch (error) {
@@ -235,10 +234,10 @@ function GroupRow({
     <>
       <tr className="border-b border-gray-100 align-top">
         <td className="px-4 py-3 text-sm font-medium text-gray-800 whitespace-nowrap">
-          {group.name}
+          {crew.name}
         </td>
         <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
-          {group.group_code}
+          {crew.crew_code}
         </td>
         <td
           className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap max-w-[280px] truncate"
@@ -247,13 +246,13 @@ function GroupRow({
           {matchedMembers.join(", ") || "-"}
         </td>
         <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
-          {group.leader || "-"}
+          {crew.leader || "-"}
         </td>
         <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
-          {group.fandom_name || "-"}
+          {crew.fandom_name || "-"}
         </td>
         <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
-          {group.agency || "-"}
+          {crew.debut_at || "-"}
         </td>
         <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
           <div className="flex gap-1">
@@ -304,7 +303,7 @@ function GroupRow({
       {isEditing ? (
         <tr className="border-b border-gray-100 bg-gray-50/60">
           <td colSpan={7} className="px-4 py-3">
-            <GroupFormFields
+            <CrewFormFields
               form={form}
               onChange={setField}
               onUploadImage={handleUploadImage}
@@ -316,8 +315,8 @@ function GroupRow({
 
       <ConfirmAlert
         open={isDeleteAlertOpen}
-        title="그룹 삭제"
-        description="정말 이 그룹을 삭제하시겠습니까?"
+        title="크루 삭제"
+        description="정말 이 크루를 삭제하시겠습니까?"
         confirmText="삭제"
         cancelText="취소"
         isPending={isDeleting}
@@ -328,28 +327,28 @@ function GroupRow({
   );
 }
 
-export default function GroupsScreen() {
-  const { data: groups, isLoading } = useIdolGroups();
+export default function CrewsScreen() {
+  const { data: crews, isLoading } = useCrews();
   const { data: streamers } = useStreamers();
-  const { mutate: createGroup, isPending: isCreating } = useCreateIdolGroup();
+  const { mutate: createCrew, isPending: isCreating } = useCreateCrew();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
-  const [form, setForm] = useState<IdolGroupUpsertInput>({
-    group_code: "",
+  const [form, setForm] = useState<CrewUpsertInput>({
+    crew_code: "",
     name: "",
     leader: null,
     fandom_name: null,
-    agency: null,
-    formed_at: null,
     debut_at: null,
     fancafe_url: null,
     youtube_url: null,
+    soop_url: null,
+    chzzk_url: null,
     image_url: null,
     bg_color: null,
   });
 
   const setField = (
-    key: keyof IdolGroupUpsertInput,
+    key: keyof CrewUpsertInput,
     rawValue: string | boolean | null
   ) => {
     if (key === "bg_color") {
@@ -358,14 +357,14 @@ export default function GroupsScreen() {
     }
 
     const valueString = typeof rawValue === "string" ? rawValue : "";
-    const nullableKeys: Array<keyof IdolGroupUpsertInput> = [
+    const nullableKeys: Array<keyof CrewUpsertInput> = [
       "leader",
       "fandom_name",
-      "agency",
-      "formed_at",
       "debut_at",
       "fancafe_url",
       "youtube_url",
+      "soop_url",
+      "chzzk_url",
       "image_url",
     ];
 
@@ -378,30 +377,30 @@ export default function GroupsScreen() {
 
   const resetForm = () => {
     setForm({
-      group_code: "",
+      crew_code: "",
       name: "",
       leader: null,
       fandom_name: null,
-      agency: null,
-      formed_at: null,
       debut_at: null,
       fancafe_url: null,
       youtube_url: null,
+      soop_url: null,
+      chzzk_url: null,
       image_url: null,
       bg_color: null,
     });
   };
 
   const handleCreate = () => {
-    if (!form.group_code.trim() || !form.name.trim()) {
+    if (!form.crew_code.trim() || !form.name.trim()) {
       toast.error("식별코드와 이름은 필수입니다.");
       return;
     }
 
-    createGroup(
+    createCrew(
       {
         ...form,
-        group_code: form.group_code.trim(),
+        crew_code: form.crew_code.trim(),
         name: form.name.trim(),
       },
       {
@@ -417,7 +416,7 @@ export default function GroupsScreen() {
     if (!file) return;
     setIsUploadingImage(true);
     try {
-      const publicUrl = await uploadIdolGroupImage(file);
+      const publicUrl = await uploadCrewImage(file);
       setForm((prev) => ({ ...prev, image_url: publicUrl }));
       toast.success("대표이미지를 업로드했습니다.");
     } catch (error) {
@@ -431,12 +430,12 @@ export default function GroupsScreen() {
     }
   };
 
-  const membersByGroupCode = useMemo(() => {
+  const membersByCrewCode = useMemo(() => {
     const map: Record<string, string[]> = {};
-    if (!groups || !streamers) return map;
+    if (!crews || !streamers) return map;
 
-    groups.forEach((group) => {
-      map[group.group_code.trim().toLowerCase()] = [];
+    crews.forEach((crew) => {
+      map[crew.crew_code.trim().toLowerCase()] = [];
     });
 
     streamers.forEach((streamer) => {
@@ -444,10 +443,7 @@ export default function GroupsScreen() {
       if (!nickname) return;
 
       const matchedCodes = new Set<string>();
-      const candidateCodes = [
-        ...(streamer.group_codes || []),
-        ...(streamer.group_name || []),
-      ];
+      const candidateCodes = [...(streamer.crew_name || [])];
 
       candidateCodes.forEach((value) => {
         const normalized = (value || "").trim().toLowerCase();
@@ -464,7 +460,7 @@ export default function GroupsScreen() {
     });
 
     return map;
-  }, [groups, streamers]);
+  }, [crews, streamers]);
 
   return (
     <div className="p-6 md:p-10 max-w-7xl mx-auto">
@@ -472,9 +468,9 @@ export default function GroupsScreen() {
         <div className="flex items-center gap-2">
           <UsersRound className="w-5 h-5 text-indigo-500" />
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">그룹 관리</h1>
+            <h1 className="text-2xl font-bold text-gray-900">크루 관리</h1>
             <p className="text-sm text-gray-500">
-              그룹 정보 CRUD 및 버츄얼 그룹코드 기반 멤버 자동 매칭
+              크루 정보 CRUD 및 버츄얼 crew_code 기반 멤버 자동 매칭
             </p>
           </div>
         </div>
@@ -483,13 +479,13 @@ export default function GroupsScreen() {
           onClick={() => setIsAddOpen((prev) => !prev)}
           className="cursor-pointer bg-gray-800 hover:bg-gray-900 text-white"
         >
-          {isAddOpen ? "추가 닫기" : "그룹 추가"}
+          {isAddOpen ? "추가 닫기" : "크루 추가"}
         </Button>
       </div>
 
       {isAddOpen ? (
         <div className="mb-4 rounded-2xl border border-gray-100 bg-white p-4">
-          <GroupFormFields
+          <CrewFormFields
             form={form}
             onChange={setField}
             onUploadImage={handleUploadImage}
@@ -528,7 +524,7 @@ export default function GroupsScreen() {
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">멤버</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">리더</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">팬덤명</th>
-              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">소속</th>
+              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">데뷔일</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-24">수정</th>
             </tr>
           </thead>
@@ -541,20 +537,20 @@ export default function GroupsScreen() {
                   </td>
                 </tr>
               ))
-            ) : groups && groups.length > 0 ? (
-              groups.map((group) => (
-                <GroupRow
-                  key={group.id}
-                  group={group}
+            ) : crews && crews.length > 0 ? (
+              crews.map((crew) => (
+                <CrewRow
+                  key={crew.id}
+                  crew={crew}
                   matchedMembers={
-                    membersByGroupCode[group.group_code.trim().toLowerCase()] || []
+                    membersByCrewCode[crew.crew_code.trim().toLowerCase()] || []
                   }
                 />
               ))
             ) : (
               <tr>
                 <td colSpan={7} className="px-4 py-12 text-center text-gray-400 text-sm">
-                  등록된 그룹이 없습니다.
+                  등록된 크루가 없습니다.
                 </td>
               </tr>
             )}
