@@ -22,10 +22,13 @@ export const SITE_URL = resolveSiteUrl(process.env.NEXT_PUBLIC_SITE_URL);
 export const SITE_NAME = "mo-v";
 export const SITE_TITLE = "mo-v | 모두의 버츄얼";
 export const SITE_DESCRIPTION =
-  "mo-v는 치지직/플랫폼 기반 버츄얼 정보와 라이브 현황을 한눈에 보는 보드입니다.";
+  "mo-v를 통해 치지직/플랫폼 기반 버츄얼 정보와 라이브 현황을 한눈에 확인하세요.";
 
 export const SITE_KEYWORDS = [
   "mo-v",
+  "모두의 버츄얼",
+  "모브",
+  "모버",
   "버츄얼",
   "버튜버",
   "치지직",
