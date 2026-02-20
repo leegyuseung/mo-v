@@ -1,27 +1,11 @@
 import { createClient } from "@/utils/supabase/client";
 import type { DashboardStats } from "@/types/admin";
 import type { Profile } from "@/types/profile";
+import { validateNicknameInput } from "@/utils/validate";
 
 export type { DashboardStats, Profile };
 
 const supabase = createClient();
-const NICKNAME_REGEX = /^[0-9A-Za-z가-힣_]+$/;
-
-function validateNicknameInput(nickname?: string): string | undefined {
-    if (nickname === undefined) return undefined;
-
-    const trimmed = nickname.trim();
-    if (!trimmed) {
-        throw new Error("닉네임은 비어 있을 수 없습니다.");
-    }
-    if (trimmed.length < 2 || trimmed.length > 15) {
-        throw new Error("닉네임은 2자 이상 15자 이하로 입력해 주세요.");
-    }
-    if (!NICKNAME_REGEX.test(trimmed)) {
-        throw new Error("닉네임은 한글/영문/숫자/_ 만 사용할 수 있습니다.");
-    }
-    return trimmed;
-}
 
 /** 관리자 대시보드 통계를 집계하여 반환한다 (유저 수, 스트리머 수, 그룹 수, 가입방식별 분류) */
 export async function fetchDashboardStats(): Promise<DashboardStats> {

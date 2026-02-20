@@ -4,41 +4,26 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowBigLeft, Star, UserRound, UserRoundPen, UsersRound } from "lucide-react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 import { useIdolGroupDetail } from "@/hooks/queries/groups/use-idol-group-detail";
 import { useCreateGroupInfoEditRequest } from "@/hooks/mutations/groups/use-create-group-info-edit-request";
+import { useToggleStar } from "@/hooks/mutations/star/use-toggle-star";
 import { useAuthStore } from "@/store/useAuthStore";
 import { GROUP_INFO_EDIT_REQUEST_MODAL_TEXT } from "@/lib/constant";
-import { createClient } from "@/utils/supabase/client";
+import { isSupabaseStorageUrl } from "@/utils/image";
+import InfoEditRequestModal from "@/components/common/info-edit-request-modal";
 
 type GroupDetailScreenProps = {
   groupCode: string;
 };
 
 export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps) {
-  const supabase = createClient();
-  const queryClient = useQueryClient();
   const [isEditRequestModalOpen, setIsEditRequestModalOpen] = useState(false);
-  const [editRequestContent, setEditRequestContent] = useState("");
-  const [isStarToggling, setIsStarToggling] = useState(false);
   const { user, profile } = useAuthStore();
   const { data: group, isLoading } = useIdolGroupDetail(groupCode);
-  const { data: isStarred = false } = useQuery({
-    queryKey: ["star", "group", user?.id, group?.id],
-    queryFn: async () => {
-      const { count, error } = await (supabase as any)
-        .from("user_star_groups")
-        .select("user_id", { count: "exact", head: true })
-        .eq("user_id", user!.id)
-        .eq("group_id", group!.id);
-      if (error) throw error;
-      return (count || 0) > 0;
-    },
-    enabled: Boolean(user?.id && group?.id),
-  });
+  const { starred: isStarred, isToggling: isStarToggling, toggle: onClickStar } = useToggleStar("group", group?.id);
   const {
     mutateAsync: createInfoEditRequest,
     isPending: isInfoEditRequestSubmitting,
@@ -52,12 +37,7 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
     setIsEditRequestModalOpen(true);
   };
 
-  const closeInfoEditRequestModal = () => {
-    setIsEditRequestModalOpen(false);
-    setEditRequestContent("");
-  };
-
-  const handleSubmitInfoEditRequest = async () => {
+  const handleSubmitInfoEditRequest = async (content: string) => {
     if (!user || !group) {
       toast.error("로그인 후 정보 수정 요청이 가능합니다.");
       return;
@@ -66,67 +46,21 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
       toast.error("연결된 멤버가 없어 요청을 접수할 수 없습니다.");
       return;
     }
-    if (!editRequestContent.trim()) {
-      toast.error(GROUP_INFO_EDIT_REQUEST_MODAL_TEXT.contentRequired);
-      return;
-    }
 
     try {
       await createInfoEditRequest({
-        content: editRequestContent,
+        content,
         streamerId: group.members_detail[0].id,
         groupName: group.name,
         requesterId: user.id,
         requesterNickname: profile?.nickname || null,
       });
       toast.success(GROUP_INFO_EDIT_REQUEST_MODAL_TEXT.submitSuccess);
-      closeInfoEditRequestModal();
+      setIsEditRequestModalOpen(false);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "정보 수정 요청 접수에 실패했습니다.";
       toast.error(message);
-    }
-  };
-
-  const onClickStar = async () => {
-    if (!user) {
-      toast.error("로그인 후 즐겨찾기를 사용할 수 있습니다.");
-      return;
-    }
-    if (!group?.id || isStarToggling) return;
-
-    setIsStarToggling(true);
-    const starQueryKey = ["star", "group", user.id, group.id] as const;
-    const previousStarred = queryClient.getQueryData<boolean>(starQueryKey) ?? false;
-    const nextStarred = !previousStarred;
-    queryClient.setQueryData(starQueryKey, nextStarred);
-
-    try {
-      if (nextStarred) {
-        const { error } = await (supabase as any).from("user_star_groups").insert({
-          user_id: user.id,
-          group_id: group.id,
-        });
-        if (error) throw error;
-      } else {
-        const { error } = await (supabase as any)
-          .from("user_star_groups")
-          .delete()
-          .eq("user_id", user.id)
-          .eq("group_id", group.id);
-        if (error) throw error;
-      }
-
-      await queryClient.invalidateQueries({
-        queryKey: ["my-stars", user.id],
-      });
-    } catch (error) {
-      queryClient.setQueryData(starQueryKey, previousStarred);
-      const message =
-        error instanceof Error ? error.message : "즐겨찾기 처리에 실패했습니다.";
-      toast.error(message);
-    } finally {
-      setIsStarToggling(false);
     }
   };
 
@@ -152,8 +86,6 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
     { label: "데뷔일", value: group.debut_at || "-" },
   ];
 
-  const isSupabaseStorageUrl = (url: string) =>
-    url.includes(".supabase.co/storage/v1/object/public/");
 
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto">
@@ -310,47 +242,13 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
         </div>
       </div>
 
-      {isEditRequestModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-5 shadow-xl">
-            <h2 className="text-lg font-semibold text-gray-900">
-              {GROUP_INFO_EDIT_REQUEST_MODAL_TEXT.title}
-            </h2>
-            <p className="mt-1 text-sm text-gray-500">
-              {GROUP_INFO_EDIT_REQUEST_MODAL_TEXT.description}
-            </p>
-
-            <textarea
-              value={editRequestContent}
-              onChange={(event) => setEditRequestContent(event.target.value)}
-              placeholder="수정이 필요한 내용을 입력해 주세요."
-              className="mt-4 h-32 w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-gray-400"
-            />
-
-            <div className="mt-5 flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="cursor-pointer"
-                onClick={closeInfoEditRequestModal}
-                disabled={isInfoEditRequestSubmitting}
-              >
-                {GROUP_INFO_EDIT_REQUEST_MODAL_TEXT.cancelButton}
-              </Button>
-              <Button
-                type="button"
-                className="cursor-pointer bg-gray-800 text-white hover:bg-gray-900"
-                onClick={handleSubmitInfoEditRequest}
-                disabled={isInfoEditRequestSubmitting}
-              >
-                {isInfoEditRequestSubmitting
-                  ? "처리중..."
-                  : GROUP_INFO_EDIT_REQUEST_MODAL_TEXT.submitButton}
-              </Button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <InfoEditRequestModal
+        open={isEditRequestModalOpen}
+        texts={GROUP_INFO_EDIT_REQUEST_MODAL_TEXT}
+        isSubmitting={isInfoEditRequestSubmitting}
+        onSubmit={handleSubmitInfoEditRequest}
+        onClose={() => setIsEditRequestModalOpen(false)}
+      />
     </div>
   );
 }

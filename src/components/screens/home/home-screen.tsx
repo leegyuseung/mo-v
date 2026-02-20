@@ -12,10 +12,9 @@ import {
 import type { StreamerHeartLeaderboardItem } from "@/types/heart";
 import { useLiveStreamers } from "@/hooks/queries/live/use-live-streamers";
 import { useAuthStore } from "@/store/useAuthStore";
-import { createClient } from "@/utils/supabase/client";
+import { fetchStarredStreamerIds } from "@/api/star";
 
 export default function HomeScreen() {
-  const supabase = createClient();
   const { user } = useAuthStore();
   const { data: liveData, isLoading: isLiveLoading } = useLiveStreamers();
   const {
@@ -83,16 +82,7 @@ export default function HomeScreen() {
   }, [liveData]);
   const { data: starredStreamerIds = [] } = useQuery({
     queryKey: ["home-starred-streamers", user?.id],
-    queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("user_star_streamers")
-        .select("streamer_id")
-        .eq("user_id", user!.id);
-      if (error) throw error;
-      return (data || [])
-        .map((row: { streamer_id: number | null }) => row.streamer_id)
-        .filter((id: number | null): id is number => typeof id === "number");
-    },
+    queryFn: () => fetchStarredStreamerIds(user!.id),
     enabled: Boolean(user?.id),
   });
   const liveFavoriteStreamers = useMemo(() => {

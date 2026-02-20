@@ -11,36 +11,22 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useCrewCards } from "@/hooks/queries/crews/use-crew-cards";
 import { useAuthStore } from "@/store/useAuthStore";
-import { createClient } from "@/utils/supabase/client";
+import { fetchStarredCrewIds } from "@/api/star";
+import { isSupabaseStorageUrl } from "@/utils/image";
+import { useBrokenImages } from "@/hooks/use-broken-images";
 
 export default function CrewScreen() {
-  const supabase = createClient();
   const router = useRouter();
   const { user } = useAuthStore();
   const [keyword, setKeyword] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "star">("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const [brokenCrewImageById, setBrokenCrewImageById] = useState<
-    Record<number, boolean>
-  >({});
-  const [brokenMemberImageById, setBrokenMemberImageById] = useState<
-    Record<number, boolean>
-  >({});
+  const crewImages = useBrokenImages();
+  const memberImages = useBrokenImages();
   const { data, isLoading, isFetching } = useCrewCards();
   const { data: starredCrewIds = new Set<number>() } = useQuery({
     queryKey: ["starred-crews", user?.id],
-    queryFn: async () => {
-      const { data: rows, error } = await (supabase as any)
-        .from("user_star_crews")
-        .select("crew_id")
-        .eq("user_id", user!.id);
-      if (error) throw error;
-      return new Set<number>(
-        (rows || [])
-          .map((row: { crew_id: number | null }) => row.crew_id)
-          .filter((id: number | null): id is number => typeof id === "number")
-      );
-    },
+    queryFn: async () => new Set(await fetchStarredCrewIds(user!.id)),
     enabled: Boolean(user?.id),
   });
 
@@ -78,8 +64,6 @@ export default function CrewScreen() {
     setSortOrder(nextSortBy === "star" ? "desc" : "asc");
   };
 
-  const isSupabaseStorageUrl = (url: string) =>
-    url.includes(".supabase.co/storage/v1/object/public/");
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
@@ -157,13 +141,12 @@ export default function CrewScreen() {
                       </span>
                     ) : null}
                     <div
-                      className={`relative h-14 w-14 overflow-hidden rounded-full ${
-                        crew.bg_color
-                          ? "bg-gradient-to-br from-rose-900 via-red-900 to-purple-900"
-                          : "bg-white"
-                      }`}
+                      className={`relative h-14 w-14 overflow-hidden rounded-full ${crew.bg_color
+                        ? "bg-gradient-to-br from-rose-900 via-red-900 to-purple-900"
+                        : "bg-white"
+                        }`}
                     >
-                      {crew.image_url && !brokenCrewImageById[crew.id] ? (
+                      {crew.image_url && !crewImages.isBroken(crew.id) ? (
                         <Image
                           src={crew.image_url}
                           alt={crew.name}
@@ -171,10 +154,7 @@ export default function CrewScreen() {
                           sizes="56px"
                           unoptimized={isSupabaseStorageUrl(crew.image_url)}
                           onError={() =>
-                            setBrokenCrewImageById((prev) => ({
-                              ...prev,
-                              [crew.id]: true,
-                            }))
+                            crewImages.markBroken(crew.id)
                           }
                           className="object-contain"
                         />
@@ -203,7 +183,7 @@ export default function CrewScreen() {
                       onClick={(event) => event.stopPropagation()}
                     >
                       <div className="relative h-8 w-8 overflow-hidden rounded-full border border-gray-200 bg-white transition group-hover/member:scale-[1.03]">
-                        {member.image_url && !brokenMemberImageById[member.id] ? (
+                        {member.image_url && !memberImages.isBroken(member.id) ? (
                           <Image
                             src={member.image_url}
                             alt={member.nickname || "streamer"}
@@ -211,10 +191,7 @@ export default function CrewScreen() {
                             sizes="32px"
                             unoptimized={isSupabaseStorageUrl(member.image_url)}
                             onError={() =>
-                              setBrokenMemberImageById((prev) => ({
-                                ...prev,
-                                [member.id]: true,
-                              }))
+                              memberImages.markBroken(member.id)
                             }
                             className="object-contain"
                           />

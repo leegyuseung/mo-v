@@ -25,21 +25,19 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { STREAMER_INFO_EDIT_REQUEST_MODAL_TEXT } from "@/lib/constant";
 import type { StreamerTopDonor } from "@/types/profile";
-import { createClient } from "@/utils/supabase/client";
+import { useToggleStar } from "@/hooks/mutations/star/use-toggle-star";
+import InfoEditRequestModal from "@/components/common/info-edit-request-modal";
 
 export default function VlistDetailScreen({
   streamerPublicId,
 }: {
   streamerPublicId: string;
 }) {
-  const supabase = createClient();
   const [isEditRequestModalOpen, setIsEditRequestModalOpen] = useState(false);
-  const [editRequestContent, setEditRequestContent] = useState("");
   const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
   const [giftAmountInput, setGiftAmountInput] = useState("");
   const [isGiftConfirmOpen, setIsGiftConfirmOpen] = useState(false);
   const [isGiftSubmitting, setIsGiftSubmitting] = useState(false);
-  const [isStarToggling, setIsStarToggling] = useState(false);
   const [donorPeriod, setDonorPeriod] = useState<DonorPeriod>("all");
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -69,19 +67,7 @@ export default function VlistDetailScreen({
     },
     enabled: Boolean(streamer?.id),
   });
-  const { data: isStarred = false } = useQuery({
-    queryKey: ["star", "streamer", user?.id, streamer?.id],
-    queryFn: async () => {
-      const { count, error } = await (supabase as any)
-        .from("user_star_streamers")
-        .select("user_id", { count: "exact", head: true })
-        .eq("user_id", user!.id)
-        .eq("streamer_id", streamer!.id);
-      if (error) throw error;
-      return (count || 0) > 0;
-    },
-    enabled: Boolean(user?.id && streamer?.id),
-  });
+  const { starred: isStarred, isToggling: isStarToggling, toggle: onClickStar } = useToggleStar("streamer", streamer?.id);
 
   if (isLoading) {
     return (
@@ -196,73 +182,24 @@ export default function VlistDetailScreen({
     setIsEditRequestModalOpen(true);
   };
 
-  const onClickStar = async () => {
-    if (!user) {
-      toast.error("로그인 후 즐겨찾기를 사용할 수 있습니다.");
-      return;
-    }
-    if (!streamer?.id || isStarToggling) return;
 
-    setIsStarToggling(true);
-    const starQueryKey = ["star", "streamer", user.id, streamer.id] as const;
-    const previousStarred = queryClient.getQueryData<boolean>(starQueryKey) ?? false;
-    const nextStarred = !previousStarred;
-    queryClient.setQueryData(starQueryKey, nextStarred);
 
-    try {
-      if (nextStarred) {
-        const { error } = await (supabase as any).from("user_star_streamers").insert({
-          user_id: user.id,
-          streamer_id: streamer.id,
-        });
-        if (error) throw error;
-      } else {
-        const { error } = await (supabase as any)
-          .from("user_star_streamers")
-          .delete()
-          .eq("user_id", user.id)
-          .eq("streamer_id", streamer.id);
-        if (error) throw error;
-      }
-
-      await queryClient.invalidateQueries({
-        queryKey: ["my-stars", user.id],
-      });
-    } catch (error) {
-      queryClient.setQueryData(starQueryKey, previousStarred);
-      const message =
-        error instanceof Error ? error.message : "즐겨찾기 처리에 실패했습니다.";
-      toast.error(message);
-    } finally {
-      setIsStarToggling(false);
-    }
-  };
-
-  const closeInfoEditRequestModal = () => {
-    setIsEditRequestModalOpen(false);
-    setEditRequestContent("");
-  };
-
-  const handleSubmitInfoEditRequest = async () => {
+  const handleSubmitInfoEditRequest = async (content: string) => {
     if (!user) {
       toast.error("로그인 후 정보 수정 요청이 가능합니다.");
-      return;
-    }
-    if (!editRequestContent.trim()) {
-      toast.error(STREAMER_INFO_EDIT_REQUEST_MODAL_TEXT.contentRequired);
       return;
     }
 
     try {
       await createInfoEditRequest({
-        content: editRequestContent,
+        content,
         streamerId: streamer.id,
         streamerNickname: streamer.nickname || "-",
         requesterId: user.id,
         requesterNickname: profile?.nickname || null,
       });
       toast.success(STREAMER_INFO_EDIT_REQUEST_MODAL_TEXT.submitSuccess);
-      closeInfoEditRequestModal();
+      setIsEditRequestModalOpen(false);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "정보 수정 요청 접수에 실패했습니다.";
@@ -382,9 +319,8 @@ export default function VlistDetailScreen({
               disabled={isStarToggling}
             >
               <Star
-                className={`w-5 h-5 ${
-                  isStarred ? "fill-yellow-400 text-yellow-400" : "text-yellow-500"
-                }`}
+                className={`w-5 h-5 ${isStarred ? "fill-yellow-400 text-yellow-400" : "text-yellow-500"
+                  }`}
               />
             </Button>
             <span className="pointer-events-none absolute right-1/2 top-full z-20 mt-1 translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
@@ -631,47 +567,13 @@ export default function VlistDetailScreen({
         )}
       </div>
 
-      {isEditRequestModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-5 shadow-xl">
-            <h2 className="text-lg font-semibold text-gray-900">
-              {STREAMER_INFO_EDIT_REQUEST_MODAL_TEXT.title}
-            </h2>
-            <p className="mt-1 text-sm text-gray-500">
-              {STREAMER_INFO_EDIT_REQUEST_MODAL_TEXT.description}
-            </p>
-
-            <textarea
-              value={editRequestContent}
-              onChange={(event) => setEditRequestContent(event.target.value)}
-              placeholder="수정이 필요한 내용을 입력해 주세요."
-              className="mt-4 h-32 w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-gray-400"
-            />
-
-            <div className="mt-5 flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="cursor-pointer"
-                onClick={closeInfoEditRequestModal}
-                disabled={isInfoEditRequestSubmitting}
-              >
-                {STREAMER_INFO_EDIT_REQUEST_MODAL_TEXT.cancelButton}
-              </Button>
-              <Button
-                type="button"
-                className="cursor-pointer bg-gray-800 text-white hover:bg-gray-900"
-                onClick={handleSubmitInfoEditRequest}
-                disabled={isInfoEditRequestSubmitting}
-              >
-                {isInfoEditRequestSubmitting
-                  ? "처리중..."
-                  : STREAMER_INFO_EDIT_REQUEST_MODAL_TEXT.submitButton}
-              </Button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <InfoEditRequestModal
+        open={isEditRequestModalOpen}
+        texts={STREAMER_INFO_EDIT_REQUEST_MODAL_TEXT}
+        isSubmitting={isInfoEditRequestSubmitting}
+        onSubmit={handleSubmitInfoEditRequest}
+        onClose={() => setIsEditRequestModalOpen(false)}
+      />
 
       {isGiftModalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">

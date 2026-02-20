@@ -10,6 +10,7 @@ import { useMyStars } from "@/hooks/queries/star/use-my-stars";
 import { useLiveStreamers } from "@/hooks/queries/live/use-live-streamers";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
+import { getPlatformBorderColor } from "@/utils/platform";
 
 function AvatarItem({ children, title }: { children: ReactNode; title: string }) {
   return (
@@ -109,15 +110,6 @@ export default function StarScreen() {
     return Boolean(live?.isLive && live?.liveUrl);
   });
 
-  const getPlatformBorderColor = (platform: string | null) => {
-    if (platform === "chzzk") {
-      return "border-green-500";
-    }
-    if (platform === "soop") {
-      return "border-blue-500";
-    }
-    return "border-gray-200";
-  };
 
   const includesKeyword = (value: string | null | undefined, keyword: string) =>
     (value || "").toLowerCase().includes(keyword.trim().toLowerCase());

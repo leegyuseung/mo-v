@@ -11,6 +11,8 @@ import { useLiveStreamers } from "@/hooks/queries/live/use-live-streamers";
 import { useIdolGroupCodeNames } from "@/hooks/queries/groups/use-idol-group-code-names";
 import type { StreamerPlatform } from "@/types/streamer";
 import { STREAMER_PLATFORM_OPTIONS } from "@/lib/constant";
+import { getPlatformActiveClass, getPlatformInactiveClass } from "@/utils/platform";
+import StreamerGroupCrewBadges from "@/components/common/streamer-group-crew-badges";
 
 export default function LiveScreen() {
   const [platform, setPlatform] = useState<StreamerPlatform>("all");
@@ -58,25 +60,6 @@ export default function LiveScreen() {
     return map;
   }, [idolGroups]);
 
-  const getPlatformActiveClass = (value: StreamerPlatform) => {
-    if (value === "all") {
-      return "bg-white text-gray-900 border-gray-300 hover:bg-gray-50";
-    }
-    if (value === "chzzk") {
-      return "bg-green-500 text-white border-green-500 hover:bg-green-600 hover:text-white";
-    }
-    return "bg-blue-500 text-white border-blue-500 hover:bg-blue-600 hover:text-white";
-  };
-
-  const getPlatformInactiveClass = (value: StreamerPlatform) => {
-    if (value === "all") {
-      return "border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-800";
-    }
-    if (value === "chzzk") {
-      return "border-gray-200 text-gray-600 hover:bg-green-50 hover:border-green-300 hover:text-green-700";
-    }
-    return "border-gray-200 text-gray-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700";
-  };
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
@@ -271,27 +254,12 @@ export default function LiveScreen() {
                   </span>
                 </div>
 
-                {(streamer.group_name && streamer.group_name.length > 0) ||
-                  (streamer.crew_name && streamer.crew_name.length > 0) ? (
-                  <div className="mt-1 flex flex-wrap gap-1.5">
-                    {streamer.group_name?.map((group) => (
-                      <span
-                        key={`${streamer.id}-group-${group}`}
-                        className="inline-flex items-center rounded-full border border-pink-100 bg-pink-50 px-2 py-0.5 text-[10px] font-medium text-pink-700"
-                      >
-                        {groupNameByCode.get(group.trim().toLowerCase()) || group}
-                      </span>
-                    ))}
-                    {streamer.crew_name?.map((crew) => (
-                      <span
-                        key={`${streamer.id}-crew-${crew}`}
-                        className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[10px] font-medium text-sky-700"
-                      >
-                        {crew}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
+                <StreamerGroupCrewBadges
+                  streamerId={streamer.id}
+                  groupNames={streamer.group_name}
+                  crewNames={streamer.crew_name}
+                  groupNameByCode={groupNameByCode}
+                />
               </Link>
             );
           })}

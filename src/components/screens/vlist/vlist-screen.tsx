@@ -23,10 +23,10 @@ import StreamerRequestModal from "@/components/screens/vlist/streamer-request-mo
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { createClient } from "@/utils/supabase/client";
+import { fetchStarredStreamerIds } from "@/api/star";
+import { getPlatformActiveClass, getPlatformInactiveClass } from "@/utils/platform";
 
 export default function VlistScreen() {
-  const supabase = createClient();
   const [page, setPage] = useState(1);
   const [platform, setPlatform] = useState<StreamerPlatform>("all");
   const [sortBy, setSortBy] = useState<StreamerSortBy>("name");
@@ -48,18 +48,7 @@ export default function VlistScreen() {
   const { data: idolGroups } = useIdolGroupCodeNames();
   const { data: starredStreamerIds = new Set<number>() } = useQuery({
     queryKey: ["starred-streamers", user?.id],
-    queryFn: async () => {
-      const { data: rows, error } = await (supabase as any)
-        .from("user_star_streamers")
-        .select("streamer_id")
-        .eq("user_id", user!.id);
-      if (error) throw error;
-      return new Set<number>(
-        (rows || [])
-          .map((row: { streamer_id: number | null }) => row.streamer_id)
-          .filter((id: number | null): id is number => typeof id === "number")
-      );
-    },
+    queryFn: async () => new Set(await fetchStarredStreamerIds(user!.id)),
     enabled: Boolean(user?.id),
   });
 
@@ -111,25 +100,6 @@ export default function VlistScreen() {
     setIsAddModalOpen(true);
   };
 
-  const getPlatformActiveClass = (value: StreamerPlatform) => {
-    if (value === "all") {
-      return "bg-white text-gray-900 border-gray-300 hover:bg-gray-50";
-    }
-    if (value === "chzzk") {
-      return "bg-green-500 text-white border-green-500 hover:bg-green-600 hover:text-white";
-    }
-    return "bg-blue-500 text-white border-blue-500 hover:bg-blue-600 hover:text-white";
-  };
-
-  const getPlatformInactiveClass = (value: StreamerPlatform) => {
-    if (value === "all") {
-      return "border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-800";
-    }
-    if (value === "chzzk") {
-      return "border-gray-200 text-gray-600 hover:bg-green-50 hover:border-green-300 hover:text-green-700";
-    }
-    return "border-gray-200 text-gray-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700";
-  };
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
@@ -144,11 +114,10 @@ export default function VlistScreen() {
                 size="sm"
                 variant="outline"
                 onClick={() => onChangePlatform(item.value)}
-                className={`cursor-pointer ${
-                  platform === item.value
-                    ? getPlatformActiveClass(item.value)
-                    : getPlatformInactiveClass(item.value)
-                }`}
+                className={`cursor-pointer ${platform === item.value
+                  ? getPlatformActiveClass(item.value)
+                  : getPlatformInactiveClass(item.value)
+                  }`}
               >
                 {item.label}
               </Button>
@@ -262,7 +231,7 @@ export default function VlistScreen() {
               </div>
 
               {(streamer.group_name && streamer.group_name.length > 0) ||
-              (streamer.crew_name && streamer.crew_name.length > 0) ? (
+                (streamer.crew_name && streamer.crew_name.length > 0) ? (
                 <div className="mt-1 flex flex-wrap gap-1.5">
                   {streamer.group_name?.map((group) => (
                     <span
