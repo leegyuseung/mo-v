@@ -37,14 +37,25 @@ export async function fetchCrewCards(): Promise<CrewCard[]> {
     .from("streamers")
     .select("id,public_id,nickname,image_url,crew_name");
 
-  const [{ data: crews, error: crewsError }, { data: streamers, error: streamersError }] =
-    await Promise.all([crewsQuery, streamersQuery]);
+  const statsQuery = supabase.from("crew_star_stats").select("crew_id,star_count");
+
+  const [
+    { data: crews, error: crewsError },
+    { data: streamers, error: streamersError },
+    { data: crewStats, error: crewStatsError },
+  ] = await Promise.all([crewsQuery, streamersQuery, statsQuery]);
 
   if (crewsError) throw crewsError;
   if (streamersError) throw streamersError;
+  if (crewStatsError) throw crewStatsError;
 
   const crewsData = (crews || []) as CrewRow[];
   const streamersData = (streamers || []) as StreamerCrewRow[];
+  const crewStarCountById = new Map<number, number>(
+    (crewStats || [])
+      .filter((row) => typeof row.crew_id === "number")
+      .map((row) => [row.crew_id as number, row.star_count || 0])
+  );
 
   const membersByCrewCode = new Map<string, CrewCard["members"]>();
   crewsData.forEach((crew) => {
@@ -79,6 +90,7 @@ export async function fetchCrewCards(): Promise<CrewCard[]> {
       name: crew.name,
       image_url: crew.image_url,
       bg_color: crew.bg_color,
+      star_count: crewStarCountById.get(crew.id) || 0,
       members,
       member_count: members.length,
     };

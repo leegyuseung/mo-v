@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
@@ -13,7 +14,7 @@ import type {
   StreamerSortBy,
   StreamerSortOrder,
 } from "@/types/streamer";
-import { ChevronLeft, ChevronRight, UserRound } from "lucide-react";
+import { ChevronLeft, ChevronRight, Star, UserRound } from "lucide-react";
 import {
   STREAMER_PAGE_SIZE,
   STREAMER_PLATFORM_OPTIONS,
@@ -22,8 +23,10 @@ import StreamerRequestModal from "@/components/screens/vlist/streamer-request-mo
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { createClient } from "@/utils/supabase/client";
 
 export default function VlistScreen() {
+  const supabase = createClient();
   const [page, setPage] = useState(1);
   const [platform, setPlatform] = useState<StreamerPlatform>("all");
   const [sortBy, setSortBy] = useState<StreamerSortBy>("name");
@@ -43,6 +46,22 @@ export default function VlistScreen() {
     keyword,
   });
   const { data: idolGroups } = useIdolGroupCodeNames();
+  const { data: starredStreamerIds = new Set<number>() } = useQuery({
+    queryKey: ["starred-streamers", user?.id],
+    queryFn: async () => {
+      const { data: rows, error } = await (supabase as any)
+        .from("user_star_streamers")
+        .select("streamer_id")
+        .eq("user_id", user!.id);
+      if (error) throw error;
+      return new Set<number>(
+        (rows || [])
+          .map((row: { streamer_id: number | null }) => row.streamer_id)
+          .filter((id: number | null): id is number => typeof id === "number")
+      );
+    },
+    enabled: Boolean(user?.id),
+  });
 
   const streamers = data?.data || [];
   const totalCount = data?.count || 0;
@@ -74,7 +93,7 @@ export default function VlistScreen() {
       setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
       setSortBy(nextSortBy);
-      setSortOrder(nextSortBy === "heart" ? "desc" : "asc");
+      setSortOrder(nextSortBy === "heart" || nextSortBy === "star" ? "desc" : "asc");
     }
     setPage(1);
   };
@@ -175,6 +194,15 @@ export default function VlistScreen() {
           >
             하트순
           </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={sortBy === "star" ? "default" : "outline"}
+            onClick={() => onChangeSort("star")}
+            className={`cursor-pointer ${sortBy === "star" ? "bg-gray-800 hover:bg-gray-900 text-white" : ""}`}
+          >
+            즐겨찾기순
+          </Button>
         </div>
       </div>
 
@@ -199,6 +227,11 @@ export default function VlistScreen() {
               className="group rounded-xl border border-gray-100 bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
             >
               <div className="relative mb-2 h-28 overflow-hidden rounded-lg bg-gray-100">
+                {starredStreamerIds.has(streamer.id) ? (
+                  <span className="absolute right-1 top-1 z-20 inline-flex h-5 w-5 items-center justify-center rounded-full border border-yellow-200 bg-white shadow-sm">
+                    <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                  </span>
+                ) : null}
                 {streamer.image_url ? (
                   <Image
                     src={streamer.image_url}

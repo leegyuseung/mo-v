@@ -20,6 +20,7 @@ export type IdolGroupCard = {
   name: string;
   image_url: string | null;
   bg_color: string | null;
+  star_count: number;
   members: IdolGroupMemberThumbnail[];
   member_count: number;
 };

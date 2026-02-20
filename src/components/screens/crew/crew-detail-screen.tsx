@@ -3,8 +3,10 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowBigLeft,
+  Star,
   UserRound,
   UserRoundPen,
   UsersRound,
@@ -16,16 +18,33 @@ import { useCrewDetail } from "@/hooks/queries/crews/use-crew-detail";
 import { useCreateCrewInfoEditRequest } from "@/hooks/mutations/crews/use-create-crew-info-edit-request";
 import { useAuthStore } from "@/store/useAuthStore";
 import { GROUP_INFO_EDIT_REQUEST_MODAL_TEXT } from "@/lib/constant";
+import { createClient } from "@/utils/supabase/client";
 
 type CrewDetailScreenProps = {
   crewCode: string;
 };
 
 export default function CrewDetailScreen({ crewCode }: CrewDetailScreenProps) {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
   const [isEditRequestModalOpen, setIsEditRequestModalOpen] = useState(false);
   const [editRequestContent, setEditRequestContent] = useState("");
+  const [isStarToggling, setIsStarToggling] = useState(false);
   const { user, profile } = useAuthStore();
   const { data: crew, isLoading } = useCrewDetail(crewCode);
+  const { data: isStarred = false } = useQuery({
+    queryKey: ["star", "crew", user?.id, crew?.id],
+    queryFn: async () => {
+      const { count, error } = await (supabase as any)
+        .from("user_star_crews")
+        .select("user_id", { count: "exact", head: true })
+        .eq("user_id", user!.id)
+        .eq("crew_id", crew!.id);
+      if (error) throw error;
+      return (count || 0) > 0;
+    },
+    enabled: Boolean(user?.id && crew?.id),
+  });
   const {
     mutateAsync: createInfoEditRequest,
     isPending: isInfoEditRequestSubmitting,
@@ -75,6 +94,48 @@ export default function CrewDetailScreen({ crewCode }: CrewDetailScreenProps) {
     }
   };
 
+  const onClickStar = async () => {
+    if (!user) {
+      toast.error("로그인 후 즐겨찾기를 사용할 수 있습니다.");
+      return;
+    }
+    if (!crew?.id || isStarToggling) return;
+
+    setIsStarToggling(true);
+    const starQueryKey = ["star", "crew", user.id, crew.id] as const;
+    const previousStarred = queryClient.getQueryData<boolean>(starQueryKey) ?? false;
+    const nextStarred = !previousStarred;
+    queryClient.setQueryData(starQueryKey, nextStarred);
+
+    try {
+      if (nextStarred) {
+        const { error } = await (supabase as any).from("user_star_crews").insert({
+          user_id: user.id,
+          crew_id: crew.id,
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await (supabase as any)
+          .from("user_star_crews")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("crew_id", crew.id);
+        if (error) throw error;
+      }
+
+      await queryClient.invalidateQueries({
+        queryKey: ["my-stars", user.id],
+      });
+    } catch (error) {
+      queryClient.setQueryData(starQueryKey, previousStarred);
+      const message =
+        error instanceof Error ? error.message : "즐겨찾기 처리에 실패했습니다.";
+      toast.error(message);
+    } finally {
+      setIsStarToggling(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="p-6 flex items-center justify-center">
@@ -115,20 +176,42 @@ export default function CrewDetailScreen({ crewCode }: CrewDetailScreenProps) {
           </span>
         </div>
 
-        <div className="group relative">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="cursor-pointer h-10 w-10"
-            onClick={openInfoEditRequestModal}
-            disabled={!user}
-          >
-            <UserRoundPen className="w-5 h-5" />
-          </Button>
-          <span className="pointer-events-none absolute right-1/2 top-full z-20 mt-1 translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-            정보수정요청
-          </span>
+        <div className="flex items-center gap-1">
+          <div className="group relative">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="cursor-pointer h-10 w-10"
+              onClick={onClickStar}
+              disabled={isStarToggling}
+            >
+              <Star
+                className={`w-5 h-5 ${
+                  isStarred ? "fill-yellow-400 text-yellow-400" : "text-yellow-500"
+                }`}
+              />
+            </Button>
+            <span className="pointer-events-none absolute right-1/2 top-full z-20 mt-1 translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+              즐겨찾기
+            </span>
+          </div>
+
+          <div className="group relative">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="cursor-pointer h-10 w-10"
+              onClick={openInfoEditRequestModal}
+              disabled={!user}
+            >
+              <UserRoundPen className="w-5 h-5" />
+            </Button>
+            <span className="pointer-events-none absolute right-1/2 top-full z-20 mt-1 translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+              정보수정요청
+            </span>
+          </div>
         </div>
       </div>
 

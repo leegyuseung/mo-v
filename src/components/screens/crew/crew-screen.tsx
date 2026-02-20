@@ -4,15 +4,21 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { UsersRound, UserRound } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Star, UsersRound, UserRound } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useCrewCards } from "@/hooks/queries/crews/use-crew-cards";
+import { useAuthStore } from "@/store/useAuthStore";
+import { createClient } from "@/utils/supabase/client";
 
 export default function CrewScreen() {
+  const supabase = createClient();
   const router = useRouter();
+  const { user } = useAuthStore();
   const [keyword, setKeyword] = useState("");
+  const [sortBy, setSortBy] = useState<"name" | "star">("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [brokenCrewImageById, setBrokenCrewImageById] = useState<
     Record<number, boolean>
@@ -21,6 +27,22 @@ export default function CrewScreen() {
     Record<number, boolean>
   >({});
   const { data, isLoading, isFetching } = useCrewCards();
+  const { data: starredCrewIds = new Set<number>() } = useQuery({
+    queryKey: ["starred-crews", user?.id],
+    queryFn: async () => {
+      const { data: rows, error } = await (supabase as any)
+        .from("user_star_crews")
+        .select("crew_id")
+        .eq("user_id", user!.id);
+      if (error) throw error;
+      return new Set<number>(
+        (rows || [])
+          .map((row: { crew_id: number | null }) => row.crew_id)
+          .filter((id: number | null): id is number => typeof id === "number")
+      );
+    },
+    enabled: Boolean(user?.id),
+  });
 
   const crews = useMemo(() => {
     const source = data || [];
@@ -38,10 +60,23 @@ export default function CrewScreen() {
     });
 
     return [...filtered].sort((a, b) => {
-      const diff = (a.name || "").localeCompare(b.name || "", "ko");
-      return sortOrder === "asc" ? diff : -diff;
+      if (sortBy === "star") {
+        const diff = (a.star_count || 0) - (b.star_count || 0);
+        if (diff !== 0) return sortOrder === "asc" ? diff : -diff;
+      }
+      const nameDiff = (a.name || "").localeCompare(b.name || "", "ko");
+      return sortOrder === "asc" ? nameDiff : -nameDiff;
     });
-  }, [data, keyword, sortOrder]);
+  }, [data, keyword, sortBy, sortOrder]);
+
+  const onChangeSort = (nextSortBy: "name" | "star") => {
+    if (sortBy === nextSortBy) {
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+      return;
+    }
+    setSortBy(nextSortBy);
+    setSortOrder(nextSortBy === "star" ? "desc" : "asc");
+  };
 
   const isSupabaseStorageUrl = (url: string) =>
     url.includes(".supabase.co/storage/v1/object/public/");
@@ -55,13 +90,20 @@ export default function CrewScreen() {
             <Button
               type="button"
               size="sm"
-              variant="default"
-              onClick={() =>
-                setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))
-              }
-              className="cursor-pointer bg-gray-800 hover:bg-gray-900 text-white"
+              variant={sortBy === "name" ? "default" : "outline"}
+              onClick={() => onChangeSort("name")}
+              className={`cursor-pointer ${sortBy === "name" ? "bg-gray-800 hover:bg-gray-900 text-white" : ""}`}
             >
               가나다순
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={sortBy === "star" ? "default" : "outline"}
+              onClick={() => onChangeSort("star")}
+              className={`cursor-pointer ${sortBy === "star" ? "bg-gray-800 hover:bg-gray-900 text-white" : ""}`}
+            >
+              즐겨찾기순
             </Button>
           </div>
 
@@ -107,34 +149,41 @@ export default function CrewScreen() {
                 tabIndex={0}
                 role="button"
               >
-                <div className="mb-3 flex items-center gap-3">
-                  <div
-                    className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-full ${
-                      crew.bg_color
-                        ? "bg-gradient-to-br from-rose-900 via-red-900 to-purple-900"
-                        : "bg-white"
-                    }`}
-                  >
-                    {crew.image_url && !brokenCrewImageById[crew.id] ? (
-                      <Image
-                        src={crew.image_url}
-                        alt={crew.name}
-                        fill
-                        sizes="56px"
-                        unoptimized={isSupabaseStorageUrl(crew.image_url)}
-                        onError={() =>
-                          setBrokenCrewImageById((prev) => ({
-                            ...prev,
-                            [crew.id]: true,
-                          }))
-                        }
-                        className="object-contain"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center">
-                        <UsersRound className="h-5 w-5 text-gray-300" />
-                      </div>
-                    )}
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div className="relative h-14 w-14 shrink-0">
+                    {starredCrewIds.has(crew.id) ? (
+                      <span className="absolute -right-1 -top-1 z-20 inline-flex h-5 w-5 items-center justify-center rounded-full border border-yellow-200 bg-white shadow-sm">
+                        <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                      </span>
+                    ) : null}
+                    <div
+                      className={`relative h-14 w-14 overflow-hidden rounded-full ${
+                        crew.bg_color
+                          ? "bg-gradient-to-br from-rose-900 via-red-900 to-purple-900"
+                          : "bg-white"
+                      }`}
+                    >
+                      {crew.image_url && !brokenCrewImageById[crew.id] ? (
+                        <Image
+                          src={crew.image_url}
+                          alt={crew.name}
+                          fill
+                          sizes="56px"
+                          unoptimized={isSupabaseStorageUrl(crew.image_url)}
+                          onError={() =>
+                            setBrokenCrewImageById((prev) => ({
+                              ...prev,
+                              [crew.id]: true,
+                            }))
+                          }
+                          className="object-contain"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center">
+                          <UsersRound className="h-5 w-5 text-gray-300" />
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-gray-900">{crew.name}</p>

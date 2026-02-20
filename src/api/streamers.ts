@@ -26,6 +26,56 @@ export async function fetchStreamers({
   const to = from + pageSize - 1;
   const trimmedKeyword = keyword.trim();
 
+  if (sortBy === "star") {
+    let streamerQuery = supabase.from(STREAMER_TABLE).select("*");
+
+    if (platform !== "all") {
+      streamerQuery = streamerQuery.eq("platform", platform);
+    }
+    if (trimmedKeyword) {
+      streamerQuery = streamerQuery.ilike("nickname", `%${trimmedKeyword}%`);
+    }
+
+    const { data: filteredStreamers, error: streamerError } = await streamerQuery;
+    if (streamerError) throw streamerError;
+
+    const streamersAll = filteredStreamers || [];
+    const streamerIds = streamersAll.map((row) => row.id);
+
+    const starCountById = new Map<number, number>();
+    if (streamerIds.length > 0) {
+      const { data: statRows, error: statError } = await supabase
+        .from("streamer_star_stats")
+        .select("streamer_id,star_count")
+        .in("streamer_id", streamerIds);
+
+      if (statError) throw statError;
+
+      (statRows || []).forEach((row) => {
+        if (typeof row.streamer_id === "number") {
+          starCountById.set(row.streamer_id, row.star_count || 0);
+        }
+      });
+    }
+
+    const sorted = [...streamersAll].sort((a, b) => {
+      const aCount = starCountById.get(a.id) || 0;
+      const bCount = starCountById.get(b.id) || 0;
+      const starDiff = aCount - bCount;
+      if (starDiff !== 0) {
+        return sortOrder === "asc" ? starDiff : -starDiff;
+      }
+
+      const nameDiff = (a.nickname || "").localeCompare(b.nickname || "", "ko");
+      return nameDiff;
+    });
+
+    return {
+      data: sorted.slice(from, to + 1),
+      count: sorted.length,
+    };
+  }
+
   if (sortBy === "heart") {
     let rankQuery = supabase
       .from("streamer_heart_rank")

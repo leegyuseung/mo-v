@@ -38,13 +38,13 @@ export default function AppHeader() {
       </div>
       <div className="flex items-center gap-2 md:gap-3">
         <div className="group relative">
-          <button
-            type="button"
-            aria-label="즐겨찾기(준비중)"
+          <Link
+            href="/star"
+            aria-label="즐겨찾기"
             className="h-10 w-10 inline-flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer"
           >
             <Star className="w-4 h-4" />
-          </button>
+          </Link>
           <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
             즐겨찾기
           </span>

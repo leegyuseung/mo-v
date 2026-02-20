@@ -10,7 +10,7 @@ import { useIdolGroupCodeNames } from "@/hooks/queries/groups/use-idol-group-cod
 import { useCrewCodeNames } from "@/hooks/queries/crews/use-crew-code-names";
 import { useCreateStreamerInfoEditRequest } from "@/hooks/mutations/streamers/use-create-streamer-info-edit-request";
 import { Button } from "@/components/ui/button";
-import { ArrowBigLeft, Heart, UserRoundPen } from "lucide-react";
+import { ArrowBigLeft, Heart, Star, UserRoundPen } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuthStore } from "@/store/useAuthStore";
 import {
@@ -25,18 +25,21 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { STREAMER_INFO_EDIT_REQUEST_MODAL_TEXT } from "@/lib/constant";
 import type { StreamerTopDonor } from "@/types/profile";
+import { createClient } from "@/utils/supabase/client";
 
 export default function VlistDetailScreen({
   streamerPublicId,
 }: {
   streamerPublicId: string;
 }) {
+  const supabase = createClient();
   const [isEditRequestModalOpen, setIsEditRequestModalOpen] = useState(false);
   const [editRequestContent, setEditRequestContent] = useState("");
   const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
   const [giftAmountInput, setGiftAmountInput] = useState("");
   const [isGiftConfirmOpen, setIsGiftConfirmOpen] = useState(false);
   const [isGiftSubmitting, setIsGiftSubmitting] = useState(false);
+  const [isStarToggling, setIsStarToggling] = useState(false);
   const [donorPeriod, setDonorPeriod] = useState<DonorPeriod>("all");
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -65,6 +68,19 @@ export default function VlistDetailScreen({
       return result.data as StreamerTopDonor[];
     },
     enabled: Boolean(streamer?.id),
+  });
+  const { data: isStarred = false } = useQuery({
+    queryKey: ["star", "streamer", user?.id, streamer?.id],
+    queryFn: async () => {
+      const { count, error } = await (supabase as any)
+        .from("user_star_streamers")
+        .select("user_id", { count: "exact", head: true })
+        .eq("user_id", user!.id)
+        .eq("streamer_id", streamer!.id);
+      if (error) throw error;
+      return (count || 0) > 0;
+    },
+    enabled: Boolean(user?.id && streamer?.id),
   });
 
   if (isLoading) {
@@ -178,6 +194,48 @@ export default function VlistDetailScreen({
       return;
     }
     setIsEditRequestModalOpen(true);
+  };
+
+  const onClickStar = async () => {
+    if (!user) {
+      toast.error("로그인 후 즐겨찾기를 사용할 수 있습니다.");
+      return;
+    }
+    if (!streamer?.id || isStarToggling) return;
+
+    setIsStarToggling(true);
+    const starQueryKey = ["star", "streamer", user.id, streamer.id] as const;
+    const previousStarred = queryClient.getQueryData<boolean>(starQueryKey) ?? false;
+    const nextStarred = !previousStarred;
+    queryClient.setQueryData(starQueryKey, nextStarred);
+
+    try {
+      if (nextStarred) {
+        const { error } = await (supabase as any).from("user_star_streamers").insert({
+          user_id: user.id,
+          streamer_id: streamer.id,
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await (supabase as any)
+          .from("user_star_streamers")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("streamer_id", streamer.id);
+        if (error) throw error;
+      }
+
+      await queryClient.invalidateQueries({
+        queryKey: ["my-stars", user.id],
+      });
+    } catch (error) {
+      queryClient.setQueryData(starQueryKey, previousStarred);
+      const message =
+        error instanceof Error ? error.message : "즐겨찾기 처리에 실패했습니다.";
+      toast.error(message);
+    } finally {
+      setIsStarToggling(false);
+    }
   };
 
   const closeInfoEditRequestModal = () => {
@@ -320,10 +378,30 @@ export default function VlistDetailScreen({
               variant="ghost"
               size="icon"
               className="cursor-pointer h-10 w-10"
+              onClick={onClickStar}
+              disabled={isStarToggling}
+            >
+              <Star
+                className={`w-5 h-5 ${
+                  isStarred ? "fill-yellow-400 text-yellow-400" : "text-yellow-500"
+                }`}
+              />
+            </Button>
+            <span className="pointer-events-none absolute right-1/2 top-full z-20 mt-1 translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+              즐겨찾기
+            </span>
+          </div>
+
+          <div className="group relative">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="cursor-pointer h-10 w-10"
               onClick={openGiftModal}
               disabled={!user}
             >
-              <Heart className="w-5 h-5 text-rose-500" />
+              <Heart className="w-5 h-5 fill-red-500 text-red-500" />
             </Button>
             <span className="pointer-events-none absolute right-1/2 top-full z-20 mt-1 translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
               하트선물하기
@@ -401,7 +479,7 @@ export default function VlistDetailScreen({
             </div>
             <div className="mt-1 inline-flex items-center gap-2">
               <span className="inline-flex h-7 w-7 items-center justify-center rounded-full">
-                <Heart className="h-4 w-4 text-red-500" />
+                <Heart className="h-4 w-4 fill-red-500 text-red-500" />
               </span>
               <span className="text-sm font-semibold text-gray-800">
                 {isReceivedHeartTotalLoading
@@ -545,7 +623,6 @@ export default function VlistDetailScreen({
                 <span className="text-gray-700">{`${donor.donor_rank ?? index + 1}위`}</span>
                 <span className="flex-1 px-3 text-gray-800">
                   {donor.user_nickname || "익명 유저"}
-                  {donor.user_nickname_code ? ` #${donor.user_nickname_code}` : ""}
                 </span>
                 <span className="font-semibold text-gray-900">{`${(donor.total_sent ?? 0).toLocaleString()} 하트`}</span>
               </div>

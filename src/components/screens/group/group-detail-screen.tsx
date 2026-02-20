@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowBigLeft, UserRound, UserRoundPen, UsersRound } from "lucide-react";
+import { ArrowBigLeft, Star, UserRound, UserRoundPen, UsersRound } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
@@ -11,16 +12,33 @@ import { useIdolGroupDetail } from "@/hooks/queries/groups/use-idol-group-detail
 import { useCreateGroupInfoEditRequest } from "@/hooks/mutations/groups/use-create-group-info-edit-request";
 import { useAuthStore } from "@/store/useAuthStore";
 import { GROUP_INFO_EDIT_REQUEST_MODAL_TEXT } from "@/lib/constant";
+import { createClient } from "@/utils/supabase/client";
 
 type GroupDetailScreenProps = {
   groupCode: string;
 };
 
 export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps) {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
   const [isEditRequestModalOpen, setIsEditRequestModalOpen] = useState(false);
   const [editRequestContent, setEditRequestContent] = useState("");
+  const [isStarToggling, setIsStarToggling] = useState(false);
   const { user, profile } = useAuthStore();
   const { data: group, isLoading } = useIdolGroupDetail(groupCode);
+  const { data: isStarred = false } = useQuery({
+    queryKey: ["star", "group", user?.id, group?.id],
+    queryFn: async () => {
+      const { count, error } = await (supabase as any)
+        .from("user_star_groups")
+        .select("user_id", { count: "exact", head: true })
+        .eq("user_id", user!.id)
+        .eq("group_id", group!.id);
+      if (error) throw error;
+      return (count || 0) > 0;
+    },
+    enabled: Boolean(user?.id && group?.id),
+  });
   const {
     mutateAsync: createInfoEditRequest,
     isPending: isInfoEditRequestSubmitting,
@@ -70,6 +88,48 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
     }
   };
 
+  const onClickStar = async () => {
+    if (!user) {
+      toast.error("로그인 후 즐겨찾기를 사용할 수 있습니다.");
+      return;
+    }
+    if (!group?.id || isStarToggling) return;
+
+    setIsStarToggling(true);
+    const starQueryKey = ["star", "group", user.id, group.id] as const;
+    const previousStarred = queryClient.getQueryData<boolean>(starQueryKey) ?? false;
+    const nextStarred = !previousStarred;
+    queryClient.setQueryData(starQueryKey, nextStarred);
+
+    try {
+      if (nextStarred) {
+        const { error } = await (supabase as any).from("user_star_groups").insert({
+          user_id: user.id,
+          group_id: group.id,
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await (supabase as any)
+          .from("user_star_groups")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("group_id", group.id);
+        if (error) throw error;
+      }
+
+      await queryClient.invalidateQueries({
+        queryKey: ["my-stars", user.id],
+      });
+    } catch (error) {
+      queryClient.setQueryData(starQueryKey, previousStarred);
+      const message =
+        error instanceof Error ? error.message : "즐겨찾기 처리에 실패했습니다.";
+      toast.error(message);
+    } finally {
+      setIsStarToggling(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="p-6 flex items-center justify-center">
@@ -114,20 +174,41 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
           </span>
         </div>
 
-        <div className="group relative">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="cursor-pointer h-10 w-10"
-            onClick={openInfoEditRequestModal}
-            disabled={!user}
-          >
-            <UserRoundPen className="w-5 h-5" />
-          </Button>
-          <span className="pointer-events-none absolute right-1/2 top-full z-20 mt-1 translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-            정보수정요청
-          </span>
+        <div className="flex items-center gap-1">
+          <div className="group relative">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="cursor-pointer h-10 w-10"
+              onClick={onClickStar}
+              disabled={isStarToggling}
+            >
+              <Star
+                className={`w-5 h-5 ${isStarred ? "fill-yellow-400 text-yellow-400" : "text-yellow-500"
+                  }`}
+              />
+            </Button>
+            <span className="pointer-events-none absolute right-1/2 top-full z-20 mt-1 translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+              즐겨찾기
+            </span>
+          </div>
+
+          <div className="group relative">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="cursor-pointer h-10 w-10"
+              onClick={openInfoEditRequestModal}
+              disabled={!user}
+            >
+              <UserRoundPen className="w-5 h-5" />
+            </Button>
+            <span className="pointer-events-none absolute right-1/2 top-full z-20 mt-1 translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+              정보수정요청
+            </span>
+          </div>
         </div>
       </div>
 
@@ -135,9 +216,8 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
         <div className="flex flex-col gap-6 md:flex-row md:items-start">
           <div className="mx-auto md:mx-0 flex shrink-0 flex-col items-center gap-3">
             <div
-              className={`relative h-40 w-40 overflow-hidden rounded-full border ${
-                group.bg_color ? "border-rose-200 bg-rose-900/80" : "border-gray-200 bg-white"
-              }`}
+              className={`relative h-40 w-40 overflow-hidden rounded-full border ${group.bg_color ? "border-rose-200 bg-rose-900/80" : "border-gray-200 bg-white"
+                }`}
             >
               {group.image_url ? (
                 <Image

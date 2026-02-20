@@ -23,7 +23,11 @@ export async function fetchIdolGroupCodeNames(): Promise<IdolGroupCodeName[]> {
 }
 
 export async function fetchIdolGroupCards(): Promise<IdolGroupCard[]> {
-  const [{ data: groups, error: groupsError }, { data: streamers, error: streamersError }] =
+  const [
+    { data: groups, error: groupsError },
+    { data: streamers, error: streamersError },
+    { data: groupStats, error: groupStatsError },
+  ] =
     await Promise.all([
       supabase
         .from("idol_groups")
@@ -32,13 +36,22 @@ export async function fetchIdolGroupCards(): Promise<IdolGroupCard[]> {
       supabase
         .from("streamers")
         .select("id,public_id,nickname,image_url,group_codes,group_name"),
+      supabase
+        .from("group_star_stats")
+        .select("group_id,star_count"),
     ]);
 
   if (groupsError) throw groupsError;
   if (streamersError) throw streamersError;
+  if (groupStatsError) throw groupStatsError;
 
   const groupsData = groups || [];
   const streamersData = streamers || [];
+  const groupStarCountById = new Map<number, number>(
+    (groupStats || [])
+      .filter((row) => typeof row.group_id === "number")
+      .map((row) => [row.group_id as number, row.star_count || 0])
+  );
 
   const membersByGroupCode = new Map<string, IdolGroupCard["members"]>();
 
@@ -74,6 +87,7 @@ export async function fetchIdolGroupCards(): Promise<IdolGroupCard[]> {
       name: group.name,
       image_url: group.image_url,
       bg_color: group.bg_color ?? null,
+      star_count: groupStarCountById.get(group.id) || 0,
       members,
       member_count: members.length,
     };

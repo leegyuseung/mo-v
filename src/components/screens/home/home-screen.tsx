@@ -11,8 +11,12 @@ import {
 } from "@/api/heart";
 import type { StreamerHeartLeaderboardItem } from "@/types/heart";
 import { useLiveStreamers } from "@/hooks/queries/live/use-live-streamers";
+import { useAuthStore } from "@/store/useAuthStore";
+import { createClient } from "@/utils/supabase/client";
 
 export default function HomeScreen() {
+  const supabase = createClient();
+  const { user } = useAuthStore();
   const { data: liveData, isLoading: isLiveLoading } = useLiveStreamers();
   const {
     data: allRank = [],
@@ -77,6 +81,24 @@ export default function HomeScreen() {
     }
     return shuffled.slice(0, 4);
   }, [liveData]);
+  const { data: starredStreamerIds = [] } = useQuery({
+    queryKey: ["home-starred-streamers", user?.id],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("user_star_streamers")
+        .select("streamer_id")
+        .eq("user_id", user!.id);
+      if (error) throw error;
+      return (data || [])
+        .map((row: { streamer_id: number | null }) => row.streamer_id)
+        .filter((id: number | null): id is number => typeof id === "number");
+    },
+    enabled: Boolean(user?.id),
+  });
+  const liveFavoriteStreamers = useMemo(() => {
+    const idSet = new Set(starredStreamerIds);
+    return (liveData || []).filter((item) => item.isLive && idSet.has(item.id));
+  }, [liveData, starredStreamerIds]);
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
@@ -285,16 +307,76 @@ export default function HomeScreen() {
                   STAR
                 </span>
               </div>
-              <div className="grid grid-cols-4 gap-2 md:gap-3">
-                {[0, 1, 2, 3].map((index) => (
-                  <div key={`favorite-${index}`} className="rounded-xl p-2 text-center">
-                    <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full border-2 border-gray-200 bg-gray-50 md:h-20 md:w-20">
-                      <UserRound className="h-5 w-5 text-gray-300 md:h-7 md:w-7" />
-                    </div>
-                    <p className="hidden truncate text-xs text-gray-400 md:block">준비중</p>
-                  </div>
-                ))}
-              </div>
+              {!user ? (
+                <div className="py-8 text-center text-sm text-gray-400">
+                  로그인 후 이용해 주세요.
+                </div>
+              ) : starredStreamerIds.length === 0 ? (
+                <div className="py-8 text-center text-sm text-gray-500">
+                  <Link href="/vlist" className="underline underline-offset-2 hover:text-gray-700">
+                    즐겨찾기하러가기
+                  </Link>
+                </div>
+              ) : liveFavoriteStreamers.length === 0 ? (
+                <div className="py-8 text-center text-sm text-gray-400">
+                  즐겨찾기한 버츄얼 중 라이브 중인 버츄얼이 없습니다.
+                </div>
+              ) : (
+                <div className="grid grid-cols-4 gap-2 md:gap-3">
+                  {[0, 1, 2, 3].map((index) => {
+                    const streamer = liveFavoriteStreamers[index];
+                    if (!streamer) {
+                      return (
+                        <div key={`favorite-empty-${index}`} className="rounded-xl p-2 text-center">
+                          <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full border-2 border-gray-200 bg-gray-50 md:h-20 md:w-20">
+                            <UserRound className="h-5 w-5 text-gray-300 md:h-7 md:w-7" />
+                          </div>
+                          <p className="hidden truncate text-xs text-transparent md:block">.</p>
+                        </div>
+                      );
+                    }
+
+                    const ringClass =
+                      streamer.platform === "chzzk"
+                        ? "border-green-500"
+                        : "border-blue-500";
+
+                    return (
+                      <div key={`favorite-live-${streamer.id}`} className="rounded-xl p-2 text-center">
+                        <Link
+                          href={streamer.liveUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex cursor-pointer"
+                        >
+                          <div
+                            className={`mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full border-2 bg-gray-100 p-0.5 md:h-20 md:w-20 ${ringClass}`}
+                          >
+                            <div className="relative h-full w-full overflow-hidden rounded-full">
+                              {streamer.image_url ? (
+                                <Image
+                                  src={streamer.image_url}
+                                  alt={streamer.nickname || "streamer"}
+                                  fill
+                                  sizes="80px"
+                                  className="object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center">
+                                  <UserRound className="h-7 w-7 text-gray-300" />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </Link>
+                        <p className="hidden truncate text-xs font-semibold text-gray-900 md:block">
+                          {streamer.nickname || "이름 미등록"}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         )}

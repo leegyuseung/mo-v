@@ -33,6 +33,7 @@ export type CrewCard = {
   name: string;
   image_url: string | null;
   bg_color: string | null;
+  star_count: number;
   members: CrewMemberThumbnail[];
   member_count: number;
 };
