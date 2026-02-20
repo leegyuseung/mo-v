@@ -182,6 +182,7 @@ export type Database = {
           id: string
           is_first_edit: boolean
           nickname: string | null
+          nickname_code: string | null
           provider: string | null
           role: string
           updated_at: string | null
@@ -194,6 +195,7 @@ export type Database = {
           id?: string
           is_first_edit?: boolean
           nickname?: string | null
+          nickname_code?: string | null
           provider?: string | null
           role?: string
           updated_at?: string | null
@@ -206,6 +208,7 @@ export type Database = {
           id?: string
           is_first_edit?: boolean
           nickname?: string | null
+          nickname_code?: string | null
           provider?: string | null
           role?: string
           updated_at?: string | null
@@ -554,6 +557,7 @@ export type Database = {
           total_sent: number | null
           user_id: string | null
           user_nickname: string | null
+          user_nickname_code: string | null
         }
         Relationships: [
           {

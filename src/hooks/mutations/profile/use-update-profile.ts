@@ -44,7 +44,11 @@ export function useUpdateProfile() {
         },
         onError: (error) => {
             console.error("프로필 수정 실패:", error);
-            toast.error("프로필 수정에 실패했습니다. 다시 시도해주세요.");
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "프로필 수정에 실패했습니다. 다시 시도해주세요.";
+            toast.error(message);
         },
     });
 }

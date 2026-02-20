@@ -545,6 +545,7 @@ export default function VlistDetailScreen({
                 <span className="text-gray-700">{`${donor.donor_rank ?? index + 1}위`}</span>
                 <span className="flex-1 px-3 text-gray-800">
                   {donor.user_nickname || "익명 유저"}
+                  {donor.user_nickname_code ? ` #${donor.user_nickname_code}` : ""}
                 </span>
                 <span className="font-semibold text-gray-900">{`${(donor.total_sent ?? 0).toLocaleString()} 하트`}</span>
               </div>

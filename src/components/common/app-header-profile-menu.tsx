@@ -82,6 +82,7 @@ export default function AppHeaderProfileMenu({
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-gray-900 truncate">
                 {profile?.nickname || user.email || "사용자"}
+                {profile?.nickname_code ? ` #${profile.nickname_code}` : ""}
               </p>
               <Link
                 href="/profile"

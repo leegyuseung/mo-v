@@ -17,8 +17,10 @@ export function useUpdateUser() {
             queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
             toast.success("유저 정보가 수정되었습니다.");
         },
-        onError: () => {
-            toast.error("유저 정보 수정에 실패했습니다.");
+        onError: (error) => {
+            const message =
+                error instanceof Error ? error.message : "유저 정보 수정에 실패했습니다.";
+            toast.error(message);
         },
     });
 }
