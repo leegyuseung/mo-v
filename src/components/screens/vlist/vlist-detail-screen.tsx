@@ -509,11 +509,10 @@ export default function VlistDetailScreen({
                   key={item.key}
                   type="button"
                   onClick={() => setDonorPeriod(item.key)}
-                  className={`cursor-pointer rounded-full px-2.5 py-1 text-xs font-medium transition ${
-                    active
-                      ? "bg-rose-500 text-white"
-                      : "text-gray-600 hover:bg-gray-100"
-                  }`}
+                  className={`cursor-pointer rounded-full px-2.5 py-1 text-xs font-medium transition ${active
+                    ? "bg-rose-500 text-white"
+                    : "text-gray-600 hover:bg-gray-100"
+                    }`}
                 >
                   {item.label}
                 </button>
@@ -547,7 +546,7 @@ export default function VlistDetailScreen({
                 <span className="flex-1 px-3 text-gray-800">
                   {donor.user_nickname || "익명 유저"}
                 </span>
-                <span className="font-semibold text-gray-900">{`${(donor.total_sent ?? 0).toLocaleString()}하트`}</span>
+                <span className="font-semibold text-gray-900">{`${(donor.total_sent ?? 0).toLocaleString()} 하트`}</span>
               </div>
             ))}
           </div>
