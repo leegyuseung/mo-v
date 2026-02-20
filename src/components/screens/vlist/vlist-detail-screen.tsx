@@ -14,12 +14,12 @@ import { ArrowBigLeft, Heart, UserRoundPen } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuthStore } from "@/store/useAuthStore";
 import {
-  type DonorPeriod,
   fetchHeartPoints,
   fetchStreamerReceivedHeartTotal,
   fetchStreamerTopDonors,
   giftHeartToStreamer,
 } from "@/api/heart";
+import type { DonorPeriod } from "@/types/heart";
 import ConfirmAlert from "@/components/common/confirm-alert";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";

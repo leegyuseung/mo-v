@@ -1,20 +1,14 @@
 import { createClient } from "@/utils/supabase/client";
-import type { GiftHeartToStreamerResult } from "@/types/heart";
+import type {
+    GiftHeartToStreamerResult,
+    DonorPeriod,
+    HeartRankPeriod,
+    StreamerHeartLeaderboardItem,
+} from "@/types/heart";
 
 const supabase = createClient();
 
-export type DonorPeriod = "all" | "weekly" | "monthly";
-export type HeartRankPeriod = "all" | "weekly" | "monthly";
-
-export type StreamerHeartLeaderboardItem = {
-    streamer_id: number;
-    nickname: string | null;
-    platform: string | null;
-    total_received: number;
-    image_url: string | null;
-    public_id: string | null;
-};
-
+/** 유저의 하트 포인트 잔액을 조회한다 */
 export async function fetchHeartPoints(userId: string) {
     const { data, error } = await supabase
         .from("heart_points")
@@ -26,6 +20,7 @@ export async function fetchHeartPoints(userId: string) {
     return data;
 }
 
+/** 유저에게 하트 포인트를 추가하고 히스토리를 기록한다 (upsert 방식) */
 export async function addHeartPoints(
     userId: string,
     points: number,
@@ -67,6 +62,7 @@ export async function addHeartPoints(
     return data;
 }
 
+/** 유저의 하트 포인트 사용·적립 이력을 페이징 조회한다 */
 export async function fetchHeartPointHistory(
     userId: string,
     limit: number = 20,
@@ -83,6 +79,7 @@ export async function fetchHeartPointHistory(
     return { data: data || [], count: count || 0 };
 }
 
+/** 유저가 버츄얼에게 하트를 선물한다 (RPC 호출) */
 export async function giftHeartToStreamer(
     fromUserId: string,
     toStreamerId: number,
@@ -113,6 +110,7 @@ export async function giftHeartToStreamer(
     };
 }
 
+/** 전체 하트 랭킹을 페이징 조회한다 */
 export async function fetchStreamerHeartRank(
     limit: number = 20,
     offset: number = 0
@@ -127,6 +125,7 @@ export async function fetchStreamerHeartRank(
     return { data: data || [], count: count || 0 };
 }
 
+/** 기간별(전체/주간/월간) 하트 리더보드 상위 N명을 조회한다. 이미지 URL을 함께 반환한다 */
 export async function fetchStreamerHeartLeaderboard(
     period: HeartRankPeriod,
     limit: number = 5
@@ -181,6 +180,7 @@ export async function fetchStreamerHeartLeaderboard(
         .filter((item): item is StreamerHeartLeaderboardItem => item !== null);
 }
 
+/** 특정 버츄얼의 기간별 후원 랭킹(TOP N)을 조회한다 */
 export async function fetchStreamerTopDonors(
     streamerId: number,
     limit: number = 20,
@@ -205,6 +205,7 @@ export async function fetchStreamerTopDonors(
     return { data: data || [], count: count || 0 };
 }
 
+/** 특정 버츄얼이 받은 하트 총 누적량을 조회한다 */
 export async function fetchStreamerReceivedHeartTotal(
     streamerId: number
 ): Promise<number> {

@@ -8,8 +8,8 @@ import { UserRound } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   fetchStreamerHeartLeaderboard,
-  type StreamerHeartLeaderboardItem,
 } from "@/api/heart";
+import type { StreamerHeartLeaderboardItem } from "@/types/heart";
 import { useLiveStreamers } from "@/hooks/queries/live/use-live-streamers";
 
 export default function HomeScreen() {

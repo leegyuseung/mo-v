@@ -13,6 +13,7 @@ import {
 
 const supabase = createClient();
 
+/** 버츄얼 목록을 플랫폼·정렬·키워드 필터로 페이징 조회한다. 하트순 정렬 시 랭킹 뷰를 사용한다 */
 export async function fetchStreamers({
   page,
   pageSize,
@@ -94,6 +95,7 @@ export async function fetchStreamers({
   };
 }
 
+/** publicId 또는 레거시 숫자 ID로 버츄얼 상세를 조회한다 */
 export async function fetchStreamerByPublicId(streamerPublicId: string) {
   const query = supabase.from(STREAMER_TABLE).select("*");
   const isLegacyNumericId = /^[0-9]+$/.test(streamerPublicId);
@@ -108,6 +110,7 @@ export async function fetchStreamerByPublicId(streamerPublicId: string) {
   return data;
 }
 
+/** 버츄얼 등록 요청을 생성한다. 동일 URL의 대기 중 요청이 있으면 중복 방지 */
 export async function createStreamerRegistrationRequest({
   requesterId,
   platform,
@@ -142,6 +145,7 @@ export async function createStreamerRegistrationRequest({
   }
 }
 
+/** 버츄얼 정보 수정 요청을 생성한다 */
 export async function createStreamerInfoEditRequest({
   content,
   streamerId,
