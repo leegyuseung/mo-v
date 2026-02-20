@@ -17,11 +17,57 @@ export async function fetchStreamers({
   page,
   pageSize,
   platform,
+  sortBy,
   sortOrder,
   keyword,
 }: StreamerListParams): Promise<StreamerListResponse> {
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
+  const trimmedKeyword = keyword.trim();
+
+  if (sortBy === "heart") {
+    let rankQuery = supabase
+      .from("streamer_heart_rank")
+      .select("streamer_id, total_received, nickname, platform", { count: "exact" })
+      .order("total_received", { ascending: sortOrder === "asc", nullsFirst: false })
+      .order("nickname", { ascending: true });
+
+    if (platform !== "all") {
+      rankQuery = rankQuery.eq("platform", platform);
+    }
+    if (trimmedKeyword) {
+      rankQuery = rankQuery.ilike("nickname", `%${trimmedKeyword}%`);
+    }
+
+    const { data: rankRows, error: rankError, count } = await rankQuery.range(from, to);
+    if (rankError) throw rankError;
+
+    const orderedIds =
+      rankRows
+        ?.map((row) => row.streamer_id)
+        .filter((id): id is number => typeof id === "number") || [];
+
+    if (orderedIds.length === 0) {
+      return { data: [], count: count || 0 };
+    }
+
+    const { data: streamerRows, error: streamerError } = await supabase
+      .from(STREAMER_TABLE)
+      .select("*")
+      .in("id", orderedIds);
+
+    if (streamerError) throw streamerError;
+
+    const streamerById = new Map((streamerRows || []).map((row) => [row.id, row]));
+    const orderedStreamers = orderedIds
+      .map((id) => streamerById.get(id))
+      .filter(Boolean);
+
+    return {
+      data: orderedStreamers,
+      count: count || 0,
+    };
+  }
 
   let query = supabase
     .from(STREAMER_TABLE)
@@ -32,8 +78,8 @@ export async function fetchStreamers({
   if (platform !== "all") {
     query = query.eq("platform", platform);
   }
-  if (keyword.trim()) {
-    query = query.ilike("nickname", `%${keyword.trim()}%`);
+  if (trimmedKeyword) {
+    query = query.ilike("nickname", `%${trimmedKeyword}%`);
   }
 
   const { data, error, count } = await query.range(from, to);

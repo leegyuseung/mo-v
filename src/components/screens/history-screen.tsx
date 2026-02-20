@@ -66,7 +66,7 @@ export default function HistoryScreen() {
                 </div>
                 <p className="text-3xl font-bold text-gray-900">
                     {heartPoints?.point?.toLocaleString() || 0}
-                    <span className="text-base font-medium text-gray-500 ml-1">P</span>
+                    <span className="text-base font-medium text-gray-500 ml-1">하트</span>
                 </p>
             </div>
 
@@ -119,10 +119,10 @@ export default function HistoryScreen() {
                                             }`}
                                     >
                                         {item.amount >= 0 ? "+" : ""}
-                                        {item.amount.toLocaleString()} P
+                                        {item.amount.toLocaleString()} 하트
                                     </p>
                                     <p className="text-xs text-gray-400">
-                                        잔액 {item.after_point.toLocaleString()} P
+                                        잔액 {item.after_point.toLocaleString()} 하트
                                     </p>
                                 </div>
                             </div>

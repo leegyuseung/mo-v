@@ -10,6 +10,7 @@ import { useStreamers } from "@/hooks/queries/streamers/use-streamers";
 import { useIdolGroupCodeNames } from "@/hooks/queries/groups/use-idol-group-code-names";
 import type {
   StreamerPlatform,
+  StreamerSortBy,
   StreamerSortOrder,
 } from "@/types/streamer";
 import { ChevronLeft, ChevronRight, UserRound } from "lucide-react";
@@ -25,6 +26,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 export default function VlistScreen() {
   const [page, setPage] = useState(1);
   const [platform, setPlatform] = useState<StreamerPlatform>("all");
+  const [sortBy, setSortBy] = useState<StreamerSortBy>("name");
   const [sortOrder, setSortOrder] = useState<StreamerSortOrder>("asc");
   const [keyword, setKeyword] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -36,6 +38,7 @@ export default function VlistScreen() {
     page,
     pageSize,
     platform,
+    sortBy,
     sortOrder,
     keyword,
   });
@@ -66,8 +69,13 @@ export default function VlistScreen() {
     setPage(1);
   };
 
-  const onChangeSort = (next: StreamerSortOrder) => {
-    setSortOrder(next);
+  const onChangeSort = (nextSortBy: StreamerSortBy) => {
+    if (sortBy === nextSortBy) {
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(nextSortBy);
+      setSortOrder(nextSortBy === "heart" ? "desc" : "asc");
+    }
     setPage(1);
   };
 
@@ -152,11 +160,20 @@ export default function VlistScreen() {
           <Button
             type="button"
             size="sm"
-            variant="default"
-            onClick={() => onChangeSort(sortOrder === "asc" ? "desc" : "asc")}
-            className="cursor-pointer bg-gray-800 hover:bg-gray-900 text-white"
+            variant={sortBy === "name" ? "default" : "outline"}
+            onClick={() => onChangeSort("name")}
+            className={`cursor-pointer ${sortBy === "name" ? "bg-gray-800 hover:bg-gray-900 text-white" : ""}`}
           >
             가나다순
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={sortBy === "heart" ? "default" : "outline"}
+            onClick={() => onChangeSort("heart")}
+            className={`cursor-pointer ${sortBy === "heart" ? "bg-gray-800 hover:bg-gray-900 text-white" : ""}`}
+          >
+            하트순
           </Button>
         </div>
       </div>

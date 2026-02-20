@@ -105,7 +105,7 @@ export default function AppHeaderProfileMenu({
             </div>
             <div className="flex items-center gap-1">
               <span className="font-semibold text-gray-900">
-                {heartPoints?.point?.toLocaleString() || 0} P
+                {heartPoints?.point?.toLocaleString() || 0} 하트
               </span>
               <ChevronRight className="w-4 h-4 text-gray-400" />
             </div>

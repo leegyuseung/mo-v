@@ -368,7 +368,7 @@ export default function ProfileScreen() {
                         <div className="flex-1">
                             <p className="text-xs text-gray-400">하트 포인트</p>
                             <p className="text-sm font-semibold text-gray-700">
-                                {heartPoints?.point?.toLocaleString() || 0} P
+                                {heartPoints?.point?.toLocaleString() || 0} 하트
                             </p>
                         </div>
                     </div>

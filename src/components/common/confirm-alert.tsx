@@ -10,6 +10,7 @@ type ConfirmAlertProps = {
   confirmText?: string;
   cancelText?: string;
   isPending?: boolean;
+  confirmVariant?: "danger" | "default";
   onConfirm: () => void;
   onCancel: () => void;
 };
@@ -21,6 +22,7 @@ export default function ConfirmAlert({
   confirmText = "삭제",
   cancelText = "취소",
   isPending = false,
+  confirmVariant = "danger",
   onConfirm,
   onCancel,
 }: ConfirmAlertProps) {
@@ -45,7 +47,11 @@ export default function ConfirmAlert({
           <Button
             type="button"
             onClick={onConfirm}
-            className="cursor-pointer bg-red-600 hover:bg-red-700 text-white"
+            className={`cursor-pointer text-white ${
+              confirmVariant === "default"
+                ? "bg-gray-800 hover:bg-gray-900"
+                : "bg-red-600 hover:bg-red-700"
+            }`}
             disabled={isPending}
           >
             {isPending ? "처리중..." : confirmText}

@@ -4,12 +4,14 @@ export type Streamer = Tables<"streamers">;
 
 export type StreamerPlatform = "all" | "chzzk" | "soop";
 export type StreamerSortOrder = "asc" | "desc";
+export type StreamerSortBy = "name" | "heart";
 export type StreamerRequestPlatform = Exclude<StreamerPlatform, "all">;
 
 export type StreamerListParams = {
   page: number;
   pageSize: number;
   platform: StreamerPlatform;
+  sortBy: StreamerSortBy;
   sortOrder: StreamerSortOrder;
   keyword: string;
 };

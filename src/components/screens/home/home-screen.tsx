@@ -3,22 +3,80 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { UserRound } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  fetchStreamerHeartLeaderboard,
+  type StreamerHeartLeaderboardItem,
+} from "@/api/heart";
 import { useLiveStreamers } from "@/hooks/queries/live/use-live-streamers";
 
 export default function HomeScreen() {
-  const { data, isLoading } = useLiveStreamers();
+  const { data: liveData, isLoading: isLiveLoading } = useLiveStreamers();
+  const {
+    data: allRank = [],
+    isLoading: isAllRankLoading,
+  } = useQuery({
+    queryKey: ["home-heart-rank", "all"],
+    queryFn: () => fetchStreamerHeartLeaderboard("all", 5),
+  });
+  const {
+    data: monthlyRank = [],
+    isLoading: isMonthlyRankLoading,
+    isError: isMonthlyRankError,
+  } = useQuery({
+    queryKey: ["home-heart-rank", "monthly"],
+    queryFn: () => fetchStreamerHeartLeaderboard("monthly", 5),
+  });
+  const {
+    data: weeklyRank = [],
+    isLoading: isWeeklyRankLoading,
+    isError: isWeeklyRankError,
+  } = useQuery({
+    queryKey: ["home-heart-rank", "weekly"],
+    queryFn: () => fetchStreamerHeartLeaderboard("weekly", 5),
+  });
 
+  const rankCards: Array<{
+    key: string;
+    title: string;
+    data: StreamerHeartLeaderboardItem[];
+    isLoading: boolean;
+    isError?: boolean;
+  }> = [
+      {
+        key: "all",
+        title: "총 하트 TOP 5",
+        data: allRank,
+        isLoading: isAllRankLoading,
+      },
+      {
+        key: "monthly",
+        title: "이번달 하트 TOP 5",
+        data: monthlyRank,
+        isLoading: isMonthlyRankLoading,
+        isError: isMonthlyRankError,
+      },
+      {
+        key: "weekly",
+        title: "이번주 하트 TOP 5",
+        data: weeklyRank,
+        isLoading: isWeeklyRankLoading,
+        isError: isWeeklyRankError,
+      },
+    ];
+  const getRankRows = (items: StreamerHeartLeaderboardItem[]) =>
+    items.filter((item) => (item.total_received ?? 0) > 0).slice(0, 5);
   const topLiveStreamers = useMemo(() => {
-    const source = (data || []).filter((item) => item.isLive);
+    const source = (liveData || []).filter((item) => item.isLive);
     const shuffled = [...source];
     for (let i = shuffled.length - 1; i > 0; i -= 1) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     return shuffled.slice(0, 4);
-  }, [data]);
+  }, [liveData]);
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
@@ -32,18 +90,112 @@ export default function HomeScreen() {
       </section>
 
       <section className="p-4 md:p-6">
-        {isLoading ? (
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+          {rankCards.map((card) => (
+            <div
+              key={card.key}
+              className="rounded-2xl border border-gray-100 bg-white p-4"
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-gray-800">{card.title}</h3>
+              </div>
+
+              {card.isLoading ? (
+                <div className="space-y-3">
+                  {[0, 1, 2, 3, 4].map((slotIndex) => (
+                    <div
+                      key={`home-heart-skeleton-${card.key}-${slotIndex}`}
+                      className="flex items-center gap-3"
+                    >
+                      <Skeleton className="h-9 w-9 rounded-full" />
+                      <div className="flex-1 space-y-1">
+                        <Skeleton className="h-3 w-24" />
+                        <Skeleton className="h-3 w-16" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : card.isError ? (
+                <div className="py-8 text-center text-sm text-gray-400">
+                  랭킹 조회에 실패했습니다.
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {[0, 1, 2, 3, 4].map((index) => {
+                    const item = getRankRows(card.data)[index];
+                    if (!item) {
+                      return (
+                        <div
+                          key={`${card.key}-empty-${index}`}
+                          className="flex items-center gap-3 rounded-xl px-2 py-1.5"
+                        >
+                          <span className="w-7 text-xs font-bold text-gray-300">
+                            {index + 1}위
+                          </span>
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100">
+                            <UserRound className="h-4 w-4 text-gray-300" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-gray-300">
+                              -
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <Link
+                        key={`${card.key}-${item.streamer_id}`}
+                        href={`/vlist/${item.public_id ?? item.streamer_id}`}
+                        className="group flex items-center gap-3 rounded-xl px-2 py-1.5 transition hover:bg-gray-50"
+                      >
+                        <span className="w-7 text-xs font-bold text-gray-500">
+                          {index + 1}위
+                        </span>
+                        <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-gray-100">
+                          {item.image_url ? (
+                            <Image
+                              src={item.image_url}
+                              alt={item.nickname || "virtual"}
+                              fill
+                              sizes="36px"
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center">
+                              <UserRound className="h-4 w-4 text-gray-300" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-gray-900">
+                            {item.nickname || "이름 미등록"}
+                          </p>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="p-4 md:p-6">
+        {isLiveLoading ? (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {[0, 1].map((cardIndex) => (
               <div
-                key={`home-skeleton-card-${cardIndex}`}
+                key={`home-live-skeleton-card-${cardIndex}`}
                 className="rounded-2xl border border-gray-100 bg-white p-4"
               >
                 <Skeleton className="mb-4 h-5 w-16 rounded-full" />
                 <div className="grid grid-cols-4 gap-2 md:gap-3">
                   {[0, 1, 2, 3].map((slotIndex) => (
                     <div
-                      key={`home-skeleton-slot-${cardIndex}-${slotIndex}`}
+                      key={`home-live-skeleton-slot-${cardIndex}-${slotIndex}`}
                       className="rounded-xl p-2 text-center"
                     >
                       <Skeleton className="mx-auto mb-2 h-14 w-14 rounded-full md:h-20 md:w-20" />

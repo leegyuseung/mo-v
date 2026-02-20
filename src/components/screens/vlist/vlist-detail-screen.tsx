@@ -3,16 +3,28 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { useStreamerDetail } from "@/hooks/queries/streamers/use-streamer-detail";
 import { useIdolGroupCodeNames } from "@/hooks/queries/groups/use-idol-group-code-names";
 import { useCrewCodeNames } from "@/hooks/queries/crews/use-crew-code-names";
 import { useCreateStreamerInfoEditRequest } from "@/hooks/mutations/streamers/use-create-streamer-info-edit-request";
 import { Button } from "@/components/ui/button";
-import { ArrowBigLeft, UserRoundPen } from "lucide-react";
+import { ArrowBigLeft, Heart, UserRoundPen } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuthStore } from "@/store/useAuthStore";
+import {
+  type DonorPeriod,
+  fetchHeartPoints,
+  fetchStreamerReceivedHeartTotal,
+  fetchStreamerTopDonors,
+  giftHeartToStreamer,
+} from "@/api/heart";
+import ConfirmAlert from "@/components/common/confirm-alert";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { STREAMER_INFO_EDIT_REQUEST_MODAL_TEXT } from "@/lib/constant";
+import type { StreamerTopDonor } from "@/types/profile";
 
 export default function VlistDetailScreen({
   streamerPublicId,
@@ -21,14 +33,39 @@ export default function VlistDetailScreen({
 }) {
   const [isEditRequestModalOpen, setIsEditRequestModalOpen] = useState(false);
   const [editRequestContent, setEditRequestContent] = useState("");
+  const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
+  const [giftAmountInput, setGiftAmountInput] = useState("");
+  const [isGiftConfirmOpen, setIsGiftConfirmOpen] = useState(false);
+  const [isGiftSubmitting, setIsGiftSubmitting] = useState(false);
+  const [donorPeriod, setDonorPeriod] = useState<DonorPeriod>("all");
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: streamer, isLoading } = useStreamerDetail(streamerPublicId);
-  const { user, profile } = useAuthStore();
+  const { user, profile, heartPoints, setHeartPoints } = useAuthStore();
   const {
     mutateAsync: createInfoEditRequest,
     isPending: isInfoEditRequestSubmitting,
   } = useCreateStreamerInfoEditRequest();
   const { data: idolGroups } = useIdolGroupCodeNames();
   const { data: crews } = useCrewCodeNames();
+  const { data: receivedHeartTotal = 0, isLoading: isReceivedHeartTotalLoading } =
+    useQuery({
+      queryKey: ["streamer-received-heart-total", streamer?.id],
+      queryFn: () => fetchStreamerReceivedHeartTotal(streamer!.id),
+      enabled: Boolean(streamer?.id),
+    });
+  const {
+    data: topDonors = [],
+    isLoading: isTopDonorsLoading,
+    isError: isTopDonorsError,
+  } = useQuery({
+    queryKey: ["streamer-top-donors", streamer?.id, donorPeriod],
+    queryFn: async () => {
+      const result = await fetchStreamerTopDonors(streamer!.id, 10, 0, donorPeriod);
+      return result.data as StreamerTopDonor[];
+    },
+    enabled: Boolean(streamer?.id),
+  });
 
   if (isLoading) {
     return (
@@ -175,6 +212,88 @@ export default function VlistDetailScreen({
     }
   };
 
+  const openGiftModal = () => {
+    if (!user) {
+      toast.error("로그인 후 하트를 선물할 수 있습니다.");
+      return;
+    }
+    setGiftAmountInput("");
+    setIsGiftModalOpen(true);
+  };
+
+  const closeGiftModal = () => {
+    if (isGiftSubmitting) return;
+    setIsGiftModalOpen(false);
+    setGiftAmountInput("");
+    setIsGiftConfirmOpen(false);
+  };
+
+  const availableHeartPoint = heartPoints?.point || 0;
+
+  const openGiftConfirm = () => {
+    if (!user) {
+      toast.error("로그인 후 하트를 선물할 수 있습니다.");
+      return;
+    }
+    const amount = Number(giftAmountInput);
+    if (!Number.isFinite(amount) || amount <= 0 || !Number.isInteger(amount)) {
+      toast.error("선물할 하트 포인트를 올바르게 입력해 주세요.");
+      return;
+    }
+    if (amount > availableHeartPoint) {
+      toast.error("보유 하트보다 큰 수는 입력할 수 없습니다.");
+      return;
+    }
+    setIsGiftConfirmOpen(true);
+  };
+
+  const handleGiftHeart = async () => {
+    if (!user) {
+      toast.error("로그인 후 하트를 선물할 수 있습니다.");
+      return;
+    }
+
+    const amount = Number(giftAmountInput);
+    if (!Number.isFinite(amount) || amount <= 0 || !Number.isInteger(amount)) {
+      toast.error("선물할 하트 포인트를 올바르게 입력해 주세요.");
+      return;
+    }
+    if (amount > availableHeartPoint) {
+      toast.error("보유 하트보다 큰 수는 입력할 수 없습니다.");
+      return;
+    }
+
+    setIsGiftSubmitting(true);
+    try {
+      const targetName = streamer.nickname || "버츄얼";
+      await giftHeartToStreamer(
+        user.id,
+        streamer.id,
+        amount,
+        `${targetName}님에게 하트 선물`
+      );
+      const refreshedHeartPoints = await fetchHeartPoints(user.id);
+      setHeartPoints(refreshedHeartPoints);
+      await queryClient.invalidateQueries({
+        queryKey: ["streamer-received-heart-total", streamer.id],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["streamer-top-donors", streamer.id],
+      });
+      router.refresh();
+      toast.success("하트 선물이 완료되었습니다.");
+      setIsGiftConfirmOpen(false);
+      setIsGiftModalOpen(false);
+      setGiftAmountInput("");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "하트 선물에 실패했습니다.";
+      toast.error(message);
+    } finally {
+      setIsGiftSubmitting(false);
+    }
+  };
+
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto">
       <div className="mb-4 flex items-center justify-between">
@@ -194,20 +313,38 @@ export default function VlistDetailScreen({
           </span>
         </div>
 
-        <div className="group relative">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="cursor-pointer h-10 w-10"
-            onClick={openInfoEditRequestModal}
-            disabled={!user}
-          >
-            <UserRoundPen className="w-5 h-5" />
-          </Button>
-          <span className="pointer-events-none absolute right-1/2 top-full z-20 mt-1 translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-            정보수정요청
-          </span>
+        <div className="flex items-center gap-1">
+          <div className="group relative">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="cursor-pointer h-10 w-10"
+              onClick={openGiftModal}
+              disabled={!user}
+            >
+              <Heart className="w-5 h-5 text-rose-500" />
+            </Button>
+            <span className="pointer-events-none absolute right-1/2 top-full z-20 mt-1 translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+              하트선물하기
+            </span>
+          </div>
+
+          <div className="group relative">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="cursor-pointer h-10 w-10"
+              onClick={openInfoEditRequestModal}
+              disabled={!user}
+            >
+              <UserRoundPen className="w-5 h-5" />
+            </Button>
+            <span className="pointer-events-none absolute right-1/2 top-full z-20 mt-1 translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+              정보수정요청
+            </span>
+          </div>
         </div>
       </div>
 
@@ -261,6 +398,16 @@ export default function VlistDetailScreen({
                   <Image src="/icons/youtube.svg" alt="youtube" width={18} height={18} />
                 </a>
               ) : null}
+            </div>
+            <div className="mt-1 inline-flex items-center gap-2">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full">
+                <Heart className="h-4 w-4 text-red-500" />
+              </span>
+              <span className="text-sm font-semibold text-gray-800">
+                {isReceivedHeartTotalLoading
+                  ? "-"
+                  : receivedHeartTotal.toLocaleString()}
+              </span>
             </div>
           </div>
 
@@ -347,6 +494,66 @@ export default function VlistDetailScreen({
         </div>
       </div>
 
+      <div className="mt-4 w-full md:w-1/2">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <p className="text-sm font-semibold text-gray-700">하트 선물 TOP 5</p>
+          <div className="inline-flex items-center rounded-full border border-gray-200 bg-white p-1">
+            {[
+              { key: "all" as const, label: "전체" },
+              { key: "weekly" as const, label: "이번주" },
+              { key: "monthly" as const, label: "이번달" },
+            ].map((item) => {
+              const active = donorPeriod === item.key;
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => setDonorPeriod(item.key)}
+                  className={`cursor-pointer rounded-full px-2.5 py-1 text-xs font-medium transition ${
+                    active
+                      ? "bg-rose-500 text-white"
+                      : "text-gray-600 hover:bg-gray-100"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        {isTopDonorsLoading ? (
+          <div className="space-y-2">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <div
+                key={`donor-skeleton-${index}`}
+                className="h-8 animate-pulse rounded-md bg-gray-200/70"
+              />
+            ))}
+          </div>
+        ) : isTopDonorsError ? (
+          <p className="text-sm text-red-500">
+            하트 랭킹 조회에 실패했습니다. 기간별 뷰 SQL을 확인해 주세요.
+          </p>
+        ) : topDonors.length === 0 ? (
+          <p className="text-sm text-gray-500">아직 하트 선물 내역이 없습니다.</p>
+        ) : (
+          <div className="space-y-2">
+            {topDonors.slice(0, 5).map((donor, index) => (
+              <div
+                key={`${donor.user_id || "unknown"}-${index}`}
+                className="flex items-center justify-between px-1 py-2 text-sm"
+              >
+                <span className="text-gray-700">{`${donor.donor_rank ?? index + 1}위`}</span>
+                <span className="flex-1 px-3 text-gray-800">
+                  {donor.user_nickname || "익명 유저"}
+                </span>
+                <span className="font-semibold text-gray-900">{`${(donor.total_sent ?? 0).toLocaleString()}하트`}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {isEditRequestModalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-5 shadow-xl">
@@ -388,6 +595,93 @@ export default function VlistDetailScreen({
           </div>
         </div>
       ) : null}
+
+      {isGiftModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-5 shadow-xl">
+            <h2 className="text-lg font-semibold text-gray-900">하트 선물하기</h2>
+            <p className="mt-1 text-sm text-gray-500">
+              보유 하트 포인트:{" "}
+              <span className="font-semibold text-gray-900">
+                {availableHeartPoint.toLocaleString()} 하트
+              </span>
+            </p>
+
+            <div className="mt-4">
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-sm text-gray-600">선물할 하트 포인트</p>
+                <button
+                  type="button"
+                  className="text-xs font-medium text-rose-600 hover:text-rose-700 cursor-pointer disabled:cursor-not-allowed disabled:text-gray-400"
+                  onClick={() => setGiftAmountInput(String(availableHeartPoint))}
+                  disabled={isGiftSubmitting || availableHeartPoint <= 0}
+                >
+                  최대하트입력
+                </button>
+              </div>
+              <Input
+                type="number"
+                min={1}
+                max={Math.max(0, availableHeartPoint)}
+                step={1}
+                value={giftAmountInput}
+                onChange={(event) => {
+                  const nextValue = event.target.value;
+                  if (!nextValue) {
+                    setGiftAmountInput("");
+                    return;
+                  }
+
+                  if (!/^\d+$/.test(nextValue)) return;
+
+                  const parsed = Number(nextValue);
+                  if (parsed > availableHeartPoint) {
+                    setGiftAmountInput(String(availableHeartPoint));
+                    return;
+                  }
+
+                  setGiftAmountInput(nextValue);
+                }}
+                placeholder="선물할 하트 포인트를 입력해 주세요"
+                className="h-10 bg-white border-gray-200"
+                disabled={isGiftSubmitting}
+              />
+            </div>
+
+            <div className="mt-5 flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="cursor-pointer"
+                onClick={closeGiftModal}
+                disabled={isGiftSubmitting}
+              >
+                취소
+              </Button>
+              <Button
+                type="button"
+                className="cursor-pointer bg-rose-600 text-white hover:bg-rose-700"
+                onClick={openGiftConfirm}
+                disabled={isGiftSubmitting || availableHeartPoint <= 0}
+              >
+                선물하기
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <ConfirmAlert
+        open={isGiftConfirmOpen}
+        title="하트 선물"
+        description={`${streamer.nickname || "버츄얼"}님께 ${Number(giftAmountInput || 0).toLocaleString()}하트를 선물하시겠습니까?`}
+        confirmText="확인"
+        cancelText="취소"
+        confirmVariant="default"
+        isPending={isGiftSubmitting}
+        onConfirm={handleGiftHeart}
+        onCancel={() => setIsGiftConfirmOpen(false)}
+      />
     </div>
   );
 }

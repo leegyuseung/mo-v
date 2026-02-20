@@ -3,6 +3,18 @@ import type { GiftHeartToStreamerResult } from "@/types/heart";
 
 const supabase = createClient();
 
+export type DonorPeriod = "all" | "weekly" | "monthly";
+export type HeartRankPeriod = "all" | "weekly" | "monthly";
+
+export type StreamerHeartLeaderboardItem = {
+    streamer_id: number;
+    nickname: string | null;
+    platform: string | null;
+    total_received: number;
+    image_url: string | null;
+    public_id: string | null;
+};
+
 export async function fetchHeartPoints(userId: string) {
     const { data, error } = await supabase
         .from("heart_points")
@@ -115,13 +127,75 @@ export async function fetchStreamerHeartRank(
     return { data: data || [], count: count || 0 };
 }
 
+export async function fetchStreamerHeartLeaderboard(
+    period: HeartRankPeriod,
+    limit: number = 5
+): Promise<StreamerHeartLeaderboardItem[]> {
+    const source =
+        period === "weekly"
+            ? "streamer_heart_rank_weekly"
+            : period === "monthly"
+                ? "streamer_heart_rank_monthly"
+                : "streamer_heart_rank";
+
+    const { data: rankRows, error: rankError } = await supabase
+        .from(source as "streamer_heart_rank")
+        .select("streamer_id,nickname,platform,total_received")
+        .order("total_received", { ascending: false, nullsFirst: false })
+        .order("nickname", { ascending: true })
+        .limit(limit);
+
+    if (rankError) throw rankError;
+
+    const rows = rankRows || [];
+    const streamerIds = rows
+        .map((row) => row.streamer_id)
+        .filter((id): id is number => typeof id === "number");
+
+    if (streamerIds.length === 0) return [];
+
+    const { data: streamerRows, error: streamerError } = await supabase
+        .from("streamers")
+        .select("id,image_url,public_id")
+        .in("id", streamerIds);
+
+    if (streamerError) throw streamerError;
+
+    const streamerById = new Map(
+        (streamerRows || []).map((streamer) => [streamer.id, streamer])
+    );
+
+    return rows
+        .map((row) => {
+            if (typeof row.streamer_id !== "number") return null;
+            const streamer = streamerById.get(row.streamer_id);
+            return {
+                streamer_id: row.streamer_id,
+                nickname: row.nickname,
+                platform: row.platform,
+                total_received: row.total_received ?? 0,
+                image_url: streamer?.image_url ?? null,
+                public_id: streamer?.public_id ?? null,
+            };
+        })
+        .filter((item): item is StreamerHeartLeaderboardItem => item !== null);
+}
+
 export async function fetchStreamerTopDonors(
     streamerId: number,
     limit: number = 20,
-    offset: number = 0
+    offset: number = 0,
+    period: DonorPeriod = "all"
 ) {
+    const source =
+        period === "weekly"
+            ? "streamer_top_donors_weekly"
+            : period === "monthly"
+                ? "streamer_top_donors_monthly"
+                : "streamer_top_donors";
+
     const { data, error, count } = await supabase
-        .from("streamer_top_donors")
+        .from(source as "streamer_top_donors")
         .select("*", { count: "exact" })
         .eq("streamer_id", streamerId)
         .order("donor_rank", { ascending: true })
@@ -129,4 +203,17 @@ export async function fetchStreamerTopDonors(
 
     if (error) throw error;
     return { data: data || [], count: count || 0 };
+}
+
+export async function fetchStreamerReceivedHeartTotal(
+    streamerId: number
+): Promise<number> {
+    const { data, error } = await supabase
+        .from("streamer_hearts")
+        .select("total_received")
+        .eq("streamer_id", streamerId)
+        .maybeSingle();
+
+    if (error) throw error;
+    return data?.total_received ?? 0;
 }
