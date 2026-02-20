@@ -101,6 +101,30 @@ export async function removeStar(
   if (error) throw error;
 }
 
+// ─── 즐겨찾기 수 조회 ────────────────────────────────────────────────
+
+const STAR_STATS_TABLE = {
+  streamer: "streamer_star_stats",
+  group: "group_star_stats",
+  crew: "crew_star_stats",
+} as const;
+
+/** 대상의 즐겨찾기 수를 조회한다 */
+export async function fetchStarCount(
+  targetId: number,
+  type: StarTargetType,
+): Promise<number> {
+  const table = STAR_STATS_TABLE[type];
+  const fk = STAR_FK[type];
+  const { data, error } = await (supabase as any)
+    .from(table)
+    .select("star_count")
+    .eq(fk, targetId)
+    .maybeSingle();
+  if (error) throw error;
+  return data?.star_count ?? 0;
+}
+
 // ─── 즐겨찾기 전체 조회 (마이페이지용) ────────────────────────────────
 
 /** 유저의 전체 즐겨찾기(버츄얼·그룹·크루)를 조회한다 */

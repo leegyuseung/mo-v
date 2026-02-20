@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowBigLeft, Star, UserRound, UserRoundPen, UsersRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -14,6 +15,8 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { GROUP_INFO_EDIT_REQUEST_MODAL_TEXT } from "@/lib/constant";
 import { isSupabaseStorageUrl } from "@/utils/image";
 import InfoEditRequestModal from "@/components/common/info-edit-request-modal";
+import { fetchStarCount } from "@/api/star";
+import StarCountBadge from "@/components/common/star-count-badge";
 
 type GroupDetailScreenProps = {
   groupCode: string;
@@ -24,6 +27,11 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
   const { user, profile } = useAuthStore();
   const { data: group, isLoading } = useIdolGroupDetail(groupCode);
   const { starred: isStarred, isToggling: isStarToggling, toggle: onClickStar } = useToggleStar("group", group?.id);
+  const { data: groupStarCount = 0, isLoading: isGroupStarCountLoading } = useQuery({
+    queryKey: ["group-star-count", group?.id],
+    queryFn: () => fetchStarCount(group!.id, "group"),
+    enabled: Boolean(group?.id),
+  });
   const {
     mutateAsync: createInfoEditRequest,
     isPending: isInfoEditRequestSubmitting,
@@ -191,6 +199,7 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
                 </a>
               ) : null}
             </div>
+            <StarCountBadge count={groupStarCount} isLoading={isGroupStarCountLoading} />
           </div>
 
           <div className="flex-1 min-w-0 space-y-6">

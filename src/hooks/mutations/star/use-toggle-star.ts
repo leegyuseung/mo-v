@@ -14,6 +14,12 @@ export function useToggleStar(type: StarTargetType, targetId: number | undefined
     const [isToggling, setIsToggling] = useState(false);
 
     const queryKey = ["star", type, user?.id, targetId] as const;
+    const countQueryKey =
+        type === "streamer"
+            ? (["streamer-star-count", targetId] as const)
+            : type === "group"
+                ? (["group-star-count", targetId] as const)
+                : (["crew-star-count", targetId] as const);
 
     const { data: starred = false } = useQuery({
         queryKey,
@@ -32,6 +38,10 @@ export function useToggleStar(type: StarTargetType, targetId: number | undefined
         const previous = queryClient.getQueryData<boolean>(queryKey) ?? false;
         const next = !previous;
         queryClient.setQueryData(queryKey, next);
+        const previousCount = queryClient.getQueryData<number>(countQueryKey);
+        if (typeof previousCount === "number") {
+            queryClient.setQueryData<number>(countQueryKey, Math.max(0, previousCount + (next ? 1 : -1)));
+        }
 
         try {
             if (next) {
@@ -42,6 +52,9 @@ export function useToggleStar(type: StarTargetType, targetId: number | undefined
             await queryClient.invalidateQueries({ queryKey: ["my-stars", user.id] });
         } catch (error) {
             queryClient.setQueryData(queryKey, previous);
+            if (typeof previousCount === "number") {
+                queryClient.setQueryData<number>(countQueryKey, previousCount);
+            }
             const message =
                 error instanceof Error ? error.message : "즐겨찾기 처리에 실패했습니다.";
             toast.error(message);

@@ -27,6 +27,8 @@ import { STREAMER_INFO_EDIT_REQUEST_MODAL_TEXT } from "@/lib/constant";
 import type { StreamerTopDonor } from "@/types/profile";
 import { useToggleStar } from "@/hooks/mutations/star/use-toggle-star";
 import InfoEditRequestModal from "@/components/common/info-edit-request-modal";
+import { fetchStarCount } from "@/api/star";
+import StarCountBadge from "@/components/common/star-count-badge";
 
 export default function VlistDetailScreen({
   streamerPublicId,
@@ -65,6 +67,11 @@ export default function VlistDetailScreen({
       const result = await fetchStreamerTopDonors(streamer!.id, 10, 0, donorPeriod);
       return result.data as StreamerTopDonor[];
     },
+    enabled: Boolean(streamer?.id),
+  });
+  const { data: streamerStarCount = 0, isLoading: isStreamerStarCountLoading } = useQuery({
+    queryKey: ["streamer-star-count", streamer?.id],
+    queryFn: () => fetchStarCount(streamer!.id, "streamer"),
     enabled: Boolean(streamer?.id),
   });
   const { starred: isStarred, isToggling: isStarToggling, toggle: onClickStar } = useToggleStar("streamer", streamer?.id);
@@ -364,7 +371,7 @@ export default function VlistDetailScreen({
 
       <div className={`rounded-3xl border p-5 md:p-7 shadow-sm space-y-6 ${toneContainerClass}`}>
         <div className="flex flex-col gap-6 md:flex-row md:items-start">
-          <div className="mx-auto md:mx-0 flex shrink-0 flex-col items-center gap-3">
+          <div className="mx-auto md:mx-0 flex shrink-0 flex-col items-center gap-1">
             <div className="relative h-40 w-40 overflow-hidden rounded-full border border-gray-200 bg-gray-100">
               {streamer.image_url ? (
                 <Image
@@ -423,6 +430,7 @@ export default function VlistDetailScreen({
                   : receivedHeartTotal.toLocaleString()}
               </span>
             </div>
+            <StarCountBadge count={streamerStarCount} isLoading={isStreamerStarCountLoading} />
           </div>
 
           <div className="flex-1 min-w-0 space-y-6">

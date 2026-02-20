@@ -21,6 +21,9 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { GROUP_INFO_EDIT_REQUEST_MODAL_TEXT } from "@/lib/constant";
 import { isSupabaseStorageUrl } from "@/utils/image";
 import InfoEditRequestModal from "@/components/common/info-edit-request-modal";
+import { fetchStarCount } from "@/api/star";
+import StarCountBadge from "@/components/common/star-count-badge";
+
 
 type CrewDetailScreenProps = {
   crewCode: string;
@@ -31,6 +34,11 @@ export default function CrewDetailScreen({ crewCode }: CrewDetailScreenProps) {
   const { user, profile } = useAuthStore();
   const { data: crew, isLoading } = useCrewDetail(crewCode);
   const { starred: isStarred, isToggling: isStarToggling, toggle: onClickStar } = useToggleStar("crew", crew?.id);
+  const { data: crewStarCount = 0, isLoading: isCrewStarCountLoading } = useQuery({
+    queryKey: ["crew-star-count", crew?.id],
+    queryFn: () => fetchStarCount(crew!.id, "crew"),
+    enabled: Boolean(crew?.id),
+  });
   const {
     mutateAsync: createInfoEditRequest,
     isPending: isInfoEditRequestSubmitting,
@@ -216,6 +224,7 @@ export default function CrewDetailScreen({ crewCode }: CrewDetailScreenProps) {
                 </a>
               ) : null}
             </div>
+            <StarCountBadge count={crewStarCount} isLoading={isCrewStarCountLoading} />
           </div>
 
           <div className="flex-1 min-w-0 space-y-6">

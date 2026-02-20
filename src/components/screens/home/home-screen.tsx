@@ -225,6 +225,12 @@ export default function HomeScreen() {
                 <span className="inline-flex items-center justify-center rounded-full bg-red-600 px-2 py-0.5 text-[10px] text-white">
                   LIVE
                 </span>
+                <Link
+                  href="/live"
+                  className="text-xs font-medium text-gray-500 underline-offset-2 hover:text-gray-700 hover:underline"
+                >
+                  전체
+                </Link>
               </div>
               {topLiveStreamers.length === 0 ? (
                 <div className="py-8 text-center text-sm text-gray-400">
@@ -296,6 +302,12 @@ export default function HomeScreen() {
                 <span className="inline-flex items-center justify-center rounded-full bg-yellow-500 px-2 py-0.5 text-[10px] text-white">
                   STAR
                 </span>
+                <Link
+                  href="/star"
+                  className="text-xs font-medium text-gray-500 underline-offset-2 hover:text-gray-700 hover:underline"
+                >
+                  전체
+                </Link>
               </div>
               {!user ? (
                 <div className="py-8 text-center text-sm text-gray-400">
