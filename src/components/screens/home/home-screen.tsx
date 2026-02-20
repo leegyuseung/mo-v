@@ -59,72 +59,78 @@ export default function HomeScreen() {
             <div className="rounded-2xl border border-gray-100 bg-white p-4">
               <div className="mb-4 flex items-center justify-between">
                 <span className="inline-flex items-center justify-center rounded-full bg-red-600 px-2 py-0.5 text-[10px] text-white">
-                  라이브
+                  LIVE
                 </span>
               </div>
-              <div className="grid grid-cols-4 gap-2 md:gap-3">
-                {[0, 1, 2, 3].map((index) => {
-                  const streamer = topLiveStreamers[index];
-                  if (!streamer) {
-                    return (
-                      <div
-                        key={`live-empty-${index}`}
-                        className="rounded-xl p-2 text-center"
-                      >
-                        <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full border-2 border-gray-200 bg-gray-50/70 md:h-20 md:w-20">
-                          <UserRound className="h-5 w-5 text-gray-300 md:h-7 md:w-7" />
+              {topLiveStreamers.length === 0 ? (
+                <div className="py-8 text-center text-sm text-gray-400">
+                  라이브중인 버츄얼이 없습니다.
+                </div>
+              ) : (
+                <div className="grid grid-cols-4 gap-2 md:gap-3">
+                  {[0, 1, 2, 3].map((index) => {
+                    const streamer = topLiveStreamers[index];
+                    if (!streamer) {
+                      return (
+                        <div
+                          key={`live-empty-${index}`}
+                          className="rounded-xl p-2 text-center"
+                        >
+                          <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full border-2 border-gray-200 bg-gray-50/70 md:h-20 md:w-20">
+                            <UserRound className="h-5 w-5 text-gray-300 md:h-7 md:w-7" />
+                          </div>
+                          <p className="hidden truncate text-xs text-transparent md:block">.</p>
                         </div>
-                        <p className="hidden truncate text-xs text-transparent md:block">.</p>
+                      );
+                    }
+
+                    const ringClass =
+                      streamer.platform === "chzzk"
+                        ? "border-green-500"
+                        : "border-blue-500";
+
+                    return (
+                      <div key={streamer.id} className="rounded-xl p-2 text-center">
+                        <Link
+                          href={streamer.liveUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex cursor-pointer"
+                        >
+                          <div
+                            className={`mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full border-2 bg-gray-100 p-0.5 md:h-20 md:w-20 ${ringClass}`}
+                          >
+                            <div className="relative h-full w-full overflow-hidden rounded-full">
+                              {streamer.image_url ? (
+                                <Image
+                                  src={streamer.image_url}
+                                  alt={streamer.nickname || "streamer"}
+                                  fill
+                                  sizes="80px"
+                                  className="object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center">
+                                  <UserRound className="h-7 w-7 text-gray-300" />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </Link>
+                        <p className="hidden truncate text-xs font-semibold text-gray-900 md:block">
+                          {streamer.nickname || "이름 미등록"}
+                        </p>
                       </div>
                     );
-                  }
-
-                  const ringClass =
-                    streamer.platform === "chzzk"
-                      ? "border-green-500"
-                      : "border-blue-500";
-
-                  return (
-                    <div key={streamer.id} className="rounded-xl p-2 text-center">
-                      <Link
-                        href={streamer.liveUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex cursor-pointer"
-                      >
-                        <div
-                          className={`mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full border-2 bg-gray-100 p-0.5 md:h-20 md:w-20 ${ringClass}`}
-                        >
-                          <div className="relative h-full w-full overflow-hidden rounded-full">
-                            {streamer.image_url ? (
-                              <Image
-                                src={streamer.image_url}
-                                alt={streamer.nickname || "streamer"}
-                                fill
-                                sizes="80px"
-                                className="object-cover"
-                              />
-                            ) : (
-                              <div className="flex h-full w-full items-center justify-center">
-                                <UserRound className="h-7 w-7 text-gray-300" />
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </Link>
-                      <p className="hidden truncate text-xs font-semibold text-gray-900 md:block">
-                        {streamer.nickname || "이름 미등록"}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
+                  })}
+                </div>
+              )}
             </div>
 
             <div className="rounded-2xl border border-gray-100 bg-white p-4">
               <div className="mb-4 flex items-center justify-between">
                 <span className="inline-flex items-center justify-center rounded-full bg-yellow-500 px-2 py-0.5 text-[10px] text-white">
-                  즐겨찾기
+                  STAR
                 </span>
               </div>
               <div className="grid grid-cols-4 gap-2 md:gap-3">

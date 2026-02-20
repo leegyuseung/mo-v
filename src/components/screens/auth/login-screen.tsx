@@ -48,7 +48,11 @@ export default function LoginScreen() {
 
     const { mutate: signIn, isPending } = useSignInWithPassword({
         onError: (error) => {
-            toast.error("로그인 실패: " + error.message);
+            const message =
+                error.message === "Invalid login credentials"
+                    ? "로그인 정보가 없습니다."
+                    : `로그인 실패: ${error.message}`;
+            toast.error(message);
         },
     });
 
@@ -92,8 +96,8 @@ export default function LoginScreen() {
     };
 
     return (
-        <div className="flex flex-col items-center w-full">
-            <div className="flex flex-col justify-center flex-1 w-full max-w-md px-4 md:px-0 gap-8 mb-12">
+        <div className="flex min-h-screen w-full flex-col">
+            <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-8 px-4 md:px-0">
                 <div className="flex flex-col items-center justify-center gap-4">
                     <div className="flex flex-col items-center justify-center">
                         <Image

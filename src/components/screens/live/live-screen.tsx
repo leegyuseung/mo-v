@@ -200,11 +200,10 @@ export default function LiveScreen() {
                 href={streamer.liveUrl}
                 target="_blank"
                 rel="noreferrer"
-                className={`group rounded-xl border bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
-                  streamer.platform === "chzzk"
-                    ? "border-green-200"
-                    : "border-blue-200"
-                }`}
+                className={`group rounded-xl border bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${streamer.platform === "chzzk"
+                  ? "border-green-200"
+                  : "border-blue-200"
+                  }`}
               >
                 <div className="relative mb-2 h-28 overflow-hidden rounded-lg bg-gray-100">
                   {imageSrc ? (
@@ -278,7 +277,7 @@ export default function LiveScreen() {
                     {streamer.group_name?.map((group) => (
                       <span
                         key={`${streamer.id}-group-${group}`}
-                        className="inline-flex items-center rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[10px] font-medium text-gray-600"
+                        className="inline-flex items-center rounded-full border border-pink-100 bg-pink-50 px-2 py-0.5 text-[10px] font-medium text-pink-700"
                       >
                         {groupNameByCode.get(group.trim().toLowerCase()) || group}
                       </span>
