@@ -197,8 +197,8 @@ export default function CrewRow({
 
             <ConfirmAlert
                 open={isDeleteAlertOpen}
-                title="크루 삭제"
-                description="정말 이 크루를 삭제하시겠습니까?"
+                title="소속 삭제"
+                description="정말 이 소속을 삭제하시겠습니까?"
                 confirmText="삭제"
                 cancelText="취소"
                 isPending={isDeleting}

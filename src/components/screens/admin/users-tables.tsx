@@ -363,7 +363,7 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
             <Input
               value={crewNameInput}
               onChange={(e) => setCrewNameInput(e.target.value)}
-              placeholder="크루명 (쉼표로 구분)"
+              placeholder="소속명 (쉼표로 구분)"
               className="h-8 text-sm w-44"
             />
           ) : (
@@ -624,7 +624,7 @@ export function StreamerTable({ streamers, isLoading }: StreamerTableProps) {
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">치지직 ID</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">SOOP ID</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">그룹명(text[])</th>
-            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">크루명(text[])</th>
+            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">소속명(text[])</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">생일</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">국적</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">성별</th>

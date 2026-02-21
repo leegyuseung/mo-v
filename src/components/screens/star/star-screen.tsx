@@ -395,8 +395,8 @@ export default function StarScreen() {
       </HorizontalRow>
 
       <HorizontalRow
-        title={`크루 (${filteredCrews.length})`}
-        emptyText="즐겨찾기한 크루가 없습니다."
+        title={`소속 (${filteredCrews.length})`}
+        emptyText="즐겨찾기한 소속이 없습니다."
         searchValue={crewSearch}
         onSearchChange={setCrewSearch}
         addHref="/crew"

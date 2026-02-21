@@ -1,5 +1,5 @@
 /**
- * 스트리머의 그룹·크루 태그 배지 목록을 렌더링하는 공통 컴포넌트.
+ * 스트리머의 그룹·소속 태그 배지 목록을 렌더링하는 공통 컴포넌트.
  * vlist-screen, live-screen 등에서 동일하게 사용되던 패턴을 통합한다.
  */
 export default function StreamerGroupCrewBadges({
@@ -7,11 +7,13 @@ export default function StreamerGroupCrewBadges({
     groupNames,
     crewNames,
     groupNameByCode,
+    crewNameByCode,
 }: {
     streamerId: number;
     groupNames?: string[] | null;
     crewNames?: string[] | null;
     groupNameByCode?: Map<string, string>;
+    crewNameByCode?: Map<string, string>;
 }) {
     const hasGroups = groupNames && groupNames.length > 0;
     const hasCrews = crewNames && crewNames.length > 0;
@@ -33,7 +35,7 @@ export default function StreamerGroupCrewBadges({
                     key={`${streamerId}-crew-${crew}`}
                     className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[10px] font-medium text-sky-700"
                 >
-                    {crew}
+                    {crewNameByCode?.get(crew.trim().toLowerCase()) || crew}
                 </span>
             ))}
         </div>

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLiveStreamers } from "@/hooks/queries/live/use-live-streamers";
 import { useIdolGroupCodeNames } from "@/hooks/queries/groups/use-idol-group-code-names";
+import { useCrewCodeNames } from "@/hooks/queries/crews/use-crew-code-names";
 import type { StreamerPlatform } from "@/types/streamer";
 import { STREAMER_PLATFORM_OPTIONS } from "@/lib/constant";
 import { getPlatformActiveClass, getPlatformInactiveClass } from "@/utils/platform";
@@ -25,6 +26,7 @@ export default function LiveScreen() {
   >({});
   const { data, isLoading } = useLiveStreamers();
   const { data: idolGroups } = useIdolGroupCodeNames();
+  const { data: crews } = useCrewCodeNames();
 
   const filteredLiveStreamers = useMemo(() => {
     const source = data || [];
@@ -59,6 +61,13 @@ export default function LiveScreen() {
     });
     return map;
   }, [idolGroups]);
+  const crewNameByCode = useMemo(() => {
+    const map = new Map<string, string>();
+    (crews || []).forEach((crew) => {
+      map.set(crew.crew_code.trim().toLowerCase(), crew.name);
+    });
+    return map;
+  }, [crews]);
 
 
   return (
@@ -259,6 +268,7 @@ export default function LiveScreen() {
                   groupNames={streamer.group_name}
                   crewNames={streamer.crew_name}
                   groupNameByCode={groupNameByCode}
+                  crewNameByCode={crewNameByCode}
                 />
               </Link>
             );

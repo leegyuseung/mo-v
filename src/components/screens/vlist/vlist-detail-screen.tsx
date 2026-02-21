@@ -491,7 +491,7 @@ export default function VlistDetailScreen({
                 </span>
               </div>
               <div className="flex items-start gap-2 text-sm">
-                <span className="w-20 shrink-0 text-gray-500">크루</span>
+                <span className="w-20 shrink-0 text-gray-500">소속</span>
                 <span className="font-medium text-gray-800 break-all">
                   {crewLinkItems.length > 0 ? (
                     <span className="inline-flex flex-wrap gap-1.5">

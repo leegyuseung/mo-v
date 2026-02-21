@@ -156,9 +156,9 @@ export default function CrewsScreen() {
         <div className="flex items-center gap-2">
           <UsersRound className="w-5 h-5 text-indigo-500" />
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">크루 관리</h1>
+            <h1 className="text-2xl font-bold text-gray-900">소속 관리</h1>
             <p className="text-sm text-gray-500">
-              크루 정보 CRUD 및 버츄얼 crew_code 기반 멤버 자동 매칭
+              소속 정보 CRUD 및 버츄얼 crew_code 기반 멤버 자동 매칭
             </p>
           </div>
         </div>
@@ -167,7 +167,7 @@ export default function CrewsScreen() {
           onClick={() => setIsAddOpen((prev) => !prev)}
           className="cursor-pointer bg-gray-800 hover:bg-gray-900 text-white"
         >
-          {isAddOpen ? "추가 닫기" : "크루 추가"}
+          {isAddOpen ? "추가 닫기" : "소속 추가"}
         </Button>
       </div>
 
@@ -238,7 +238,7 @@ export default function CrewsScreen() {
             ) : (
               <tr>
                 <td colSpan={7} className="px-4 py-12 text-center text-gray-400 text-sm">
-                  등록된 크루가 없습니다.
+                  등록된 소속이 없습니다.
                 </td>
               </tr>
             )}

@@ -28,7 +28,7 @@ const adminMenuItems = [
     { title: "대시보드", url: "/admin", icon: LayoutDashboard },
     { title: "유저/버츄얼 관리", url: "/admin/users", icon: Users },
     { title: "그룹 관리", url: "/admin/groups", icon: MicVocal },
-    { title: "크루 관리", url: "/admin/crews", icon: UsersRound },
+    { title: "소속 관리", url: "/admin/crews", icon: UsersRound },
     { title: "버츄얼 등록 대기", url: "/admin/pending", icon: Clock },
     { title: "정보 수정 요청", url: "/admin/infoeditrq", icon: UserRoundPen },
 ];

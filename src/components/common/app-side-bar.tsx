@@ -34,7 +34,7 @@ const menuItems = [
   { title: "라이브", url: "/live", icon: TvMinimalPlay },
   { title: "버츄얼", url: "/vlist", icon: Gem },
   { title: "그룹", url: "/group", icon: MicVocal },
-  { title: "크루", url: "/crew", icon: UsersRound },
+  { title: "소속", url: "/crew", icon: UsersRound },
   { title: "콘텐츠", icon: Clapperboard },
 ] satisfies MenuItem[];
 

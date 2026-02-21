@@ -95,7 +95,7 @@ export default function CrewScreen() {
           <Input
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            placeholder="크루명 또는 멤버명을 입력해 주세요"
+            placeholder="소속명 또는 멤버명을 입력해 주세요"
             className="h-9 border-gray-200 bg-white md:w-96"
           />
         </div>
@@ -103,7 +103,7 @@ export default function CrewScreen() {
 
       <div className="mb-4 text-sm text-gray-500 flex items-center gap-2">
         {isLoading ? <Spinner className="h-4 w-4 border-2" /> : null}
-        <span>{isLoading ? "로딩중..." : `총 ${crews.length.toLocaleString()}개 크루`}</span>
+        <span>{isLoading ? "로딩중..." : `총 ${crews.length.toLocaleString()}개 소속`}</span>
       </div>
 
       {isLoading ? (
@@ -130,7 +130,7 @@ export default function CrewScreen() {
         </div>
       ) : crews.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 text-center text-gray-400">
-          크루 정보가 없습니다.
+          소속 정보가 없습니다.
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

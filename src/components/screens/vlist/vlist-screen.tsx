@@ -10,6 +10,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useStreamers } from "@/hooks/queries/streamers/use-streamers";
 import { useIdolGroupCodeNames } from "@/hooks/queries/groups/use-idol-group-code-names";
+import { useCrewCodeNames } from "@/hooks/queries/crews/use-crew-code-names";
 import type {
   StreamerPlatform,
   StreamerSortBy,
@@ -47,6 +48,7 @@ export default function VlistScreen() {
     keyword,
   });
   const { data: idolGroups } = useIdolGroupCodeNames();
+  const { data: crews } = useCrewCodeNames();
   const { data: starredStreamerIds = new Set<number>() } = useQuery({
     queryKey: ["starred-streamers", user?.id],
     queryFn: async () => new Set(await fetchStarredStreamerIds(user!.id)),
@@ -72,6 +74,13 @@ export default function VlistScreen() {
     const adjustedStart = Math.max(1, end - size + 1);
     return Array.from({ length: end - adjustedStart + 1 }, (_, i) => adjustedStart + i);
   }, [page, totalPages]);
+  const crewNameByCode = useMemo(() => {
+    const map = new Map<string, string>();
+    (crews || []).forEach((crew) => {
+      map.set(crew.crew_code.trim().toLowerCase(), crew.name);
+    });
+    return map;
+  }, [crews]);
 
   const onChangePlatform = (next: StreamerPlatform) => {
     setPlatform(next);
@@ -262,7 +271,7 @@ export default function VlistScreen() {
                       key={`${streamer.id}-crew-${crew}`}
                       className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[10px] font-medium text-sky-700"
                     >
-                      {crew}
+                      {crewNameByCode.get(crew.trim().toLowerCase()) || crew}
                     </span>
                   ))}
                 </div>

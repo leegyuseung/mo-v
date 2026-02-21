@@ -22,7 +22,7 @@ export async function generateMetadata({
     .select("name")
     .ilike("crew_code", normalizedCode)
     .maybeSingle();
-  const crewName = crew?.name || "크루";
+  const crewName = crew?.name || "소속";
 
   return {
     title: {

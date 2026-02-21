@@ -88,7 +88,7 @@ export default function CrewDetailScreen({ crewCode }: CrewDetailScreenProps) {
   }
 
   if (!crew) {
-    return <div className="p-6 text-center text-gray-400">크루 정보가 없습니다.</div>;
+    return <div className="p-6 text-center text-gray-400">소속 정보가 없습니다.</div>;
   }
 
   const infoRows: Array<{ label: string; value: string }> = [
