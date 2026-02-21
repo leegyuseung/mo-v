@@ -26,7 +26,7 @@ export async function generateMetadata({
 
   return {
     title: {
-      absolute: SITE_TITLE,
+      absolute: `${SITE_TITLE} | ${groupName}`,
     },
     description: `${groupName}의 정보를 한눈에 확인하세요.`,
     alternates: {
