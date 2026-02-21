@@ -20,10 +20,12 @@ export default function CrewsScreen() {
   const { mutate: createCrew, isPending: isCreating } = useCreateCrew();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [memberEtcInput, setMemberEtcInput] = useState("");
   const [form, setForm] = useState<CrewUpsertInput>({
     crew_code: "",
     name: "",
     leader: null,
+    member_etc: null,
     fandom_name: null,
     debut_at: null,
     fancafe_url: null,
@@ -42,7 +44,6 @@ export default function CrewsScreen() {
       setForm((prev) => ({ ...prev, bg_color: rawValue ? "true" : null }));
       return;
     }
-
     const valueString = typeof rawValue === "string" ? rawValue : "";
     const nullableKeys: Array<keyof CrewUpsertInput> = [
       "leader",
@@ -67,6 +68,7 @@ export default function CrewsScreen() {
       crew_code: "",
       name: "",
       leader: null,
+      member_etc: null,
       fandom_name: null,
       debut_at: null,
       fancafe_url: null,
@@ -76,6 +78,7 @@ export default function CrewsScreen() {
       image_url: null,
       bg_color: null,
     });
+    setMemberEtcInput("");
   };
 
   const handleCreate = () => {
@@ -87,6 +90,13 @@ export default function CrewsScreen() {
     createCrew(
       {
         ...form,
+        member_etc: (() => {
+          const parsed = memberEtcInput
+            .split(",")
+            .map((value) => value.trim())
+            .filter(Boolean);
+          return parsed.length > 0 ? parsed : null;
+        })(),
         crew_code: form.crew_code.trim(),
         name: form.name.trim(),
       },
@@ -175,7 +185,9 @@ export default function CrewsScreen() {
         <div className="mb-4 rounded-2xl border border-gray-100 bg-white p-4">
           <CrewFormFields
             form={form}
+            memberEtcValue={memberEtcInput}
             onChange={setField}
+            onChangeMemberEtc={setMemberEtcInput}
             onUploadImage={handleUploadImage}
             isUploadingImage={isUploadingImage}
           />

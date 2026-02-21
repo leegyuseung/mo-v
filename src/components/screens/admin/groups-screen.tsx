@@ -20,10 +20,12 @@ export default function GroupsScreen() {
   const { mutate: createGroup, isPending: isCreating } = useCreateIdolGroup();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [memberEtcInput, setMemberEtcInput] = useState("");
   const [form, setForm] = useState<IdolGroupUpsertInput>({
     group_code: "",
     name: "",
     leader: null,
+    member_etc: null,
     fandom_name: null,
     agency: null,
     formed_at: null,
@@ -42,7 +44,6 @@ export default function GroupsScreen() {
       setForm((prev) => ({ ...prev, bg_color: rawValue ? "true" : null }));
       return;
     }
-
     const valueString = typeof rawValue === "string" ? rawValue : "";
     const nullableKeys: Array<keyof IdolGroupUpsertInput> = [
       "leader",
@@ -67,6 +68,7 @@ export default function GroupsScreen() {
       group_code: "",
       name: "",
       leader: null,
+      member_etc: null,
       fandom_name: null,
       agency: null,
       formed_at: null,
@@ -76,6 +78,7 @@ export default function GroupsScreen() {
       image_url: null,
       bg_color: null,
     });
+    setMemberEtcInput("");
   };
 
   const handleCreate = () => {
@@ -87,6 +90,13 @@ export default function GroupsScreen() {
     createGroup(
       {
         ...form,
+        member_etc: (() => {
+          const parsed = memberEtcInput
+            .split(",")
+            .map((value) => value.trim())
+            .filter(Boolean);
+          return parsed.length > 0 ? parsed : null;
+        })(),
         group_code: form.group_code.trim(),
         name: form.name.trim(),
       },
@@ -178,7 +188,9 @@ export default function GroupsScreen() {
         <div className="mb-4 rounded-2xl border border-gray-100 bg-white p-4">
           <GroupFormFields
             form={form}
+            memberEtcValue={memberEtcInput}
             onChange={setField}
+            onChangeMemberEtc={setMemberEtcInput}
             onUploadImage={handleUploadImage}
             isUploadingImage={isUploadingImage}
           />

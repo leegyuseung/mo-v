@@ -3,43 +3,33 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { UserRound } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  fetchStreamerHeartLeaderboard,
-} from "@/api/heart";
 import type { StreamerHeartLeaderboardItem } from "@/types/heart";
 import { useLiveStreamers } from "@/hooks/queries/live/use-live-streamers";
 import { useAuthStore } from "@/store/useAuthStore";
-import { fetchStarredStreamerIds } from "@/api/star";
+import { useHeartLeaderboard } from "@/hooks/queries/heart/use-heart-leaderboard";
+import { useStarredStreamerIds } from "@/hooks/queries/star/use-starred-streamer-ids";
 
+// 반복되는 화면 배열 처리를 위한 상수 함수
+const generateArray = (length: number) => Array.from({ length });
 export default function HomeScreen() {
   const { user } = useAuthStore();
   const { data: liveData, isLoading: isLiveLoading } = useLiveStreamers();
   const {
     data: allRank = [],
     isLoading: isAllRankLoading,
-  } = useQuery({
-    queryKey: ["home-heart-rank", "all"],
-    queryFn: () => fetchStreamerHeartLeaderboard("all", 5),
-  });
+  } = useHeartLeaderboard("all", 5);
   const {
     data: monthlyRank = [],
     isLoading: isMonthlyRankLoading,
     isError: isMonthlyRankError,
-  } = useQuery({
-    queryKey: ["home-heart-rank", "monthly"],
-    queryFn: () => fetchStreamerHeartLeaderboard("monthly", 5),
-  });
+  } = useHeartLeaderboard("monthly", 5);
   const {
     data: weeklyRank = [],
     isLoading: isWeeklyRankLoading,
     isError: isWeeklyRankError,
-  } = useQuery({
-    queryKey: ["home-heart-rank", "weekly"],
-    queryFn: () => fetchStreamerHeartLeaderboard("weekly", 5),
-  });
+  } = useHeartLeaderboard("weekly", 5);
 
   const rankCards: Array<{
     key: string;
@@ -80,11 +70,7 @@ export default function HomeScreen() {
     }
     return shuffled.slice(0, 4);
   }, [liveData]);
-  const { data: starredStreamerIds = [] } = useQuery({
-    queryKey: ["home-starred-streamers", user?.id],
-    queryFn: () => fetchStarredStreamerIds(user!.id),
-    enabled: Boolean(user?.id),
-  });
+  const { data: starredStreamerIds = [] } = useStarredStreamerIds(user?.id);
   const liveFavoriteStreamers = useMemo(() => {
     const idSet = new Set(starredStreamerIds);
     return (liveData || []).filter((item) => item.isLive && idSet.has(item.id));
@@ -114,7 +100,7 @@ export default function HomeScreen() {
 
               {card.isLoading ? (
                 <div className="space-y-3">
-                  {[0, 1, 2, 3, 4].map((slotIndex) => (
+                  {generateArray(5).map((_, slotIndex) => (
                     <div
                       key={`home-heart-skeleton-${card.key}-${slotIndex}`}
                       className="flex items-center gap-3"
@@ -133,7 +119,7 @@ export default function HomeScreen() {
                 </div>
               ) : (
                 <div className="space-y-2.5">
-                  {[0, 1, 2, 3, 4].map((index) => {
+                  {generateArray(5).map((_, index) => {
                     const item = getRankRows(card.data)[index];
                     if (!item) {
                       return (
@@ -198,14 +184,14 @@ export default function HomeScreen() {
       <section className="p-4 md:p-6">
         {isLiveLoading ? (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {[0, 1].map((cardIndex) => (
+            {generateArray(2).map((_, cardIndex) => (
               <div
                 key={`home-live-skeleton-card-${cardIndex}`}
                 className="rounded-2xl border border-gray-100 bg-white p-4"
               >
                 <Skeleton className="mb-4 h-5 w-16 rounded-full" />
                 <div className="grid grid-cols-4 gap-2 md:gap-3">
-                  {[0, 1, 2, 3].map((slotIndex) => (
+                  {generateArray(4).map((_, slotIndex) => (
                     <div
                       key={`home-live-skeleton-slot-${cardIndex}-${slotIndex}`}
                       className="rounded-xl p-2 text-center"
@@ -238,7 +224,7 @@ export default function HomeScreen() {
                 </div>
               ) : (
                 <div className="grid grid-cols-4 gap-2 md:gap-3">
-                  {[0, 1, 2, 3].map((index) => {
+                  {generateArray(4).map((_, index) => {
                     const streamer = topLiveStreamers[index];
                     if (!streamer) {
                       return (
@@ -325,7 +311,7 @@ export default function HomeScreen() {
                 </div>
               ) : (
                 <div className="grid grid-cols-4 gap-2 md:gap-3">
-                  {[0, 1, 2, 3].map((index) => {
+                  {generateArray(4).map((_, index) => {
                     const streamer = liveFavoriteStreamers[index];
                     if (!streamer) {
                       return (

@@ -26,6 +26,7 @@ export type Database = {
           id: number
           image_url: string | null
           leader: string | null
+          member_etc: string[] | null
           members: string[]
           name: string
           soop_url: string | null
@@ -43,6 +44,7 @@ export type Database = {
           id?: number
           image_url?: string | null
           leader?: string | null
+          member_etc?: string[] | null
           members?: string[]
           name: string
           soop_url?: string | null
@@ -60,6 +62,7 @@ export type Database = {
           id?: number
           image_url?: string | null
           leader?: string | null
+          member_etc?: string[] | null
           members?: string[]
           name?: string
           soop_url?: string | null
@@ -132,6 +135,7 @@ export type Database = {
           id: number
           image_url: string | null
           leader: string | null
+          member_etc: string[] | null
           members: string[]
           name: string
           updated_at: string | null
@@ -149,6 +153,7 @@ export type Database = {
           id?: number
           image_url?: string | null
           leader?: string | null
+          member_etc?: string[] | null
           members?: string[]
           name: string
           updated_at?: string | null
@@ -166,6 +171,7 @@ export type Database = {
           id?: number
           image_url?: string | null
           leader?: string | null
+          member_etc?: string[] | null
           members?: string[]
           name?: string
           updated_at?: string | null

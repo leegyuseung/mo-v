@@ -3,19 +3,23 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ExternalLink, Eye, UserRound } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink, Eye, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLiveStreamers } from "@/hooks/queries/live/use-live-streamers";
 import { useIdolGroupCodeNames } from "@/hooks/queries/groups/use-idol-group-code-names";
 import { useCrewCodeNames } from "@/hooks/queries/crews/use-crew-code-names";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { StreamerPlatform } from "@/types/streamer";
 import { STREAMER_PLATFORM_OPTIONS } from "@/lib/constant";
 import { getPlatformActiveClass, getPlatformInactiveClass } from "@/utils/platform";
 import StreamerGroupCrewBadges from "@/components/common/streamer-group-crew-badges";
 
 export default function LiveScreen() {
+  const isMobile = useIsMobile();
+  const pageSize = isMobile ? 14 : 15;
+  const [page, setPage] = useState(1);
   const [platform, setPlatform] = useState<StreamerPlatform>("all");
   const [keyword, setKeyword] = useState("");
   const [sortOrder, setSortOrder] = useState<
@@ -51,6 +55,19 @@ export default function LiveScreen() {
         return sortOrder === "name_asc" ? diff : -diff;
       });
   }, [data, keyword, platform, sortOrder]);
+  const totalCount = filteredLiveStreamers.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize;
+  const pagedLiveStreamers = filteredLiveStreamers.slice(from, to);
+  const pageNumbers = useMemo(() => {
+    const size = 5;
+    const half = Math.floor(size / 2);
+    const start = Math.max(1, page - half);
+    const end = Math.min(totalPages, start + size - 1);
+    const adjustedStart = Math.max(1, end - size + 1);
+    return Array.from({ length: end - adjustedStart + 1 }, (_, i) => adjustedStart + i);
+  }, [page, totalPages]);
 
   const isNameSort = sortOrder === "name_asc" || sortOrder === "name_desc";
   const isViewerSort = sortOrder === "viewer_desc" || sortOrder === "viewer_asc";
@@ -82,7 +99,10 @@ export default function LiveScreen() {
                 type="button"
                 size="sm"
                 variant="outline"
-                onClick={() => setPlatform(item.value)}
+                onClick={() => {
+                  setPlatform(item.value);
+                  setPage(1);
+                }}
                 className={`cursor-pointer ${platform === item.value
                   ? getPlatformActiveClass(item.value)
                   : getPlatformInactiveClass(item.value)
@@ -96,7 +116,10 @@ export default function LiveScreen() {
           <div className="flex w-full gap-2 md:w-auto">
             <Input
               value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
+              onChange={(e) => {
+                setKeyword(e.target.value);
+                setPage(1);
+              }}
               placeholder="버츄얼 명을 입력해 주세요"
               className="h-9 border-gray-200 bg-white md:w-80"
             />
@@ -110,13 +133,16 @@ export default function LiveScreen() {
             size="sm"
             variant="default"
             onClick={() =>
-              setSortOrder((prev) =>
-                prev === "name_asc"
-                  ? "name_desc"
-                  : prev === "name_desc"
-                    ? "name_asc"
-                    : "name_asc"
-              )
+              setSortOrder((prev) => {
+                const next =
+                  prev === "name_asc"
+                    ? "name_desc"
+                    : prev === "name_desc"
+                      ? "name_asc"
+                      : "name_asc";
+                setPage(1);
+                return next;
+              })
             }
             className={`cursor-pointer ${isNameSort
               ? "bg-gray-800 hover:bg-gray-900 text-white"
@@ -130,13 +156,16 @@ export default function LiveScreen() {
             size="sm"
             variant="default"
             onClick={() =>
-              setSortOrder((prev) =>
-                prev === "viewer_desc"
-                  ? "viewer_asc"
-                  : prev === "viewer_asc"
-                    ? "viewer_desc"
-                    : "viewer_desc"
-              )
+              setSortOrder((prev) => {
+                const next =
+                  prev === "viewer_desc"
+                    ? "viewer_asc"
+                    : prev === "viewer_asc"
+                      ? "viewer_desc"
+                      : "viewer_desc";
+                setPage(1);
+                return next;
+              })
             }
             className={`cursor-pointer ${isViewerSort
               ? "bg-gray-800 hover:bg-gray-900 text-white"
@@ -151,12 +180,12 @@ export default function LiveScreen() {
       <div className="mb-4 text-sm text-gray-500">
         {isLoading
           ? "현재 라이브 데이터를 불러오는 중"
-          : `현재 라이브 중 ${filteredLiveStreamers.length.toLocaleString()}명`}
+          : `현재 라이브 중 ${totalCount.toLocaleString()}명`}
       </div>
 
       {isLoading ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {[...Array(10)].map((_, index) => (
+          {[...Array(pageSize)].map((_, index) => (
             <div
               key={`live-skeleton-${index}`}
               className="rounded-xl border border-gray-100 bg-white p-2.5 shadow-sm"
@@ -168,13 +197,13 @@ export default function LiveScreen() {
             </div>
           ))}
         </div>
-      ) : filteredLiveStreamers.length === 0 ? (
+      ) : totalCount === 0 ? (
         <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 text-center text-gray-400">
           현재 라이브중인 버츄얼이 없습니다.
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {filteredLiveStreamers.map((streamer, index) => {
+          {pagedLiveStreamers.map((streamer, index) => {
             const liveThumbSrc = streamer.liveThumbnailImageUrl || "";
             const fallbackSrc = streamer.image_url || "";
             const hasLiveThumb = Boolean(liveThumbSrc);
@@ -273,6 +302,45 @@ export default function LiveScreen() {
               </Link>
             );
           })}
+        </div>
+      )}
+
+      {!isLoading && totalPages > 1 && (
+        <div className="mt-8 flex items-center justify-center gap-1.5">
+          <Button
+            type="button"
+            size="icon-sm"
+            variant="outline"
+            disabled={page <= 1}
+            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+            className="cursor-pointer"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+
+          {pageNumbers.map((num) => (
+            <Button
+              key={num}
+              type="button"
+              size="sm"
+              variant={num === page ? "default" : "outline"}
+              onClick={() => setPage(num)}
+              className={`cursor-pointer ${num === page ? "bg-gray-800 hover:bg-gray-900 text-white" : ""}`}
+            >
+              {num}
+            </Button>
+          ))}
+
+          <Button
+            type="button"
+            size="icon-sm"
+            variant="outline"
+            disabled={page >= totalPages}
+            onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+            className="cursor-pointer"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
         </div>
       )}
     </div>

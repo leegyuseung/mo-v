@@ -7,15 +7,19 @@ import type { CrewUpsertInput } from "@/types/crew";
 /** 크루 추가/수정 시 사용하는 폼 필드 컴포넌트 */
 export default function CrewFormFields({
     form,
+    memberEtcValue,
     onChange,
+    onChangeMemberEtc,
     onUploadImage,
     isUploadingImage,
 }: {
     form: CrewUpsertInput;
+    memberEtcValue: string;
     onChange: (
         key: keyof CrewUpsertInput,
         value: string | boolean | null
     ) => void;
+    onChangeMemberEtc: (value: string) => void;
     onUploadImage: (file: File | null) => void;
     isUploadingImage: boolean;
 }) {
@@ -43,6 +47,12 @@ export default function CrewFormFields({
                 value={form.fandom_name || ""}
                 onChange={(e) => onChange("fandom_name", e.target.value)}
                 placeholder="팬덤명"
+                className="h-9"
+            />
+            <Input
+                value={memberEtcValue}
+                onChange={(e) => onChangeMemberEtc(e.target.value)}
+                placeholder="기타 멤버 (쉼표로 구분)"
                 className="h-9"
             />
             <Input

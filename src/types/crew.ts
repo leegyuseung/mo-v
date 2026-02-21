@@ -8,6 +8,7 @@ export type CrewUpsertInput = {
   crew_code: string;
   name: string;
   leader: string | null;
+  member_etc?: string[] | null;
   fandom_name: string | null;
   debut_at: string | null;
   fancafe_url: string | null;
@@ -45,6 +46,7 @@ export type CrewDetail = {
   name: string;
   members: string[];
   leader: string | null;
+  member_etc: string[] | null;
   fandom_name: string | null;
   debut_at: string | null;
   fancafe_url: string | null;
@@ -98,6 +100,7 @@ export type CrewDetailRow = {
   name: string;
   members: string[];
   leader: string | null;
+  member_etc: string[] | null;
   fandom_name: string | null;
   debut_at: string | null;
   fancafe_url: string | null;

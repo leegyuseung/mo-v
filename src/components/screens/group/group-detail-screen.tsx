@@ -130,6 +130,7 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
 
   const infoRows: Array<{ label: string; value: string }> = [
     { label: "리더", value: group.leader || "-" },
+    { label: "기타 멤버", value: group.member_etc?.join(", ") || "-" },
     { label: "팬덤명", value: group.fandom_name || "-" },
     { label: "소속", value: group.agency || "-" },
     { label: "결성일", value: group.formed_at || "-" },

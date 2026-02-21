@@ -127,7 +127,7 @@ export default function AppHeader() {
             <CalendarDays className="w-4 h-4" />
           </button>
           <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-            출석이벤트
+            출석이벤트 (준비중)
           </span>
         </div>
         <div className="group relative">
@@ -188,9 +188,8 @@ export default function AppHeader() {
                   type="button"
                   onClick={openGiftBox}
                   disabled={isGiftOpening}
-                  className={`relative inline-flex h-28 w-28 items-center justify-center rounded-2xl border-2 border-red-200 bg-white text-red-500 transition ${
-                    isGiftOpening ? "scale-110 animate-pulse" : "hover:scale-105"
-                  }`}
+                  className={`relative inline-flex h-28 w-28 items-center justify-center rounded-2xl border-2 border-red-200 bg-white text-red-500 transition ${isGiftOpening ? "scale-110 animate-pulse" : "hover:scale-105"
+                    }`}
                 >
                   <Gift className="h-11 w-11" />
                 </button>

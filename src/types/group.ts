@@ -42,6 +42,7 @@ export type IdolGroupUpsertInput = {
   group_code: string;
   name: string;
   leader: string | null;
+  member_etc?: string[] | null;
   fandom_name: string | null;
   agency: string | null;
   formed_at: string | null;

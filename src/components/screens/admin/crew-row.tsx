@@ -22,10 +22,14 @@ export default function CrewRow({
     const [isEditing, setIsEditing] = useState(false);
     const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
+    const [memberEtcInput, setMemberEtcInput] = useState(
+        crew.member_etc?.join(", ") || ""
+    );
     const [form, setForm] = useState<CrewUpsertInput>({
         crew_code: crew.crew_code,
         name: crew.name,
         leader: crew.leader,
+        member_etc: crew.member_etc,
         fandom_name: crew.fandom_name,
         debut_at: crew.debut_at,
         fancafe_url: crew.fancafe_url,
@@ -47,7 +51,6 @@ export default function CrewRow({
             setForm((prev) => ({ ...prev, bg_color: rawValue ? "true" : null }));
             return;
         }
-
         const valueString = typeof rawValue === "string" ? rawValue : "";
         const nullableKeys: Array<keyof CrewUpsertInput> = [
             "leader",
@@ -78,6 +81,13 @@ export default function CrewRow({
                 crewId: crew.id,
                 payload: {
                     ...form,
+                    member_etc: (() => {
+                        const parsed = memberEtcInput
+                            .split(",")
+                            .map((value) => value.trim())
+                            .filter(Boolean);
+                        return parsed.length > 0 ? parsed : null;
+                    })(),
                     crew_code: form.crew_code.trim(),
                     name: form.name.trim(),
                 },
@@ -187,7 +197,9 @@ export default function CrewRow({
                     <td colSpan={7} className="px-4 py-3">
                         <CrewFormFields
                             form={form}
+                            memberEtcValue={memberEtcInput}
                             onChange={setField}
+                            onChangeMemberEtc={setMemberEtcInput}
                             onUploadImage={handleUploadImage}
                             isUploadingImage={isUploadingImage}
                         />

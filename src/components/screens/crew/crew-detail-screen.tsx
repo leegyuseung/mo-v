@@ -136,6 +136,7 @@ export default function CrewDetailScreen({ crewCode }: CrewDetailScreenProps) {
 
   const infoRows: Array<{ label: string; value: string }> = [
     { label: "리더", value: crew.leader || "-" },
+    { label: "기타 멤버", value: crew.member_etc?.join(", ") || "-" },
     { label: "팬덤명", value: crew.fandom_name || "-" },
     { label: "데뷔일", value: crew.debut_at || "-" },
   ];

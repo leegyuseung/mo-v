@@ -22,10 +22,14 @@ export default function GroupRow({
     const [isEditing, setIsEditing] = useState(false);
     const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
+    const [memberEtcInput, setMemberEtcInput] = useState(
+        group.member_etc?.join(", ") || ""
+    );
     const [form, setForm] = useState<IdolGroupUpsertInput>({
         group_code: group.group_code,
         name: group.name,
         leader: group.leader,
+        member_etc: group.member_etc,
         fandom_name: group.fandom_name,
         agency: group.agency,
         formed_at: group.formed_at,
@@ -47,7 +51,6 @@ export default function GroupRow({
             setForm((prev) => ({ ...prev, bg_color: rawValue ? "true" : null }));
             return;
         }
-
         const valueString = typeof rawValue === "string" ? rawValue : "";
         const nullableKeys: Array<keyof IdolGroupUpsertInput> = [
             "leader",
@@ -78,6 +81,13 @@ export default function GroupRow({
                 groupId: group.id,
                 payload: {
                     ...form,
+                    member_etc: (() => {
+                        const parsed = memberEtcInput
+                            .split(",")
+                            .map((value) => value.trim())
+                            .filter(Boolean);
+                        return parsed.length > 0 ? parsed : null;
+                    })(),
                     group_code: form.group_code.trim(),
                     name: form.name.trim(),
                 },
@@ -187,7 +197,9 @@ export default function GroupRow({
                     <td colSpan={7} className="px-4 py-3">
                         <GroupFormFields
                             form={form}
+                            memberEtcValue={memberEtcInput}
                             onChange={setField}
+                            onChangeMemberEtc={setMemberEtcInput}
                             onUploadImage={handleUploadImage}
                             isUploadingImage={isUploadingImage}
                         />
