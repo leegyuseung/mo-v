@@ -33,3 +33,9 @@ export type AuthActions = {
   clearSession: () => void;
   initializeSession: () => Promise<void>;
 };
+
+export type DeleteAccountInput = {
+  provider: string | null | undefined;
+  email?: string;
+  password?: string;
+};

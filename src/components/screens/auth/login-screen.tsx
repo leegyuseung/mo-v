@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSignInWithPassword } from "@/hooks/mutations/auth/use-sign-in-with-password";
@@ -47,12 +48,8 @@ export default function LoginScreen() {
     }, [saveEmail, savedEmail]);
 
     const { mutate: signIn, isPending } = useSignInWithPassword({
-        onError: (error) => {
-            const message =
-                error.message === "Invalid login credentials"
-                    ? "로그인 정보가 없습니다."
-                    : `로그인 실패: ${error.message}`;
-            toast.error(message);
+        onError: () => {
+            toast.error("로그인에 실패했습니다.");
         },
     });
 
@@ -100,13 +97,16 @@ export default function LoginScreen() {
             <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-8 px-4 md:px-0">
                 <div className="flex flex-col items-center justify-center gap-4">
                     <div className="flex flex-col items-center justify-center">
-                        <Image
-                            src={"/logo.png"}
-                            alt="logo"
-                            height={85}
-                            width={150}
-                            priority
-                        />
+                        <Link href="/">
+                            <Image
+                                src={"/logo.png"}
+                                alt="logo"
+                                height={85}
+                                width={150}
+                                priority
+                                className="cursor-pointer"
+                            />
+                        </Link>
                         <span className="text-lg text-muted-foreground">
                             로그인을 하면 더 많은 서비스를 즐길 수 있습니다.
                         </span>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { changePassword } from "@/api/auth";
+import { changePassword, deleteMyAccount } from "@/api/auth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -26,11 +26,13 @@ import {
     Lock,
     Eye,
     EyeOff,
+    UserRoundX,
 } from "lucide-react";
 import { toast } from "sonner";
+import ConfirmAlert from "@/components/common/confirm-alert";
 
 export default function ProfileScreen() {
-    const { user, profile, heartPoints, isLoading } = useAuthStore();
+    const { user, profile, heartPoints, isLoading, clearSession } = useAuthStore();
     const { mutate: updateProfile, isPending } = useUpdateProfile();
 
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,6 +47,12 @@ export default function ProfileScreen() {
     const [showNewPw, setShowNewPw] = useState(false);
     const [showConfirmPw, setShowConfirmPw] = useState(false);
     const [isPwChanging, setIsPwChanging] = useState(false);
+    const [isWithdrawAlertOpen, setIsWithdrawAlertOpen] = useState(false);
+    const [isWithdrawConfirmOpen, setIsWithdrawConfirmOpen] = useState(false);
+    const [withdrawPassword, setWithdrawPassword] = useState("");
+    const [withdrawPasswordConfirm, setWithdrawPasswordConfirm] = useState("");
+    const [withdrawConfirmText, setWithdrawConfirmText] = useState("");
+    const [isWithdrawing, setIsWithdrawing] = useState(false);
 
     const handleChangePassword = async () => {
         if (!currentPw) {
@@ -80,6 +88,63 @@ export default function ProfileScreen() {
             toast.error(message);
         } finally {
             setIsPwChanging(false);
+        }
+    };
+
+    const WITHDRAW_CONFIRM_PHRASE = "탈퇴하겠습니다";
+    const isEmailProvider = user?.app_metadata?.provider === "email";
+
+    const resetWithdrawForm = () => {
+        setWithdrawPassword("");
+        setWithdrawPasswordConfirm("");
+        setWithdrawConfirmText("");
+    };
+
+    const closeWithdrawConfirmModal = () => {
+        setIsWithdrawConfirmOpen(false);
+        resetWithdrawForm();
+    };
+
+    const handleWithdrawAccount = async () => {
+        if (!user) {
+            toast.error("사용자 정보를 확인할 수 없습니다.");
+            return;
+        }
+        if (isEmailProvider) {
+            if (!profile?.email) {
+                toast.error("이메일 정보를 확인할 수 없습니다.");
+                return;
+            }
+            if (!withdrawPassword || !withdrawPasswordConfirm) {
+                toast.error("비밀번호를 입력해주세요.");
+                return;
+            }
+            if (withdrawPassword !== withdrawPasswordConfirm) {
+                toast.error("비밀번호 확인이 일치하지 않습니다.");
+                return;
+            }
+        }
+        if (withdrawConfirmText.trim() !== WITHDRAW_CONFIRM_PHRASE) {
+            toast.error(`확인 문구를 정확히 입력해주세요: ${WITHDRAW_CONFIRM_PHRASE}`);
+            return;
+        }
+
+        setIsWithdrawing(true);
+        try {
+            await deleteMyAccount({
+                provider: user.app_metadata?.provider,
+                email: profile?.email || undefined,
+                password: isEmailProvider ? withdrawPassword : undefined,
+            });
+            await clearSession();
+            toast.success("회원탈퇴가 완료되었습니다.");
+            window.location.replace("/login");
+        } catch (error) {
+            const message =
+                error instanceof Error ? error.message : "회원탈퇴 처리에 실패했습니다.";
+            toast.error(message);
+        } finally {
+            setIsWithdrawing(false);
         }
     };
 
@@ -496,7 +561,7 @@ export default function ProfileScreen() {
 
                 <Separator />
 
-                {/* 수정하기 버튼 */}
+                {/* 수정하기 / 회원탈퇴 버튼 */}
                 <div className="flex flex-col items-end gap-3">
                     {isFirstEdit && (
                         <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl">
@@ -506,25 +571,126 @@ export default function ProfileScreen() {
                             </span>
                         </div>
                     )}
-                    <Button
-                        type="submit"
-                        disabled={!hasChanges || isPending}
-                        className="px-8 h-11 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                    >
-                        {isPending ? (
-                            <div className="flex items-center gap-2">
-                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                수정 중...
-                            </div>
-                        ) : (
-                            <div className="flex items-center gap-2">
-                                <Save className="w-4 h-4" />
-                                수정하기
-                            </div>
-                        )}
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            type="button"
+                            onClick={() => setIsWithdrawAlertOpen(true)}
+                            className="px-8 h-11 rounded-xl font-semibold cursor-pointer bg-red-600 text-white hover:bg-red-700"
+                        >
+                            <UserRoundX className="w-4 h-4 mr-1.5" />
+                            회원탈퇴하기
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={!hasChanges || isPending}
+                            className="px-8 h-11 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                        >
+                            {isPending ? (
+                                <div className="flex items-center gap-2">
+                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    수정 중...
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-2">
+                                    <Save className="w-4 h-4" />
+                                    수정하기
+                                </div>
+                            )}
+                        </Button>
+                    </div>
                 </div>
             </form>
+
+            <ConfirmAlert
+                open={isWithdrawAlertOpen}
+                title="회원탈퇴 안내"
+                description="회원탈퇴 시 하트포인트가 사라지며, 하트 사용/선물 내역·즐겨찾기·정보수정요청 같은 관련 기록이 삭제되거나 복구가 어려울 수 있습니다. 계속 진행하시겠습니까?"
+                confirmText="확인"
+                cancelText="취소"
+                confirmVariant="danger"
+                onCancel={() => setIsWithdrawAlertOpen(false)}
+                onConfirm={() => {
+                    setIsWithdrawAlertOpen(false);
+                    setIsWithdrawConfirmOpen(true);
+                }}
+            />
+
+            {isWithdrawConfirmOpen ? (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+                    <div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-5 shadow-xl">
+                        <h3 className="text-base font-semibold text-gray-900">회원탈퇴 확인</h3>
+                        <p className="mt-2 text-sm text-gray-500">
+                            비밀번호를 한 번 더 입력하고 확인 문구를 입력해야 탈퇴가 진행됩니다.
+                        </p>
+
+                        <div className="mt-4 space-y-3">
+                            {isEmailProvider ? (
+                                <>
+                                    <div className="space-y-1">
+                                        <Label className="text-xs text-gray-500">비밀번호</Label>
+                                        <Input
+                                            type="password"
+                                            value={withdrawPassword}
+                                            onChange={(e) => setWithdrawPassword(e.target.value)}
+                                            placeholder="비밀번호 입력"
+                                            className="h-10"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-xs text-gray-500">비밀번호 확인</Label>
+                                        <Input
+                                            type="password"
+                                            value={withdrawPasswordConfirm}
+                                            onChange={(e) => setWithdrawPasswordConfirm(e.target.value)}
+                                            placeholder="비밀번호 확인 입력"
+                                            className="h-10"
+                                        />
+                                    </div>
+                                </>
+                            ) : (
+                                <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                                    소셜 로그인 계정은 비밀번호 확인 없이 탈퇴가 진행됩니다.
+                                </p>
+                            )}
+                            <div className="space-y-1">
+                                <Label className="text-xs text-gray-500">
+                                    확인 문구 입력: {WITHDRAW_CONFIRM_PHRASE}
+                                </Label>
+                                <Input
+                                    value={withdrawConfirmText}
+                                    onChange={(e) => setWithdrawConfirmText(e.target.value)}
+                                    placeholder={WITHDRAW_CONFIRM_PHRASE}
+                                    className="h-10"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="mt-5 flex justify-end gap-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={closeWithdrawConfirmModal}
+                                disabled={isWithdrawing}
+                                className="cursor-pointer"
+                            >
+                                취소
+                            </Button>
+                            <Button
+                                type="button"
+                                onClick={handleWithdrawAccount}
+                                disabled={
+                                    isWithdrawing ||
+                                    (isEmailProvider && (!withdrawPassword || !withdrawPasswordConfirm)) ||
+                                    withdrawConfirmText.trim() !== WITHDRAW_CONFIRM_PHRASE
+                                }
+                                className="cursor-pointer bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+                            >
+                                {isWithdrawing ? "탈퇴 처리중..." : "확인"}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            ) : null}
         </div>
     );
 }

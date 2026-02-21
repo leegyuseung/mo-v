@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { resetPassword } from "@/api/auth";
@@ -38,7 +39,16 @@ export default function FindPasswordScreen() {
         <div className="flex flex-col justify-center w-full max-w-md px-4 md:px-0 gap-6">
             {!isSent && (
                 <div className="flex flex-col items-center gap-2">
-                    <Image src="/logo.png" alt="logo" height={85} width={150} priority />
+                    <Link href="/">
+                        <Image
+                            src="/logo.png"
+                            alt="logo"
+                            height={85}
+                            width={150}
+                            priority
+                            className="cursor-pointer"
+                        />
+                    </Link>
                     <h1 className="text-lg font-bold text-gray-900">비밀번호 찾기</h1>
                     <p className="text-sm text-muted-foreground text-center">
                         가입한 이메일 주소를 입력하시면

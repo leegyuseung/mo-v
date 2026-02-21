@@ -28,11 +28,6 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
         set({ user: null, profile: null, heartPoints: null }),
 
     initializeSession: async () => {
-        // 이미 초기화되었으면 스킵
-        if (get().isInitialized) {
-            return;
-        }
-
         set({ isLoading: true });
 
         try {

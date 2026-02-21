@@ -17,6 +17,18 @@ export default function RootProvider({
     initializeSession();
   }, [initializeSession]);
 
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      // BFCache(뒤로가기 캐시) 복귀 시 세션을 다시 확인한다.
+      if (event.persisted) {
+        initializeSession();
+      }
+    };
+
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
+  }, [initializeSession]);
+
   return (
     <QueryClientProvider client={queryClient}>
       {children}
@@ -24,4 +36,3 @@ export default function RootProvider({
     </QueryClientProvider>
   );
 }
-

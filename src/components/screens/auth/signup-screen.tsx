@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
+import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SignUpFormValues, signUpSchema } from "@/utils/schema";
@@ -114,13 +115,16 @@ export default function SignupScreen() {
         <div className="flex flex-col justify-center w-full max-w-md px-4 md:px-0 gap-8 mb-14">
             <div className="flex flex-col items-center justify-center gap-4">
                 <div className="flex flex-col items-center justify-center">
-                    <Image
-                        src={"/logo.png"}
-                        alt="logo"
-                        height={85}
-                        width={150}
-                        priority
-                    />
+                    <Link href="/">
+                        <Image
+                            src={"/logo.png"}
+                            alt="logo"
+                            height={85}
+                            width={150}
+                            priority
+                            className="cursor-pointer"
+                        />
+                    </Link>
                 </div>
                 <form
                     onSubmit={handleSubmit(onSubmit)}
