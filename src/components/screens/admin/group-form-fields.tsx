@@ -95,7 +95,7 @@ export default function GroupFormFields({
                 <div>
                     <p className="text-sm font-medium text-gray-700">대표 이미지 배경색</p>
                     <p className="text-xs text-gray-500">
-                        ON이면 그룹 이미지 배경을 와인색으로 표시합니다.
+                        ON이면 그룹 이미지 배경을 검정색으로 표시합니다.
                     </p>
                 </div>
                 <Button

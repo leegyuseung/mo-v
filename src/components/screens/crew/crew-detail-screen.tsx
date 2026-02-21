@@ -219,7 +219,7 @@ export default function CrewDetailScreen({ crewCode }: CrewDetailScreenProps) {
         <div className="flex flex-col gap-6 md:flex-row md:items-start">
           <div className="mx-auto md:mx-0 flex shrink-0 flex-col items-center gap-3">
             <div
-              className={`relative h-40 w-40 overflow-hidden rounded-full border ${crew.bg_color ? "border-rose-200 bg-rose-900/80" : "border-gray-200 bg-white"
+              className={`relative h-40 w-40 overflow-hidden rounded-full border ${crew.bg_color ? "border-black-200 bg-black/80" : "border-gray-200 bg-white"
                 }`}
             >
               {crew.image_url ? (
