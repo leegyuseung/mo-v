@@ -162,7 +162,7 @@ export default function GroupScreen() {
                     ) : null}
                     <div
                       className={`relative h-14 w-14 overflow-hidden rounded-full ${group.bg_color
-                        ? "bg-gradient-to-br from-rose-900 via-red-900 to-purple-900"
+                        ? "border-black-200 bg-black/80"
                         : "bg-white"
                         }`}
                     >

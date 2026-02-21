@@ -57,7 +57,7 @@ export default function GroupsScreen() {
     ];
 
     const value = nullableKeys.includes(key)
-      ? valueString.trim() || null
+      ? valueString || null
       : valueString;
 
     setForm((prev) => ({ ...prev, [key]: value }));

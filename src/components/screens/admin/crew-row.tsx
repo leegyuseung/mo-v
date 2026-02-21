@@ -64,7 +64,7 @@ export default function CrewRow({
         ];
 
         const value = nullableKeys.includes(key)
-            ? valueString.trim() || null
+            ? valueString || null
             : valueString;
 
         setForm((prev) => ({ ...prev, [key]: value }));
