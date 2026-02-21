@@ -131,12 +131,30 @@ export async function POST() {
     let afterPoint: number | null = null;
 
     if (!claimRow.credited_at) {
-      afterPoint = await creditGiftPoint(admin, user.id, claimRow.amount);
-      const { error: markError } = await (admin as any)
+      // 선점 시도: credited_at이 null일 때만 업데이트 수행
+      const { data: updated, error: markError } = await (admin as any)
         .from("daily_gift_box_claims")
         .update({ credited_at: new Date().toISOString() })
-        .eq("id", claimRow.id);
+        .eq("id", claimRow.id)
+        .is("credited_at", null)
+        .select("id")
+        .maybeSingle();
+
       if (markError) throw markError;
+
+      if (updated) {
+        // 선점 성공 (= 내가 최초 처리자) -> 포인트 지급!
+        afterPoint = await creditGiftPoint(admin, user.id, claimRow.amount);
+      } else {
+        // 선점 실패 (이미 다른 스레드가 먼저 업데이트 했거나 완료 됨) 
+        // -> 현재 포인트만 조회해서 반환
+        const { data: heartPointRow } = await (admin as any)
+          .from("heart_points")
+          .select("point")
+          .eq("id", user.id)
+          .maybeSingle();
+        afterPoint = heartPointRow?.point ?? 0;
+      }
     } else {
       const { data: heartPointRow } = await (admin as any)
         .from("heart_points")
