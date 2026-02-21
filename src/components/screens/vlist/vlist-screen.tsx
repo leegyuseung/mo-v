@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useStreamers } from "@/hooks/queries/streamers/use-streamers";
 import { useIdolGroupCodeNames } from "@/hooks/queries/groups/use-idol-group-code-names";
 import type {
@@ -180,8 +181,23 @@ export default function VlistScreen() {
       </div>
 
       {isLoading ? (
-        <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 flex items-center justify-center">
-          <Spinner />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {Array.from({ length: pageSize }).map((_, index) => (
+            <div
+              key={`vlist-skeleton-${index}`}
+              className="rounded-xl border border-gray-100 bg-white p-2.5 shadow-sm"
+            >
+              <Skeleton className="mb-2 h-28 w-full rounded-lg" />
+              <div className="mb-1 flex items-center justify-between gap-1">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-12 rounded-full" />
+              </div>
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                <Skeleton className="h-4 w-14 rounded-full" />
+                <Skeleton className="h-4 w-12 rounded-full" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : streamers.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 text-center text-gray-400">

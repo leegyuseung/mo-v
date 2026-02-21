@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Star, UsersRound, UserRound } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useCrewCards } from "@/hooks/queries/crews/use-crew-cards";
@@ -106,8 +107,26 @@ export default function CrewScreen() {
       </div>
 
       {isLoading ? (
-        <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 flex items-center justify-center">
-          <Spinner />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {Array.from({ length: 12 }).map((_, index) => (
+            <div
+              key={`crew-skeleton-${index}`}
+              className="h-[164px] rounded-xl border border-gray-100 bg-white p-3 shadow-sm"
+            >
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <Skeleton className="h-14 w-14 rounded-full" />
+                <div className="min-w-0 flex-1 space-y-1.5">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-3 w-16" />
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {Array.from({ length: 6 }).map((__, memberIndex) => (
+                  <Skeleton key={`crew-member-skeleton-${index}-${memberIndex}`} className="h-8 w-8 rounded-full" />
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       ) : crews.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 text-center text-gray-400">

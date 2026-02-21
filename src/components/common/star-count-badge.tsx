@@ -12,11 +12,11 @@ export default function StarCountBadge({
     isLoading: boolean;
 }) {
     return (
-        <div className="inline-flex items-center gap-2">
+        <div className="inline-flex items-center gap-1">
             <span className="inline-flex h-7 w-7 items-center justify-center rounded-full">
                 <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
             </span>
-            <span className="text-sm font-semibold text-gray-800">
+            <span className="text-xs font-semibold text-gray-800">
                 {isLoading ? "-" : count.toLocaleString()}
             </span>
         </div>

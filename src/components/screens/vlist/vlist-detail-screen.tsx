@@ -420,11 +420,11 @@ export default function VlistDetailScreen({
                 </a>
               ) : null}
             </div>
-            <div className="mt-1 inline-flex items-center gap-2">
+            <div className="mt-1 inline-flex items-center gap-1">
               <span className="inline-flex h-7 w-7 items-center justify-center rounded-full">
                 <Heart className="h-4 w-4 fill-red-500 text-red-500" />
               </span>
-              <span className="text-sm font-semibold text-gray-800">
+              <span className="text-xs font-semibold text-gray-800">
                 {isReceivedHeartTotalLoading
                   ? "-"
                   : receivedHeartTotal.toLocaleString()}

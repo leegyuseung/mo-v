@@ -155,12 +155,22 @@ export default function StarScreen() {
   const { data: liveData } = useLiveStreamers();
 
   if (!user) {
-    return <div className="p-6 text-center text-gray-500">로그인 후 이용해 주세요.</div>;
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
+        <p className="text-base font-medium text-gray-600">로그인 후 이용해 주세요.</p>
+        <Link
+          href="/login"
+          className="mt-2 text-xs text-gray-400 underline underline-offset-2 hover:text-gray-600"
+        >
+          로그인하러 가기
+        </Link>
+      </div>
+    );
   }
 
   if (isStarsLoading) {
     return (
-      <div className="flex items-center justify-center p-6">
+      <div className="flex min-h-[60vh] items-center justify-center">
         <Spinner />
       </div>
     );
