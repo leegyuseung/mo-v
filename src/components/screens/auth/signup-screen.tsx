@@ -5,18 +5,58 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SignUpFormValues, signUpSchema } from "@/utils/schema";
 import { useSignUp } from "@/hooks/mutations/auth/use-sign-up";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ChevronRight } from "lucide-react";
+import { TermsModal } from "./terms-modal";
+
+import termsMd from "@/app/(auth)/signup/agreements/terms.md";
+import privacyMd from "@/app/(auth)/signup/agreements/privacy.md";
+import thirdPartyMd from "@/app/(auth)/signup/agreements/third_party.md";
+import marketingMd from "@/app/(auth)/signup/agreements/marketing.md";
+
+const AGREEMENTS = [
+    { id: "terms", title: "서비스 이용약관 동의", required: true, content: termsMd },
+    { id: "privacy", title: "개인정보 수집 및 이용 동의", required: true, content: privacyMd },
+    { id: "thirdParty", title: "개인정보 처리 위탁 동의", required: false, content: thirdPartyMd },
+    { id: "marketing", title: "마케팅 정보 수신 동의", required: false, content: marketingMd },
+] as const;
+
+type AgreementId = (typeof AGREEMENTS)[number]["id"];
 
 export default function SignupScreen() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowCofirmPassword] = useState(false);
     const router = useRouter();
+
+    const [agreements, setAgreements] = useState<Record<AgreementId, boolean>>({
+        terms: false,
+        privacy: false,
+        thirdParty: false,
+        marketing: false,
+    });
+    const [modalContent, setModalContent] = useState<{ title: string; content: string } | null>(null);
+
+    const isAllChecked = Object.values(agreements).every(Boolean);
+    const isRequiredChecked = AGREEMENTS.filter(a => a.required).every(a => agreements[a.id]);
+
+    const handleAllCheck = (checked: boolean) => {
+        const nextState = Object.keys(agreements).reduce(
+            (acc, key) => ({ ...acc, [key]: checked }),
+            {} as Record<AgreementId, boolean>
+        );
+        setAgreements(nextState);
+    };
+
+    const handleSingleCheck = (id: AgreementId, checked: boolean) => {
+        setAgreements(prev => ({ ...prev, [id]: checked }));
+    };
 
     const { mutate: signupMutate, isPending: signupIsPending } = useSignUp({
         onSuccess: () => {
@@ -63,6 +103,10 @@ export default function SignupScreen() {
     });
 
     const onSubmit = async (data: SignUpFormValues) => {
+        if (!isRequiredChecked) {
+            toast.error("필수 약관에 동의해주세요.");
+            return;
+        }
         signupMutate(data);
     };
 
@@ -159,8 +203,48 @@ export default function SignupScreen() {
                             </div>
                         </div>
                     </div>
+
+                    {/* 약관 동의 영역 */}
+                    <div className="w-full flex flex-col gap-3 py-4 border-y border-gray-100">
+                        <div className="flex items-center space-x-2 pb-2">
+                            <Checkbox
+                                id="all-agree"
+                                checked={isAllChecked}
+                                onCheckedChange={handleAllCheck}
+                            />
+                            <Label htmlFor="all-agree" className="text-sm font-bold cursor-pointer">
+                                모두 확인, 동의합니다
+                            </Label>
+                        </div>
+                        {AGREEMENTS.map(({ id, title, required, content }) => (
+                            <div key={id} className="flex items-center justify-between group">
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id={id}
+                                        checked={agreements[id]}
+                                        onCheckedChange={(checked) => handleSingleCheck(id, checked as boolean)}
+                                    />
+                                    <Label htmlFor={id} className="text-sm text-gray-600 cursor-pointer flex items-center gap-1.5">
+                                        <span className={required ? "text-blue-600 font-medium" : "text-gray-400"}>
+                                            {required ? "(필수)" : "(선택)"}
+                                        </span>
+                                        {title}
+                                    </Label>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setModalContent({ title, content })}
+                                    className="p-1 text-gray-300 hover:text-gray-600 transition-colors cursor-pointer"
+                                    aria-label={`${title} 내용 보기`}
+                                >
+                                    <ChevronRight size={16} />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+
                     <Button
-                        disabled={signupIsPending}
+                        disabled={signupIsPending || !isRequiredChecked}
                         type="submit"
                         className="w-full h-12.5 cursor-pointer"
                     >
@@ -168,6 +252,13 @@ export default function SignupScreen() {
                     </Button>
                 </form>
             </div>
+
+            <TermsModal
+                isOpen={modalContent !== null}
+                onClose={() => setModalContent(null)}
+                title={modalContent?.title ?? ""}
+                content={modalContent?.content ?? ""}
+            />
         </div>
     );
 }
