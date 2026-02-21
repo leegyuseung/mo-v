@@ -17,7 +17,10 @@ export default function AdminAuthGuard({
     useEffect(() => {
         if (!isInitialized || isLoading) return;
 
-        if (!user || profile?.role !== "admin") {
+        const normalizedRole = (profile?.role || "").trim().toLowerCase();
+        const isAdmin = normalizedRole === "admin";
+
+        if (!user || !isAdmin) {
             router.replace("/login");
         } else {
             setChecked(true);

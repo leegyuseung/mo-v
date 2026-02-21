@@ -167,6 +167,21 @@ export async function createStreamerRegistrationRequest({
   platformStreamerId,
   platformStreamerUrl,
 }: CreateStreamerRequestInput) {
+  // 이미 등록된 버츄얼인지 먼저 확인한다.
+  const { data: existingStreamer, error: existingStreamerError } = await supabase
+    .from(STREAMER_TABLE)
+    .select("id")
+    .eq(platform === "chzzk" ? "chzzk_id" : "soop_id", platformStreamerId)
+    .limit(1);
+
+  if (existingStreamerError) {
+    throw existingStreamerError;
+  }
+
+  if (existingStreamer && existingStreamer.length > 0) {
+    throw new Error("이미 등록된 버츄얼입니다.");
+  }
+
   const { data: existingPending, error: existsError } = await supabase
     .from(STREAMER_REQUEST_TABLE)
     .select("id")

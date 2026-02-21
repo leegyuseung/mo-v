@@ -44,7 +44,7 @@ const isNavigableItem = (item: MenuItem) => {
 
 export default function AppSideBar() {
   const { profile } = useAuthStore();
-  const isAdmin = profile?.role === "admin";
+  const isAdmin = (profile?.role || "").trim().toLowerCase() === "admin";
 
   return (
     <Sidebar
@@ -96,7 +96,7 @@ export default function AppSideBar() {
                 tooltip="관리자"
                 className="hover:bg-transparent hover:text-blue-600"
               >
-                <Link href="/admin" target="_blank">
+                <Link href="/admin">
                   <Shield className="w-5 h-5" />
                   <span>관리자</span>
                 </Link>

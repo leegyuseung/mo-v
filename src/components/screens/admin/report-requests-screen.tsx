@@ -8,6 +8,7 @@ import ConfirmAlert from "@/components/common/confirm-alert";
 import { useEntityReportRequests } from "@/hooks/queries/admin/use-entity-report-requests";
 import { useDeleteEntityReportRequest } from "@/hooks/mutations/admin/use-delete-entity-report-request";
 import type { EntityReportRequest } from "@/types/report";
+import { ADMIN_REVIEW_REWARD_POINT } from "@/lib/constant";
 
 function targetTypeLabel(targetType: EntityReportRequest["target_type"]) {
   if (targetType === "streamer") return "버츄얼";
@@ -16,13 +17,21 @@ function targetTypeLabel(targetType: EntityReportRequest["target_type"]) {
 }
 
 function ReportRequestRow({ request }: { request: EntityReportRequest }) {
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const { mutate: deleteRequest, isPending } = useDeleteEntityReportRequest();
+  const [confirmAction, setConfirmAction] = useState<"approve" | "reject" | null>(null);
+  const { mutate: resolveRequest, isPending } = useDeleteEntityReportRequest();
 
   const handleConfirm = () => {
-    deleteRequest(request.id, {
-      onSuccess: () => setIsConfirmOpen(false),
-    });
+    if (!confirmAction) return;
+
+    resolveRequest(
+      {
+        requestId: request.id,
+        action: confirmAction,
+      },
+      {
+        onSuccess: () => setConfirmAction(null),
+      }
+    );
   };
 
   return (
@@ -40,26 +49,41 @@ function ReportRequestRow({ request }: { request: EntityReportRequest }) {
           {request.content}
         </td>
         <td className="px-4 py-3 text-sm">
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => setIsConfirmOpen(true)}
-            className="cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white"
-          >
-            확인
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => setConfirmAction("approve")}
+              className="cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              확인
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setConfirmAction("reject")}
+              className="cursor-pointer border-gray-300 text-gray-700 hover:bg-gray-100"
+            >
+              거절
+            </Button>
+          </div>
         </td>
       </tr>
 
       <ConfirmAlert
-        open={isConfirmOpen}
-        title="신고 확인"
-        description="확인하시겠습니까? 확인 후 신고 데이터는 삭제됩니다."
-        confirmText="확인"
+        open={Boolean(confirmAction)}
+        title={confirmAction === "approve" ? "신고 확인" : "신고 거절"}
+        description={
+          confirmAction === "approve"
+            ? `확인하시겠습니까? 신고자에게 ${ADMIN_REVIEW_REWARD_POINT}하트가 지급되고 신고 데이터는 삭제됩니다.`
+            : "거절하시겠습니까? 하트 지급 없이 신고 데이터가 삭제됩니다."
+        }
+        confirmText={confirmAction === "approve" ? "확인" : "거절"}
         cancelText="취소"
         isPending={isPending}
         onConfirm={handleConfirm}
-        onCancel={() => setIsConfirmOpen(false)}
+        onCancel={() => setConfirmAction(null)}
       />
     </>
   );

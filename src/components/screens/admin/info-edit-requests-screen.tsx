@@ -8,17 +8,26 @@ import { useStreamerInfoEditRequests } from "@/hooks/queries/admin/use-streamer-
 import { useDeleteStreamerInfoEditRequest } from "@/hooks/mutations/admin/use-delete-streamer-info-edit-request";
 import type { StreamerInfoEditRequest } from "@/types/admin";
 import { UserRoundPen } from "lucide-react";
+import { ADMIN_REVIEW_REWARD_POINT } from "@/lib/constant";
 
 function InfoEditRequestRow({ request }: { request: StreamerInfoEditRequest }) {
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const { mutate: deleteRequest, isPending } = useDeleteStreamerInfoEditRequest();
+  const [confirmAction, setConfirmAction] = useState<"approve" | "reject" | null>(null);
+  const { mutate: resolveRequest, isPending } = useDeleteStreamerInfoEditRequest();
 
   const handleConfirm = () => {
-    deleteRequest(request.id, {
-      onSuccess: () => {
-        setIsConfirmOpen(false);
+    if (!confirmAction) return;
+
+    resolveRequest(
+      {
+        requestId: request.id,
+        action: confirmAction,
       },
-    });
+      {
+        onSuccess: () => {
+          setConfirmAction(null);
+        },
+      },
+    );
   };
 
   return (
@@ -37,26 +46,41 @@ function InfoEditRequestRow({ request }: { request: StreamerInfoEditRequest }) {
           {request.content}
         </td>
         <td className="px-4 py-3 text-sm">
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => setIsConfirmOpen(true)}
-            className="cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white"
-          >
-            확인
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => setConfirmAction("approve")}
+              className="cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              확인
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setConfirmAction("reject")}
+              className="cursor-pointer border-gray-300 text-gray-700 hover:bg-gray-100"
+            >
+              거절
+            </Button>
+          </div>
         </td>
       </tr>
 
       <ConfirmAlert
-        open={isConfirmOpen}
-        title="요청 확인"
-        description="확인하시겠습니까? 확인 후 요청 데이터는 삭제됩니다."
-        confirmText="확인"
+        open={Boolean(confirmAction)}
+        title={confirmAction === "approve" ? "요청 확인" : "요청 거절"}
+        description={
+          confirmAction === "approve"
+            ? `확인하시겠습니까? 요청자에게 ${ADMIN_REVIEW_REWARD_POINT}하트가 지급되고 요청 데이터는 삭제됩니다.`
+            : "거절하시겠습니까? 하트 지급 없이 요청 데이터가 삭제됩니다."
+        }
+        confirmText={confirmAction === "approve" ? "확인" : "거절"}
         cancelText="취소"
         isPending={isPending}
         onConfirm={handleConfirm}
-        onCancel={() => setIsConfirmOpen(false)}
+        onCancel={() => setConfirmAction(null)}
       />
     </>
   );

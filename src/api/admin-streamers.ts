@@ -182,12 +182,34 @@ export async function fetchStreamerInfoEditRequests(): Promise<
 
 /** 정보 수정 요청을 삭제한다 */
 export async function deleteStreamerInfoEditRequest(requestId: number) {
-    const { error } = await supabase
-        .from(STREAMER_INFO_EDIT_REQUEST_TABLE)
-        .delete()
-        .eq("id", requestId);
+  const { error } = await supabase
+    .from(STREAMER_INFO_EDIT_REQUEST_TABLE)
+    .delete()
+    .eq("id", requestId);
 
-    if (error) throw error;
+  if (error) throw error;
+}
+
+/** 정보 수정 요청을 확인/거절 처리한다. 확인 시 요청자에게 50 하트가 지급된다. */
+export async function resolveStreamerInfoEditRequest(
+  requestId: number,
+  action: "approve" | "reject"
+) {
+  const response = await fetch(
+    `/api/admin/info-edit-requests/${requestId}/resolve`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
+    }
+  );
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.message || "요청 처리에 실패했습니다.");
+  }
+
+  return response.json();
 }
 
 /** 치지직 채널 프로필 정보를 조회한다 (Next.js API 라우트 경유) */
