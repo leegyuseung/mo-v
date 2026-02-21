@@ -10,7 +10,7 @@ import { useIdolGroupCodeNames } from "@/hooks/queries/groups/use-idol-group-cod
 import { useCrewCodeNames } from "@/hooks/queries/crews/use-crew-code-names";
 import { useCreateStreamerInfoEditRequest } from "@/hooks/mutations/streamers/use-create-streamer-info-edit-request";
 import { Button } from "@/components/ui/button";
-import { ArrowBigLeft, Heart, Star, UserRoundPen } from "lucide-react";
+import { ArrowBigLeft, Heart, Siren, Star, UserRoundPen } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuthStore } from "@/store/useAuthStore";
 import {
@@ -23,12 +23,17 @@ import type { DonorPeriod } from "@/types/heart";
 import ConfirmAlert from "@/components/common/confirm-alert";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { STREAMER_INFO_EDIT_REQUEST_MODAL_TEXT } from "@/lib/constant";
+import {
+  ENTITY_REPORT_MODAL_TEXT,
+  STREAMER_INFO_EDIT_REQUEST_MODAL_TEXT,
+} from "@/lib/constant";
 import type { StreamerTopDonor } from "@/types/profile";
 import { useToggleStar } from "@/hooks/mutations/star/use-toggle-star";
 import InfoEditRequestModal from "@/components/common/info-edit-request-modal";
 import { fetchStarCount } from "@/api/star";
 import StarCountBadge from "@/components/common/star-count-badge";
+import ReportRequestModal from "@/components/common/report-request-modal";
+import { useCreateEntityReportRequest } from "@/hooks/mutations/reports/use-create-entity-report-request";
 
 export default function VlistDetailScreen({
   streamerPublicId,
@@ -41,6 +46,7 @@ export default function VlistDetailScreen({
   const [isGiftConfirmOpen, setIsGiftConfirmOpen] = useState(false);
   const [isGiftSubmitting, setIsGiftSubmitting] = useState(false);
   const [donorPeriod, setDonorPeriod] = useState<DonorPeriod>("all");
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: streamer, isLoading } = useStreamerDetail(streamerPublicId);
@@ -75,6 +81,10 @@ export default function VlistDetailScreen({
     enabled: Boolean(streamer?.id),
   });
   const { starred: isStarred, isToggling: isStarToggling, toggle: onClickStar } = useToggleStar("streamer", streamer?.id);
+  const {
+    mutateAsync: createReportRequest,
+    isPending: isReportSubmitting,
+  } = useCreateEntityReportRequest();
 
   if (isLoading) {
     return (
@@ -187,6 +197,38 @@ export default function VlistDetailScreen({
       return;
     }
     setIsEditRequestModalOpen(true);
+  };
+
+  const openReportModal = () => {
+    if (!user) {
+      toast.error("로그인 후 신고가 가능합니다.");
+      return;
+    }
+    setIsReportModalOpen(true);
+  };
+
+  const handleSubmitReport = async (content: string) => {
+    if (!user) {
+      toast.error("로그인 후 신고가 가능합니다.");
+      return;
+    }
+
+    try {
+      await createReportRequest({
+        targetType: "streamer",
+        targetCode: streamer.public_id || String(streamer.id),
+        targetName: streamer.nickname || "버츄얼",
+        reporterId: user.id,
+        reporterNickname: profile?.nickname || null,
+        content,
+      });
+      toast.success(ENTITY_REPORT_MODAL_TEXT.submitSuccess);
+      setIsReportModalOpen(false);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "신고 접수에 실패했습니다.";
+      toast.error(message);
+    }
   };
 
 
@@ -316,6 +358,22 @@ export default function VlistDetailScreen({
         </div>
 
         <div className="flex items-center gap-1">
+          <div className="group relative">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="cursor-pointer h-10 w-10"
+              onClick={openReportModal}
+              disabled={!user}
+            >
+              <Siren className="w-5 h-5 text-red-500" />
+            </Button>
+            <span className="pointer-events-none absolute right-1/2 top-full z-20 mt-1 translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+              신고하기
+            </span>
+          </div>
+
           <div className="group relative">
             <Button
               type="button"
@@ -581,6 +639,17 @@ export default function VlistDetailScreen({
         isSubmitting={isInfoEditRequestSubmitting}
         onSubmit={handleSubmitInfoEditRequest}
         onClose={() => setIsEditRequestModalOpen(false)}
+      />
+      <ReportRequestModal
+        open={isReportModalOpen}
+        texts={{
+          ...ENTITY_REPORT_MODAL_TEXT,
+          description:
+            "버츄얼 신고 사유를 작성해 주세요. (예: 방송정지, 물의, 장기 미활동 등)",
+        }}
+        isSubmitting={isReportSubmitting}
+        onSubmit={handleSubmitReport}
+        onClose={() => setIsReportModalOpen(false)}
       />
 
       {isGiftModalOpen ? (

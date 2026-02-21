@@ -42,6 +42,17 @@ export const GROUP_INFO_EDIT_REQUEST_MODAL_TEXT = {
   cancelButton: "취소",
 } as const;
 
+export const ENTITY_REPORT_MODAL_TEXT = {
+  title: "신고 접수",
+  description:
+    "버츄얼/그룹/소속에 대한 신고 사유를 작성해 주세요. (예: 방송정지, 물의, 장기 미활동 등)",
+  contentRequired: "신고 내용을 입력해 주세요.",
+  submitSuccess: "신고가 접수되었습니다.",
+  submitButton: "신고",
+  cancelButton: "취소",
+} as const;
+
 export const STREAMER_TABLE = "streamers";
 export const STREAMER_REQUEST_TABLE = "streamer_registration_requests";
 export const STREAMER_INFO_EDIT_REQUEST_TABLE = "streamer_info_edit_requests";
+export const ENTITY_REPORT_REQUEST_TABLE = "entity_report_requests";

@@ -9,6 +9,7 @@ import {
     UserRoundPen,
     MicVocal,
     UsersRound,
+    Siren,
 } from "lucide-react";
 import {
     Sidebar,
@@ -31,6 +32,7 @@ const adminMenuItems = [
     { title: "소속 관리", url: "/admin/crews", icon: UsersRound },
     { title: "버츄얼 등록 대기", url: "/admin/pending", icon: Clock },
     { title: "정보 수정 요청", url: "/admin/infoeditrq", icon: UserRoundPen },
+    { title: "신고 관리", url: "/admin/reports", icon: Siren },
 ];
 
 export default function AdminSideBar() {

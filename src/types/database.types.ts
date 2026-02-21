@@ -215,6 +215,47 @@ export type Database = {
         }
         Relationships: []
       }
+      entity_report_requests: {
+        Row: {
+          content: string
+          created_at: string
+          id: number
+          reporter_id: string
+          reporter_nickname: string | null
+          target_code: string
+          target_name: string | null
+          target_type: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: number
+          reporter_id: string
+          reporter_nickname?: string | null
+          target_code: string
+          target_name?: string | null
+          target_type: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: number
+          reporter_id?: string
+          reporter_nickname?: string | null
+          target_code?: string
+          target_name?: string | null
+          target_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_report_requests_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       streamer_heart_history: {
         Row: {
           after_streamer_total: number

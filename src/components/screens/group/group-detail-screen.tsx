@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowBigLeft, Star, UserRound, UserRoundPen, UsersRound } from "lucide-react";
+import { ArrowBigLeft, Siren, Star, UserRound, UserRoundPen, UsersRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
@@ -12,11 +12,16 @@ import { useIdolGroupDetail } from "@/hooks/queries/groups/use-idol-group-detail
 import { useCreateGroupInfoEditRequest } from "@/hooks/mutations/groups/use-create-group-info-edit-request";
 import { useToggleStar } from "@/hooks/mutations/star/use-toggle-star";
 import { useAuthStore } from "@/store/useAuthStore";
-import { GROUP_INFO_EDIT_REQUEST_MODAL_TEXT } from "@/lib/constant";
+import {
+  ENTITY_REPORT_MODAL_TEXT,
+  GROUP_INFO_EDIT_REQUEST_MODAL_TEXT,
+} from "@/lib/constant";
 import { isSupabaseStorageUrl } from "@/utils/image";
 import InfoEditRequestModal from "@/components/common/info-edit-request-modal";
 import { fetchStarCount } from "@/api/star";
 import StarCountBadge from "@/components/common/star-count-badge";
+import ReportRequestModal from "@/components/common/report-request-modal";
+import { useCreateEntityReportRequest } from "@/hooks/mutations/reports/use-create-entity-report-request";
 
 type GroupDetailScreenProps = {
   groupCode: string;
@@ -24,6 +29,7 @@ type GroupDetailScreenProps = {
 
 export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps) {
   const [isEditRequestModalOpen, setIsEditRequestModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const { user, profile } = useAuthStore();
   const { data: group, isLoading } = useIdolGroupDetail(groupCode);
   const { starred: isStarred, isToggling: isStarToggling, toggle: onClickStar } = useToggleStar("group", group?.id);
@@ -36,6 +42,10 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
     mutateAsync: createInfoEditRequest,
     isPending: isInfoEditRequestSubmitting,
   } = useCreateGroupInfoEditRequest();
+  const {
+    mutateAsync: createReportRequest,
+    isPending: isReportSubmitting,
+  } = useCreateEntityReportRequest();
 
   const openInfoEditRequestModal = () => {
     if (!user) {
@@ -68,6 +78,38 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "정보 수정 요청 접수에 실패했습니다.";
+      toast.error(message);
+    }
+  };
+
+  const openReportModal = () => {
+    if (!user) {
+      toast.error("로그인 후 신고가 가능합니다.");
+      return;
+    }
+    setIsReportModalOpen(true);
+  };
+
+  const handleSubmitReport = async (content: string) => {
+    if (!user || !group) {
+      toast.error("로그인 후 신고가 가능합니다.");
+      return;
+    }
+
+    try {
+      await createReportRequest({
+        targetType: "group",
+        targetCode: group.group_code,
+        targetName: group.name || "그룹",
+        reporterId: user.id,
+        reporterNickname: profile?.nickname || null,
+        content,
+      });
+      toast.success(ENTITY_REPORT_MODAL_TEXT.submitSuccess);
+      setIsReportModalOpen(false);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "신고 접수에 실패했습니다.";
       toast.error(message);
     }
   };
@@ -115,6 +157,22 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
         </div>
 
         <div className="flex items-center gap-1">
+          <div className="group relative">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="cursor-pointer h-10 w-10"
+              onClick={openReportModal}
+              disabled={!user}
+            >
+              <Siren className="w-5 h-5 text-red-500" />
+            </Button>
+            <span className="pointer-events-none absolute right-1/2 top-full z-20 mt-1 translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+              신고하기
+            </span>
+          </div>
+
           <div className="group relative">
             <Button
               type="button"
@@ -257,6 +315,17 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
         isSubmitting={isInfoEditRequestSubmitting}
         onSubmit={handleSubmitInfoEditRequest}
         onClose={() => setIsEditRequestModalOpen(false)}
+      />
+      <ReportRequestModal
+        open={isReportModalOpen}
+        texts={{
+          ...ENTITY_REPORT_MODAL_TEXT,
+          description:
+            "그룹 신고 사유를 작성해 주세요. (예: 물의, 장기 미활동, 잘못된 정보 등)",
+        }}
+        isSubmitting={isReportSubmitting}
+        onSubmit={handleSubmitReport}
+        onClose={() => setIsReportModalOpen(false)}
       />
     </div>
   );

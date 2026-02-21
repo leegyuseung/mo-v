@@ -46,3 +46,15 @@ export type StreamerInfoEditRequest = {
     requester_id: string;
     requester_nickname: string | null;
 };
+
+/** 버츄얼/그룹/소속 신고 요청 데이터 */
+export type EntityReportRequest = {
+    id: number;
+    created_at: string;
+    target_type: "streamer" | "group" | "crew";
+    target_code: string;
+    target_name: string | null;
+    reporter_id: string;
+    reporter_nickname: string | null;
+    content: string;
+};
