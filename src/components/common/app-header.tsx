@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useSignOut } from "@/hooks/mutations/auth/use-sign-out";
 import { CalendarDays, Gift, Menu, Star, X } from "lucide-react";
@@ -14,6 +15,7 @@ import { Button } from "@/components/ui/button";
 
 export default function AppHeader() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { user, profile, heartPoints, isLoading, setHeartPoints } = useAuthStore();
   const { mutate: signOut, isPending: isSigningOut } = useSignOut();
   const { toggleSidebar } = useSidebar();
@@ -63,6 +65,9 @@ export default function AppHeader() {
         point: result.afterPoint ?? heartPoints?.point ?? 0,
         created_at: heartPoints?.created_at || new Date().toISOString(),
         updated_at: new Date().toISOString(),
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["heartPointHistory", user!.id],
       });
 
       setTimeout(() => {
