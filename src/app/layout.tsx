@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import localFont from "next/font/local";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import RootProvider from "@/provider/root-provider";
 import { buildDefaultMetadata } from "@/lib/seo";
@@ -47,6 +48,7 @@ export default function RootLayout({
       </head>
       <body>
         <RootProvider>{children}</RootProvider>
+        <SpeedInsights />
       </body>
     </html>
   );

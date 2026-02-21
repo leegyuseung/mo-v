@@ -134,7 +134,7 @@ export default function CrewScreen() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {crews.map((crew) => {
+          {crews.map((crew, index) => {
             const visibleMembers = crew.members.slice(0, 13);
             const remainCount = Math.max(0, crew.member_count - visibleMembers.length);
 
@@ -171,6 +171,7 @@ export default function CrewScreen() {
                           alt={crew.name}
                           fill
                           sizes="56px"
+                          priority={index < 4}
                           unoptimized={isSupabaseStorageUrl(crew.image_url)}
                           onError={() =>
                             crewImages.markBroken(crew.id)

@@ -223,6 +223,7 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
                   src={group.image_url}
                   alt={group.name}
                   fill
+                  priority
                   className="object-contain"
                   sizes="160px"
                   unoptimized={isSupabaseStorageUrl(group.image_url)}

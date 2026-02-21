@@ -214,7 +214,7 @@ export default function VlistScreen() {
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {streamers.map((streamer) => (
+          {streamers.map((streamer, index) => (
             <Link
               key={streamer.id}
               href={`/vlist/${streamer.public_id ?? streamer.id}`}
@@ -231,6 +231,7 @@ export default function VlistScreen() {
                     src={streamer.image_url}
                     alt={streamer.nickname || "streamer"}
                     fill
+                    priority={index < 4}
                     className="object-cover transition group-hover:scale-[1.03]"
                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
                   />

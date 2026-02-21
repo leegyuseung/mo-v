@@ -135,7 +135,7 @@ export default function GroupScreen() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {groups.map((group) => {
+          {groups.map((group, index) => {
             const visibleMembers = group.members.slice(0, 13);
             const remainCount = Math.max(0, group.member_count - visibleMembers.length);
 
@@ -172,6 +172,7 @@ export default function GroupScreen() {
                           alt={group.name}
                           fill
                           sizes="56px"
+                          priority={index < 4}
                           unoptimized={isSupabaseStorageUrl(group.image_url)}
                           onError={() =>
                             groupImages.markBroken(group.id)

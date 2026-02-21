@@ -227,6 +227,7 @@ export default function CrewDetailScreen({ crewCode }: CrewDetailScreenProps) {
                   src={crew.image_url}
                   alt={crew.name}
                   fill
+                  priority
                   className="object-contain"
                   sizes="160px"
                   unoptimized={isSupabaseStorageUrl(crew.image_url)}
