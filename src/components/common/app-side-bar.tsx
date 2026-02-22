@@ -4,9 +4,10 @@ import type { ComponentType } from "react";
 import {
   Clapperboard,
   MicVocal,
+  Megaphone,
   Gem,
-  House,
   Shield,
+  Trophy,
   TvMinimalPlay,
   UsersRound,
 } from "lucide-react";
@@ -30,11 +31,12 @@ type MenuItem = {
 
 // 완성된 화면만 링크를 연결한다.
 const menuItems = [
-  { title: "mo-v", url: "/", icon: House },
   { title: "라이브", url: "/live", icon: TvMinimalPlay },
   { title: "버츄얼", url: "/vlist", icon: Gem },
   { title: "그룹", url: "/group", icon: MicVocal },
   { title: "소속", url: "/crew", icon: UsersRound },
+  { title: "순위", icon: Trophy },
+  { title: "홍보", icon: Megaphone },
   { title: "콘텐츠", icon: Clapperboard },
 ] satisfies MenuItem[];
 
