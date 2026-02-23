@@ -2,10 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Star, UsersRound, UserRound } from "lucide-react";
+import Pagination from "@/components/common/pagination";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
@@ -13,11 +14,15 @@ import { Button } from "@/components/ui/button";
 import { useCrewCards } from "@/hooks/queries/crews/use-crew-cards";
 import { useAuthStore } from "@/store/useAuthStore";
 import { fetchStarredCrewIds } from "@/api/star";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useBrokenImages } from "@/hooks/use-broken-images";
 
 export default function CrewScreen() {
   const router = useRouter();
   const { user } = useAuthStore();
+  const isMobile = useIsMobile();
+  const pageSize = isMobile ? 12 : 16;
+  const [page, setPage] = useState(1);
   const [keyword, setKeyword] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "star">("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -57,15 +62,28 @@ export default function CrewScreen() {
       return sortOrder === "asc" ? nameDiff : -nameDiff;
     });
   }, [data, keyword, sortBy, sortOrder]);
+  const totalCount = crews.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize;
+  const pagedCrews = crews.slice(from, to);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   /** 정렬 기준 변경 핸들러 */
   const onChangeSort = (nextSortBy: "name" | "star") => {
     if (sortBy === nextSortBy) {
       setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+      setPage(1);
       return;
     }
     setSortBy(nextSortBy);
     setSortOrder(nextSortBy === "star" ? "desc" : "asc");
+    setPage(1);
   };
 
 
@@ -98,7 +116,10 @@ export default function CrewScreen() {
 
           <Input
             value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
+            onChange={(e) => {
+              setKeyword(e.target.value);
+              setPage(1);
+            }}
             placeholder="소속명 또는 멤버명을 입력해 주세요"
             className="h-9 border-gray-200 bg-white md:w-96"
           />
@@ -108,13 +129,13 @@ export default function CrewScreen() {
       {/* ─── 총 개수 표시 ─── */}
       <div className="mb-4 text-sm text-gray-500 flex items-center gap-2">
         {isLoading ? <Spinner className="h-4 w-4 border-2" /> : null}
-        <span>{isLoading ? "로딩중..." : `총 ${crews.length.toLocaleString()}개 소속`}</span>
+        <span>{isLoading ? "로딩중..." : `총 ${totalCount.toLocaleString()}개 소속`}</span>
       </div>
 
       {/* ─── 소속 카드 그리드 ─── */}
       {isLoading ? (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {Array.from({ length: 12 }).map((_, index) => (
+          {Array.from({ length: pageSize }).map((_, index) => (
             <div
               key={`crew-skeleton-${index}`}
               className="h-[164px] rounded-xl border border-gray-100 bg-white p-3 shadow-sm"
@@ -140,7 +161,7 @@ export default function CrewScreen() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {crews.map((crew, index) => {
+          {pagedCrews.map((crew, index) => {
             const visibleMembers = crew.members.slice(0, 13);
             const remainCount = Math.max(0, crew.member_count - visibleMembers.length);
 
@@ -241,6 +262,14 @@ export default function CrewScreen() {
           })}
         </div>
       )}
+
+      {!isLoading ? (
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
+      ) : null}
 
       {isFetching && !isLoading ? (
         <div className="mt-3 flex justify-center">
