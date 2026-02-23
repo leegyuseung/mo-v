@@ -12,11 +12,13 @@ import { STREAMER_REQUEST_MODAL_TEXT } from "@/lib/constant";
 type StreamerRequestModalProps = {
   open: boolean;
   onClose: () => void;
+  onSubmitted?: () => void | Promise<void>;
 };
 
 export default function StreamerRequestModal({
   open,
   onClose,
+  onSubmitted,
 }: StreamerRequestModalProps) {
   const [requestPlatform, setRequestPlatform] =
     useState<StreamerRequestPlatform>("chzzk");
@@ -115,6 +117,7 @@ export default function StreamerRequestModal({
         platformStreamerId: extractedId,
         platformStreamerUrl: normalizedUrl,
       });
+      await onSubmitted?.();
       toast.success(STREAMER_REQUEST_MODAL_TEXT.submitSuccess);
       closeModal();
     } catch (error) {

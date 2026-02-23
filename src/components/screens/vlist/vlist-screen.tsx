@@ -22,9 +22,8 @@ import {
   STREAMER_PAGE_SIZE,
   STREAMER_PLATFORM_OPTIONS,
 } from "@/lib/constant";
-import StreamerRequestModal from "@/components/screens/vlist/streamer-request-modal";
+import StreamerRequestTriggerButton from "@/components/common/streamer-request-trigger-button";
 import { useAuthStore } from "@/store/useAuthStore";
-import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { fetchStarredStreamerIds } from "@/api/star";
 import { getPlatformActiveClass, getPlatformInactiveClass } from "@/utils/platform";
@@ -35,7 +34,6 @@ export default function VlistScreen() {
   const [sortBy, setSortBy] = useState<StreamerSortBy>("name");
   const [sortOrder, setSortOrder] = useState<StreamerSortOrder>("asc");
   const [keyword, setKeyword] = useState("");
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const { user } = useAuthStore();
   const isMobile = useIsMobile();
   const pageSize = isMobile ? 14 : STREAMER_PAGE_SIZE;
@@ -96,15 +94,6 @@ export default function VlistScreen() {
     setPage(1);
   };
 
-  const onClickAddStreamer = () => {
-    if (!user) {
-      toast.error("로그인 후 버츄얼 추가 요청이 가능합니다.");
-      return;
-    }
-    setIsAddModalOpen(true);
-  };
-
-
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
       <div className="mb-5 flex flex-col gap-3">
@@ -135,15 +124,9 @@ export default function VlistScreen() {
               placeholder="버츄얼 명을 입력해 주세요"
               className="h-9 border-gray-200 bg-white md:w-80"
             />
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClickAddStreamer}
-              disabled={!user}
+            <StreamerRequestTriggerButton
               className="h-9 cursor-pointer whitespace-nowrap border-gray-200 text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              버츄얼 추가
-            </Button>
+            />
           </div>
         </div>
 
@@ -290,10 +273,6 @@ export default function VlistScreen() {
         </div>
       )}
 
-      <StreamerRequestModal
-        open={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-      />
     </div>
   );
 }

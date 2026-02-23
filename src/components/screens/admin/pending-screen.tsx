@@ -9,6 +9,8 @@ import { useDeleteStreamerRequest } from "@/hooks/mutations/admin/use-delete-str
 import { useRegisterStreamerFromRequest } from "@/hooks/mutations/admin/use-register-streamer-from-request";
 import { useChzzkChannelProfile } from "@/hooks/queries/admin/use-chzzk-channel-profile";
 import type { StreamerRegistrationRequest } from "@/types/admin";
+import StreamerRequestTriggerButton from "@/components/common/streamer-request-trigger-button";
+import { useQueryClient } from "@tanstack/react-query";
 import { Clock, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -157,18 +159,29 @@ function RequestRow({ request }: { request: StreamerRegistrationRequest }) {
 }
 
 export default function PendingScreen() {
+    const queryClient = useQueryClient();
     const { data: requests, isLoading } = usePendingStreamerRequests();
 
     return (
         <div className="p-6 md:p-10 max-w-7xl mx-auto">
-            <div className="mb-8">
-                <div className="flex items-center gap-2 mb-1">
-                    <Clock className="w-5 h-5 text-amber-500" />
-                    <h1 className="text-2xl font-bold text-gray-900">버츄얼 등록 대기</h1>
+            <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                <div>
+                    <div className="flex items-center gap-2 mb-1">
+                        <Clock className="w-5 h-5 text-amber-500" />
+                        <h1 className="text-2xl font-bold text-gray-900">버츄얼 등록 대기</h1>
+                    </div>
+                    <p className="text-sm text-gray-500">
+                        유저가 요청한 버츄얼 등록 대기 목록입니다.
+                    </p>
                 </div>
-                <p className="text-sm text-gray-500">
-                    유저가 요청한 버츄얼 등록 대기 목록입니다.
-                </p>
+                <StreamerRequestTriggerButton
+                    className="h-9 cursor-pointer whitespace-nowrap border-gray-200 text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    onSubmitted={() =>
+                        queryClient.invalidateQueries({
+                            queryKey: ["admin", "pending-streamer-requests"],
+                        })
+                    }
+                />
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
