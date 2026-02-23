@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Pagination from "@/components/common/pagination";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -16,7 +17,7 @@ import type {
   StreamerSortBy,
   StreamerSortOrder,
 } from "@/types/streamer";
-import { ChevronLeft, ChevronRight, Star, UserRound } from "lucide-react";
+import { Star, UserRound } from "lucide-react";
 import {
   STREAMER_PAGE_SIZE,
   STREAMER_PLATFORM_OPTIONS,
@@ -66,14 +67,7 @@ export default function VlistScreen() {
     return map;
   }, [idolGroups]);
 
-  const pageNumbers = useMemo(() => {
-    const size = 5;
-    const half = Math.floor(size / 2);
-    const start = Math.max(1, page - half);
-    const end = Math.min(totalPages, start + size - 1);
-    const adjustedStart = Math.max(1, end - size + 1);
-    return Array.from({ length: end - adjustedStart + 1 }, (_, i) => adjustedStart + i);
-  }, [page, totalPages]);
+
   const crewNameByCode = useMemo(() => {
     const map = new Map<string, string>();
     (crews || []).forEach((crew) => {
@@ -282,43 +276,12 @@ export default function VlistScreen() {
         </div>
       )}
 
-      {!isLoading && totalPages > 1 && (
-        <div className="mt-8 flex items-center justify-center gap-1.5">
-          <Button
-            type="button"
-            size="icon-sm"
-            variant="outline"
-            disabled={page <= 1}
-            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-            className="cursor-pointer"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-
-          {pageNumbers.map((num) => (
-            <Button
-              key={num}
-              type="button"
-              size="sm"
-              variant={num === page ? "default" : "outline"}
-              onClick={() => setPage(num)}
-              className={`cursor-pointer ${num === page ? "bg-gray-800 hover:bg-gray-900 text-white" : ""}`}
-            >
-              {num}
-            </Button>
-          ))}
-
-          <Button
-            type="button"
-            size="icon-sm"
-            variant="outline"
-            disabled={page >= totalPages}
-            onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-            className="cursor-pointer"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-        </div>
+      {!isLoading && (
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
       )}
 
       {isFetching && !isLoading && (

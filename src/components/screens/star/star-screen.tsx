@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, UserRound } from "lucide-react";
-import type { ReactNode } from "react";
 import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -14,20 +13,16 @@ import { Input } from "@/components/ui/input";
 import { getPlatformBorderColor } from "@/utils/platform";
 import { removeStar, type StarTargetType } from "@/api/star";
 import { toast } from "sonner";
+import type { AvatarItemProps, HorizontalRowProps } from "@/types/star";
 
+/** 아바타 아이템: 프로필 이미지 + 이름 + 편집 버튼을 표시한다 */
 function AvatarItem({
   children,
   title,
   isEditMode = false,
   isMarked = false,
   onToggleMarked,
-}: {
-  children: ReactNode;
-  title: string;
-  isEditMode?: boolean;
-  isMarked?: boolean;
-  onToggleMarked?: () => void;
-}) {
+}: AvatarItemProps) {
   return (
     <div className="w-16 shrink-0 pt-1">
       <div className="relative flex justify-center overflow-visible">
@@ -38,8 +33,8 @@ function AvatarItem({
             aria-label="삭제 선택"
             onClick={onToggleMarked}
             className={`absolute -right-1 top-0 z-20 inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-full border text-xs font-bold ${isMarked
-                ? "border-red-600 bg-red-600 text-white"
-                : "border-gray-300 bg-white text-gray-600"
+              ? "border-red-600 bg-red-600 text-white"
+              : "border-gray-300 bg-white text-gray-600"
               }`}
           >
             ×
@@ -53,6 +48,7 @@ function AvatarItem({
   );
 }
 
+/** 가로 스크롤 행: 제목, 검색, 수정/추가, 좌우 스크롤 버튼을 포함한다 */
 function HorizontalRow({
   title,
   emptyText,
@@ -63,19 +59,10 @@ function HorizontalRow({
   isEditMode = false,
   onToggleEditMode,
   children,
-}: {
-  title: string;
-  emptyText: string;
-  searchValue: string;
-  onSearchChange: (value: string) => void;
-  addHref?: string;
-  isEditable?: boolean;
-  isEditMode?: boolean;
-  onToggleEditMode?: () => void;
-  children: ReactNode[];
-}) {
+}: HorizontalRowProps) {
   const rowRef = useRef<HTMLDivElement | null>(null);
 
+  /** 가로 스크롤 이동량 */
   const scrollByAmount = (amount: number) => {
     rowRef.current?.scrollBy({ left: amount, behavior: "smooth" });
   };
@@ -154,6 +141,7 @@ export default function StarScreen() {
   const { data: stars, isLoading: isStarsLoading } = useMyStars(user?.id);
   const { data: liveData } = useLiveStreamers();
 
+  /* ─── 미로그인 / 로딩 상태 ─── */
   if (!user) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
@@ -176,6 +164,7 @@ export default function StarScreen() {
     );
   }
 
+  /* ─── 파생 데이터 ─── */
   const liveByStreamerId = new Map((liveData || []).map((item) => [item.id, item]));
   const starredStreamers = stars?.streamers || [];
   const liveStarredStreamers = starredStreamers.filter((streamer) => {
@@ -183,7 +172,7 @@ export default function StarScreen() {
     return Boolean(live?.isLive && live?.liveUrl);
   });
 
-
+  /** 키워드 포함 여부 (대소문자 무시) */
   const includesKeyword = (value: string | null | undefined, keyword: string) =>
     (value || "").toLowerCase().includes(keyword.trim().toLowerCase());
 
@@ -246,6 +235,7 @@ export default function StarScreen() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-6">
+      {/* ─── 라이브 중인 즐겨찾기 ─── */}
       <HorizontalRow
         title={`라이브 (${filteredLiveStreamers.length})`}
         emptyText="라이브 중인 즐겨찾기 버츄얼이 없습니다."
@@ -278,6 +268,7 @@ export default function StarScreen() {
                       alt={streamer.nickname || "streamer"}
                       fill
                       sizes="56px"
+                      loading="lazy"
                       className="object-cover"
                     />
                   ) : (
@@ -292,6 +283,7 @@ export default function StarScreen() {
         })}
       </HorizontalRow>
 
+      {/* ─── 버츄얼 즐겨찾기 행 ─── */}
       <HorizontalRow
         title={`버츄얼 (${filteredStreamers.length})`}
         emptyText="즐겨찾기한 버츄얼이 없습니다."
@@ -336,6 +328,7 @@ export default function StarScreen() {
                     alt={streamer.nickname || "streamer"}
                     fill
                     sizes="56px"
+                    loading="lazy"
                     className="object-cover"
                   />
                 ) : (
@@ -349,6 +342,7 @@ export default function StarScreen() {
         ))}
       </HorizontalRow>
 
+      {/* ─── 그룹 즐겨찾기 행 ─── */}
       <HorizontalRow
         title={`그룹 (${filteredGroups.length})`}
         emptyText="즐겨찾기한 그룹이 없습니다."
@@ -382,7 +376,14 @@ export default function StarScreen() {
             >
               <div className="relative h-14 w-14 overflow-hidden rounded-full border-2 border-gray-200 bg-white">
                 {group.image_url ? (
-                  <Image src={group.image_url} alt={group.name} fill sizes="56px" className="object-contain" />
+                  <Image
+                    src={group.image_url}
+                    alt={group.name}
+                    fill
+                    sizes="56px"
+                    loading="lazy"
+                    className="object-contain"
+                  />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center">
                     <UserRound className="h-5 w-5 text-gray-300" />
@@ -394,6 +395,7 @@ export default function StarScreen() {
         ))}
       </HorizontalRow>
 
+      {/* ─── 소속 즐겨찾기 행 ─── */}
       <HorizontalRow
         title={`소속 (${filteredCrews.length})`}
         emptyText="즐겨찾기한 소속이 없습니다."
@@ -427,7 +429,14 @@ export default function StarScreen() {
             >
               <div className="relative h-14 w-14 overflow-hidden rounded-full border-2 border-gray-200 bg-white">
                 {crew.image_url ? (
-                  <Image src={crew.image_url} alt={crew.name} fill sizes="56px" className="object-contain" />
+                  <Image
+                    src={crew.image_url}
+                    alt={crew.name}
+                    fill
+                    sizes="56px"
+                    loading="lazy"
+                    className="object-contain"
+                  />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center">
                     <UserRound className="h-5 w-5 text-gray-300" />

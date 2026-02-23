@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowBigLeft, Siren, Star, UserRound, UserRoundPen, UsersRound } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 import { useIdolGroupDetail } from "@/hooks/queries/groups/use-idol-group-detail";
@@ -18,14 +17,12 @@ import {
 } from "@/lib/constant";
 import { isSupabaseStorageUrl } from "@/utils/image";
 import InfoEditRequestModal from "@/components/common/info-edit-request-modal";
+import IconTooltipButton from "@/components/common/icon-tooltip-button";
 import { fetchStarCount } from "@/api/star";
 import StarCountBadge from "@/components/common/star-count-badge";
 import ReportRequestModal from "@/components/common/report-request-modal";
 import { useCreateEntityReportRequest } from "@/hooks/mutations/reports/use-create-entity-report-request";
-
-type GroupDetailScreenProps = {
-  groupCode: string;
-};
+import type { GroupDetailScreenProps } from "@/types/group";
 
 export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps) {
   const [isEditRequestModalOpen, setIsEditRequestModalOpen] = useState(false);
@@ -47,6 +44,7 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
     isPending: isReportSubmitting,
   } = useCreateEntityReportRequest();
 
+  /** 정보수정 요청 모달을 연다 (로그인 필수) */
   const openInfoEditRequestModal = () => {
     if (!user) {
       toast.error("로그인 후 정보 수정 요청이 가능합니다.");
@@ -55,6 +53,7 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
     setIsEditRequestModalOpen(true);
   };
 
+  /** 정보수정 요청 제출 핸들러 */
   const handleSubmitInfoEditRequest = async (content: string) => {
     if (!user || !group) {
       toast.error("로그인 후 정보 수정 요청이 가능합니다.");
@@ -82,6 +81,7 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
     }
   };
 
+  /** 신고 모달을 연다 (로그인 필수) */
   const openReportModal = () => {
     if (!user) {
       toast.error("로그인 후 신고가 가능합니다.");
@@ -90,6 +90,7 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
     setIsReportModalOpen(true);
   };
 
+  /** 신고 제출 핸들러 */
   const handleSubmitReport = async (content: string) => {
     if (!user || !group) {
       toast.error("로그인 후 신고가 가능합니다.");
@@ -114,6 +115,7 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
     }
   };
 
+  /* ─── 로딩 / 빈 상태 ─── */
   if (isLoading) {
     return (
       <div className="p-6 flex items-center justify-center">
@@ -128,6 +130,7 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
     );
   }
 
+  /** 그룹 기본 정보 행 */
   const infoRows: Array<{ label: string; value: string }> = [
     { label: "리더", value: group.leader || "-" },
     { label: "기타 멤버", value: group.member_etc?.join(", ") || "-" },
@@ -140,79 +143,43 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
 
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto">
+      {/* ─── 상단 액션 버튼 (뒤로가기 · 신고 · 즐겨찾기 · 정보수정) ─── */}
       <div className="mb-4 flex items-center justify-between">
-        <div className="group relative">
-          <Link href="/group">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="cursor-pointer h-10 w-10"
-            >
-              <ArrowBigLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-            뒤로가기
-          </span>
-        </div>
+        <IconTooltipButton
+          icon={ArrowBigLeft}
+          label="뒤로가기"
+          tooltipAlign="left"
+          onClick={() => window.history.back()}
+        />
 
         <div className="flex items-center gap-1">
-          <div className="group relative">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="cursor-pointer h-10 w-10"
-              onClick={openReportModal}
-              disabled={!user}
-            >
-              <Siren className="w-5 h-5 text-red-500" />
-            </Button>
-            <span className="pointer-events-none absolute right-1/2 top-full z-20 mt-1 translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-              신고하기
-            </span>
-          </div>
-
-          <div className="group relative">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="cursor-pointer h-10 w-10"
-              onClick={onClickStar}
-              disabled={isStarToggling}
-            >
-              <Star
-                className={`w-5 h-5 ${isStarred ? "fill-yellow-400 text-yellow-400" : "text-yellow-500"
-                  }`}
-              />
-            </Button>
-            <span className="pointer-events-none absolute right-1/2 top-full z-20 mt-1 translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-              즐겨찾기
-            </span>
-          </div>
-
-          <div className="group relative">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="cursor-pointer h-10 w-10"
-              onClick={openInfoEditRequestModal}
-              disabled={!user}
-            >
-              <UserRoundPen className="w-5 h-5" />
-            </Button>
-            <span className="pointer-events-none absolute right-1/2 top-full z-20 mt-1 translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-              정보수정요청
-            </span>
-          </div>
+          <IconTooltipButton
+            icon={Siren}
+            iconClassName="text-red-500"
+            label="신고하기"
+            onClick={openReportModal}
+            disabled={!user}
+          />
+          <IconTooltipButton
+            icon={Star}
+            iconClassName={isStarred ? "fill-yellow-400 text-yellow-400" : "text-yellow-500"}
+            label="즐겨찾기"
+            onClick={onClickStar}
+            disabled={isStarToggling}
+          />
+          <IconTooltipButton
+            icon={UserRoundPen}
+            label="정보수정요청"
+            onClick={openInfoEditRequestModal}
+            disabled={!user}
+          />
         </div>
       </div>
 
+      {/* ─── 그룹 상세 카드 ─── */}
       <div className="rounded-3xl border border-gray-200 bg-white p-5 md:p-7 shadow-sm space-y-6">
         <div className="flex flex-col gap-6 md:flex-row md:items-start">
+          {/* ── 대표 이미지 + 외부 링크 ── */}
           <div className="mx-auto md:mx-0 flex shrink-0 flex-col items-center gap-3">
             <div
               className={`relative h-40 w-40 overflow-hidden rounded-full border ${group.bg_color ? "border-black-200 bg-black/80" : "border-gray-200 bg-white"
@@ -224,6 +191,7 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
                   alt={group.name}
                   fill
                   priority
+                  loading="eager"
                   className="object-contain"
                   sizes="160px"
                   unoptimized={isSupabaseStorageUrl(group.image_url)}
@@ -262,6 +230,7 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
             <StarCountBadge count={groupStarCount} isLoading={isGroupStarCountLoading} />
           </div>
 
+          {/* ── 그룹 정보 + 멤버 아바타 ── */}
           <div className="flex-1 min-w-0 space-y-6">
             <div className="mt-1">
               <p className="text-3xl font-bold text-gray-900 break-all">{group.name || "-"}</p>
@@ -292,8 +261,8 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
                         alt={member.nickname || "streamer"}
                         fill
                         sizes="40px"
+                        loading="lazy"
                         className="object-contain"
-                        unoptimized={isSupabaseStorageUrl(member.image_url)}
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center">
@@ -311,6 +280,7 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
         </div>
       </div>
 
+      {/* ─── 모달 ─── */}
       <InfoEditRequestModal
         open={isEditRequestModalOpen}
         texts={GROUP_INFO_EDIT_REQUEST_MODAL_TEXT}

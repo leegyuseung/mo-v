@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { useIdolGroupCards } from "@/hooks/queries/groups/use-idol-group-cards";
 import { useAuthStore } from "@/store/useAuthStore";
 import { fetchStarredGroupIds } from "@/api/star";
-import { isSupabaseStorageUrl } from "@/utils/image";
 import { useBrokenImages } from "@/hooks/use-broken-images";
 
 export default function GroupScreen() {
@@ -22,7 +21,9 @@ export default function GroupScreen() {
   const [keyword, setKeyword] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "star">("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  /** 그룹 대표 이미지 깨짐 추적 */
   const groupImages = useBrokenImages();
+  /** 멤버 아바타 이미지 깨짐 추적 */
   const memberImages = useBrokenImages();
   const { data, isLoading, isFetching } = useIdolGroupCards();
   const { data: starredGroupIds = new Set<number>() } = useQuery({
@@ -30,6 +31,8 @@ export default function GroupScreen() {
     queryFn: async () => new Set(await fetchStarredGroupIds(user!.id)),
     enabled: Boolean(user?.id),
   });
+
+  /** 키워드 필터 + 정렬을 적용한 그룹 목록 */
   const groups = useMemo(() => {
     const source = data || [];
     const keywordLower = keyword.trim().toLowerCase();
@@ -56,6 +59,7 @@ export default function GroupScreen() {
     });
   }, [data, keyword, sortBy, sortOrder]);
 
+  /** 정렬 기준 변경 핸들러 */
   const onChangeSort = (nextSortBy: "name" | "star") => {
     if (sortBy === nextSortBy) {
       setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
@@ -68,8 +72,8 @@ export default function GroupScreen() {
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
+      {/* ─── 정렬·검색 필터 ─── */}
       <div className="mb-5 flex flex-col gap-3">
-
         <div className="flex flex-col items-start gap-2 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500">정렬</span>
@@ -102,11 +106,13 @@ export default function GroupScreen() {
         </div>
       </div>
 
+      {/* ─── 총 개수 표시 ─── */}
       <div className="mb-4 text-sm text-gray-500 flex items-center gap-2">
         {isLoading ? <Spinner className="h-4 w-4 border-2" /> : null}
         <span>{isLoading ? "로딩중..." : `총 ${groups.length.toLocaleString()}개 그룹`}</span>
       </div>
 
+      {/* ─── 그룹 카드 그리드 ─── */}
       {isLoading ? (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 12 }).map((_, index) => (
@@ -153,6 +159,7 @@ export default function GroupScreen() {
                 tabIndex={0}
                 role="button"
               >
+                {/* ── 그룹 대표 이미지 + 이름 ── */}
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <div className="relative h-14 w-14 shrink-0">
                     {starredGroupIds.has(group.id) ? (
@@ -172,11 +179,9 @@ export default function GroupScreen() {
                           alt={group.name}
                           fill
                           sizes="56px"
-                          priority={index < 4}
-                          unoptimized={isSupabaseStorageUrl(group.image_url)}
-                          onError={() =>
-                            groupImages.markBroken(group.id)
-                          }
+                          priority={index === 0}
+                          loading={index === 0 ? "eager" : "lazy"}
+                          onError={() => groupImages.markBroken(group.id)}
                           className="object-contain"
                         />
                       ) : (
@@ -194,6 +199,7 @@ export default function GroupScreen() {
                   </div>
                 </div>
 
+                {/* ── 멤버 아바타 목록 ── */}
                 <div className="flex flex-wrap items-center gap-1.5">
                   {visibleMembers.map((member) => (
                     <Link
@@ -210,10 +216,8 @@ export default function GroupScreen() {
                             alt={member.nickname || "streamer"}
                             fill
                             sizes="32px"
-                            unoptimized={isSupabaseStorageUrl(member.image_url)}
-                            onError={() =>
-                              memberImages.markBroken(member.id)
-                            }
+                            loading="lazy"
+                            onError={() => memberImages.markBroken(member.id)}
                             className="object-contain"
                           />
                         ) : (

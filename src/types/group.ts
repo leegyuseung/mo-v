@@ -52,3 +52,8 @@ export type IdolGroupUpsertInput = {
   image_url: string | null;
   bg_color: string | null;
 };
+
+/** 그룹 상세 화면 컴포넌트에 전달하는 props */
+export type GroupDetailScreenProps = {
+  groupCode: string;
+};

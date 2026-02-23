@@ -1,17 +1,19 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, ExternalLink, Eye, UserRound } from "lucide-react";
+import { ExternalLink, Eye, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import Pagination from "@/components/common/pagination";
 import { useLiveStreamers } from "@/hooks/queries/live/use-live-streamers";
 import { useIdolGroupCodeNames } from "@/hooks/queries/groups/use-idol-group-code-names";
 import { useCrewCodeNames } from "@/hooks/queries/crews/use-crew-code-names";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useBrokenImages } from "@/hooks/use-broken-images";
 import type { StreamerPlatform } from "@/types/streamer";
+import type { LiveSortOrder } from "@/types/live";
 import { STREAMER_PLATFORM_OPTIONS } from "@/lib/constant";
 import { getPlatformActiveClass, getPlatformInactiveClass } from "@/utils/platform";
 import StreamerGroupCrewBadges from "@/components/common/streamer-group-crew-badges";
@@ -22,16 +24,14 @@ export default function LiveScreen() {
   const [page, setPage] = useState(1);
   const [platform, setPlatform] = useState<StreamerPlatform>("all");
   const [keyword, setKeyword] = useState("");
-  const [sortOrder, setSortOrder] = useState<
-    "name_asc" | "name_desc" | "viewer_desc" | "viewer_asc"
-  >("name_asc");
-  const [brokenImageByStreamerId, setBrokenImageByStreamerId] = useState<
-    Record<number, boolean>
-  >({});
+  const [sortOrder, setSortOrder] = useState<LiveSortOrder>("name_asc");
+  /** 라이브 썸네일 이미지 깨짐 추적 (fallback → 프로필 이미지) */
+  const brokenImages = useBrokenImages();
   const { data, isLoading } = useLiveStreamers();
   const { data: idolGroups } = useIdolGroupCodeNames();
   const { data: crews } = useCrewCodeNames();
 
+  /** 플랫폼·키워드·정렬 필터를 적용한 라이브 스트리머 목록 */
   const filteredLiveStreamers = useMemo(() => {
     const source = data || [];
     const keywordLower = keyword.trim().toLowerCase();
@@ -55,22 +55,17 @@ export default function LiveScreen() {
         return sortOrder === "name_asc" ? diff : -diff;
       });
   }, [data, keyword, platform, sortOrder]);
+
   const totalCount = filteredLiveStreamers.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const from = (page - 1) * pageSize;
   const to = from + pageSize;
   const pagedLiveStreamers = filteredLiveStreamers.slice(from, to);
-  const pageNumbers = useMemo(() => {
-    const size = 5;
-    const half = Math.floor(size / 2);
-    const start = Math.max(1, page - half);
-    const end = Math.min(totalPages, start + size - 1);
-    const adjustedStart = Math.max(1, end - size + 1);
-    return Array.from({ length: end - adjustedStart + 1 }, (_, i) => adjustedStart + i);
-  }, [page, totalPages]);
 
   const isNameSort = sortOrder === "name_asc" || sortOrder === "name_desc";
   const isViewerSort = sortOrder === "viewer_desc" || sortOrder === "viewer_asc";
+
+  /** 그룹 코드 → 이름 매핑 */
   const groupNameByCode = useMemo(() => {
     const map = new Map<string, string>();
     (idolGroups || []).forEach((group) => {
@@ -78,6 +73,8 @@ export default function LiveScreen() {
     });
     return map;
   }, [idolGroups]);
+
+  /** 소속 코드 → 이름 매핑 */
   const crewNameByCode = useMemo(() => {
     const map = new Map<string, string>();
     (crews || []).forEach((crew) => {
@@ -89,6 +86,7 @@ export default function LiveScreen() {
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
+      {/* ─── 플랫폼·정렬·검색 필터 ─── */}
       <div className="mb-5 flex flex-col gap-3">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-wrap gap-2">
@@ -177,12 +175,14 @@ export default function LiveScreen() {
         </div>
       </div>
 
+      {/* ─── 현재 라이브 수 ─── */}
       <div className="mb-4 text-sm text-gray-500">
         {isLoading
           ? "현재 라이브 데이터를 불러오는 중"
           : `현재 라이브 중 ${totalCount.toLocaleString()}명`}
       </div>
 
+      {/* ─── 라이브 카드 그리드 ─── */}
       {isLoading ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {[...Array(pageSize)].map((_, index) => (
@@ -207,13 +207,11 @@ export default function LiveScreen() {
             const liveThumbSrc = streamer.liveThumbnailImageUrl || "";
             const fallbackSrc = streamer.image_url || "";
             const hasLiveThumb = Boolean(liveThumbSrc);
-            const useFallback = brokenImageByStreamerId[streamer.id] === true;
+            const useFallback = brokenImages.isBroken(streamer.id);
             const imageSrc = useFallback
               ? fallbackSrc
               : liveThumbSrc || fallbackSrc;
             const isLiveThumb = hasLiveThumb && !useFallback;
-            const shouldBypassOptimizer =
-              imageSrc.includes("livecloud-thumb.akamaized.net");
 
             return (
               <Link
@@ -226,25 +224,19 @@ export default function LiveScreen() {
                   : "border-blue-200"
                   }`}
               >
+                {/* 썸네일: onError fallback이 필요하므로 <img> 유지 */}
                 <div className="relative mb-2 h-28 overflow-hidden rounded-lg bg-gray-100">
                   {imageSrc ? (
-                    <Image
+                    <img
                       src={imageSrc}
                       alt={streamer.nickname || "streamer"}
-                      fill
-                      sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 18vw"
                       loading={index === 0 ? "eager" : "lazy"}
-                      priority={index === 0}
-                      unoptimized={shouldBypassOptimizer}
                       onError={() => {
                         if (hasLiveThumb && !useFallback && fallbackSrc) {
-                          setBrokenImageByStreamerId((prev) => ({
-                            ...prev,
-                            [streamer.id]: true,
-                          }));
+                          brokenImages.markBroken(streamer.id);
                         }
                       }}
-                      className="object-cover transition group-hover:scale-[1.03]"
+                      className="absolute inset-0 h-full w-full object-cover transition group-hover:scale-[1.03]"
                     />
                   ) : (
                     <div className="h-full w-full flex items-center justify-center">
@@ -305,43 +297,13 @@ export default function LiveScreen() {
         </div>
       )}
 
-      {!isLoading && totalPages > 1 && (
-        <div className="mt-8 flex items-center justify-center gap-1.5">
-          <Button
-            type="button"
-            size="icon-sm"
-            variant="outline"
-            disabled={page <= 1}
-            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-            className="cursor-pointer"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-
-          {pageNumbers.map((num) => (
-            <Button
-              key={num}
-              type="button"
-              size="sm"
-              variant={num === page ? "default" : "outline"}
-              onClick={() => setPage(num)}
-              className={`cursor-pointer ${num === page ? "bg-gray-800 hover:bg-gray-900 text-white" : ""}`}
-            >
-              {num}
-            </Button>
-          ))}
-
-          <Button
-            type="button"
-            size="icon-sm"
-            variant="outline"
-            disabled={page >= totalPages}
-            onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-            className="cursor-pointer"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-        </div>
+      {/* ─── 페이지네이션 (공통 컴포넌트) ─── */}
+      {!isLoading && (
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
       )}
     </div>
   );

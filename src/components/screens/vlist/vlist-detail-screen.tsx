@@ -34,12 +34,11 @@ import { fetchStarCount } from "@/api/star";
 import StarCountBadge from "@/components/common/star-count-badge";
 import ReportRequestModal from "@/components/common/report-request-modal";
 import { useCreateEntityReportRequest } from "@/hooks/mutations/reports/use-create-entity-report-request";
+import type { VlistDetailScreenProps } from "@/types/streamer";
 
 export default function VlistDetailScreen({
   streamerPublicId,
-}: {
-  streamerPublicId: string;
-}) {
+}: VlistDetailScreenProps) {
   const [isEditRequestModalOpen, setIsEditRequestModalOpen] = useState(false);
   const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
   const [giftAmountInput, setGiftAmountInput] = useState("");
@@ -436,6 +435,8 @@ export default function VlistDetailScreen({
                   src={streamer.image_url}
                   alt={streamer.nickname || "streamer"}
                   fill
+                  priority
+                  loading="eager"
                   className="object-cover"
                   sizes="160px"
                 />

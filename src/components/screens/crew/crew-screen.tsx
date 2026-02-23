@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { useCrewCards } from "@/hooks/queries/crews/use-crew-cards";
 import { useAuthStore } from "@/store/useAuthStore";
 import { fetchStarredCrewIds } from "@/api/star";
-import { isSupabaseStorageUrl } from "@/utils/image";
 import { useBrokenImages } from "@/hooks/use-broken-images";
 
 export default function CrewScreen() {
@@ -22,7 +21,9 @@ export default function CrewScreen() {
   const [keyword, setKeyword] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "star">("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  /** 소속 대표 이미지 깨짐 추적 */
   const crewImages = useBrokenImages();
+  /** 멤버 아바타 이미지 깨짐 추적 */
   const memberImages = useBrokenImages();
   const { data, isLoading, isFetching } = useCrewCards();
   const { data: starredCrewIds = new Set<number>() } = useQuery({
@@ -31,6 +32,7 @@ export default function CrewScreen() {
     enabled: Boolean(user?.id),
   });
 
+  /** 키워드 필터 + 정렬을 적용한 소속 목록 */
   const crews = useMemo(() => {
     const source = data || [];
     const keywordLower = keyword.trim().toLowerCase();
@@ -56,6 +58,7 @@ export default function CrewScreen() {
     });
   }, [data, keyword, sortBy, sortOrder]);
 
+  /** 정렬 기준 변경 핸들러 */
   const onChangeSort = (nextSortBy: "name" | "star") => {
     if (sortBy === nextSortBy) {
       setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
@@ -68,6 +71,7 @@ export default function CrewScreen() {
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
+      {/* ─── 정렬·검색 필터 ─── */}
       <div className="mb-5 flex flex-col gap-3">
         <div className="flex flex-col items-start gap-2 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-2">
@@ -101,11 +105,13 @@ export default function CrewScreen() {
         </div>
       </div>
 
+      {/* ─── 총 개수 표시 ─── */}
       <div className="mb-4 text-sm text-gray-500 flex items-center gap-2">
         {isLoading ? <Spinner className="h-4 w-4 border-2" /> : null}
         <span>{isLoading ? "로딩중..." : `총 ${crews.length.toLocaleString()}개 소속`}</span>
       </div>
 
+      {/* ─── 소속 카드 그리드 ─── */}
       {isLoading ? (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 12 }).map((_, index) => (
@@ -152,6 +158,7 @@ export default function CrewScreen() {
                 tabIndex={0}
                 role="button"
               >
+                {/* ── 소속 대표 이미지 + 이름 ── */}
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <div className="relative h-14 w-14 shrink-0">
                     {starredCrewIds.has(crew.id) ? (
@@ -171,11 +178,9 @@ export default function CrewScreen() {
                           alt={crew.name}
                           fill
                           sizes="56px"
-                          priority={index < 4}
-                          unoptimized={isSupabaseStorageUrl(crew.image_url)}
-                          onError={() =>
-                            crewImages.markBroken(crew.id)
-                          }
+                          priority={index === 0}
+                          loading={index === 0 ? "eager" : "lazy"}
+                          onError={() => crewImages.markBroken(crew.id)}
                           className="object-contain"
                         />
                       ) : (
@@ -193,6 +198,7 @@ export default function CrewScreen() {
                   </div>
                 </div>
 
+                {/* ── 멤버 아바타 목록 ── */}
                 <div className="flex flex-wrap items-center gap-1.5">
                   {visibleMembers.map((member) => (
                     <Link
@@ -209,10 +215,8 @@ export default function CrewScreen() {
                             alt={member.nickname || "streamer"}
                             fill
                             sizes="32px"
-                            unoptimized={isSupabaseStorageUrl(member.image_url)}
-                            onError={() =>
-                              memberImages.markBroken(member.id)
-                            }
+                            loading="lazy"
+                            onError={() => memberImages.markBroken(member.id)}
                             className="object-contain"
                           />
                         ) : (

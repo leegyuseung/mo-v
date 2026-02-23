@@ -112,3 +112,8 @@ export type CrewDetailRow = {
   created_at: string;
   updated_at: string | null;
 };
+
+/** 크루 상세 화면 컴포넌트에 전달하는 props */
+export type CrewDetailScreenProps = {
+  crewCode: string;
+};

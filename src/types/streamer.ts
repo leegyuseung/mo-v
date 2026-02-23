@@ -35,3 +35,8 @@ export type CreateStreamerInfoEditRequestInput = {
   requesterId: string;
   requesterNickname: string | null;
 };
+
+/** 버츄얼 상세 화면 컴포넌트에 전달하는 props */
+export type VlistDetailScreenProps = {
+  streamerPublicId: string;
+};

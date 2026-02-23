@@ -25,3 +25,25 @@ export type MyStars = {
   groups: StarredGroup[];
   crews: StarredCrew[];
 };
+
+/** AvatarItem 컴포넌트에 전달하는 props (즐겨찾기 화면 전용) */
+export type AvatarItemProps = {
+  children: React.ReactNode;
+  title: string;
+  isEditMode?: boolean;
+  isMarked?: boolean;
+  onToggleMarked?: () => void;
+};
+
+/** HorizontalRow 컴포넌트에 전달하는 props (즐겨찾기 화면 전용) */
+export type HorizontalRowProps = {
+  title: string;
+  emptyText: string;
+  searchValue: string;
+  onSearchChange: (value: string) => void;
+  addHref?: string;
+  isEditable?: boolean;
+  isEditMode?: boolean;
+  onToggleEditMode?: () => void;
+  children: React.ReactNode[];
+};

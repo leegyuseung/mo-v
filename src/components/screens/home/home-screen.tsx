@@ -11,10 +11,13 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useHeartLeaderboard } from "@/hooks/queries/heart/use-heart-leaderboard";
 import { useStarredStreamerIds } from "@/hooks/queries/star/use-starred-streamer-ids";
 
-// 반복되는 화면 배열 처리를 위한 상수 함수
+/** 반복되는 화면 배열 처리를 위한 상수 함수 */
 const generateArray = (length: number) => Array.from({ length });
+
 export default function HomeScreen() {
   const { user } = useAuthStore();
+
+  /* ─────────── 데이터 페치(하트 랭킹) ─────────── */
   const { data: liveData, isLoading: isLiveLoading } = useLiveStreamers();
   const {
     data: allRank = [],
@@ -31,6 +34,7 @@ export default function HomeScreen() {
     isError: isWeeklyRankError,
   } = useHeartLeaderboard("weekly", 5);
 
+  /** 랭킹 카드 배열: 전체 / 이번달 / 이번주 */
   const rankCards: Array<{
     key: string;
     title: string;
@@ -59,8 +63,12 @@ export default function HomeScreen() {
         isError: isWeeklyRankError,
       },
     ];
+
+  /** 0보다 큰 하트를 가진 항목만 최대 5개까지 반환한다 */
   const getRankRows = (items: StreamerHeartLeaderboardItem[]) =>
     items.filter((item) => (item.total_received ?? 0) > 0).slice(0, 5);
+
+  /* ─────────── 라이브 중인 스트리머 셔플 ─────────── */
   const topLiveStreamers = useMemo(() => {
     const source = (liveData || []).filter((item) => item.isLive);
     const shuffled = [...source];
@@ -70,6 +78,8 @@ export default function HomeScreen() {
     }
     return shuffled.slice(0, 4);
   }, [liveData]);
+
+  /* ─────────── 즐겨찾기 + 라이브 ─────────── */
   const { data: starredStreamerIds = [] } = useStarredStreamerIds(user?.id);
   const liveFavoriteStreamers = useMemo(() => {
     const idSet = new Set(starredStreamerIds);
@@ -78,6 +88,7 @@ export default function HomeScreen() {
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
+      {/* ─── 배너 영역 ─── */}
       <section className="mx-auto w-full max-w-[1200px]">
         <div className="h-[200px] md:h-[200px] rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center flex flex-col items-center justify-center">
           <h2 className="text-lg font-semibold text-gray-800">배너 영역</h2>
@@ -87,6 +98,7 @@ export default function HomeScreen() {
         </div>
       </section>
 
+      {/* ─── 하트 랭킹 카드 섹션 ─── */}
       <section className="p-4 md:p-6">
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
           {rankCards.map((card) => (
@@ -158,6 +170,7 @@ export default function HomeScreen() {
                               alt={item.nickname || "virtual"}
                               fill
                               sizes="36px"
+                              loading="lazy"
                               className="object-cover"
                             />
                           ) : (
@@ -181,6 +194,7 @@ export default function HomeScreen() {
         </div>
       </section>
 
+      {/* ─── 라이브 & 즐겨찾기 카드 섹션 ─── */}
       <section className="p-4 md:p-6">
         {isLiveLoading ? (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -206,6 +220,7 @@ export default function HomeScreen() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {/* ── LIVE 카드 ── */}
             <div className="rounded-2xl border border-gray-100 bg-white p-4">
               <div className="mb-4 flex items-center justify-between">
                 <span className="inline-flex items-center justify-center rounded-full bg-red-600 px-2 py-0.5 text-[10px] text-white">
@@ -262,7 +277,9 @@ export default function HomeScreen() {
                                   src={streamer.image_url}
                                   alt={streamer.nickname || "streamer"}
                                   fill
-                                  sizes="80px"
+                                  sizes="(min-width: 768px) 80px, 56px"
+                                  priority={index === 0}
+                                  loading={index === 0 ? "eager" : "lazy"}
                                   className="object-cover"
                                 />
                               ) : (
@@ -283,6 +300,7 @@ export default function HomeScreen() {
               )}
             </div>
 
+            {/* ── STAR(즐겨찾기) 카드 ── */}
             <div className="rounded-2xl border border-gray-100 bg-white p-4">
               <div className="mb-4 flex items-center justify-between">
                 <span className="inline-flex items-center justify-center rounded-full bg-yellow-500 px-2 py-0.5 text-[10px] text-white">
@@ -346,7 +364,8 @@ export default function HomeScreen() {
                                   src={streamer.image_url}
                                   alt={streamer.nickname || "streamer"}
                                   fill
-                                  sizes="80px"
+                                  sizes="(min-width: 768px) 80px, 56px"
+                                  loading="lazy"
                                   className="object-cover"
                                 />
                               ) : (

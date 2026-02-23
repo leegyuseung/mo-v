@@ -9,3 +9,6 @@ export type PlatformLiveStatus = {
 };
 
 export type LiveStreamer = Streamer & PlatformLiveStatus;
+
+/** 라이브 목록의 정렬 방식 */
+export type LiveSortOrder = "name_asc" | "name_desc" | "viewer_desc" | "viewer_asc";
