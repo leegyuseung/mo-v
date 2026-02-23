@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
     imageSizes: [16, 24, 32, 40, 48, 56, 72, 80, 112, 160],
     formats: ["image/webp"],
     // 외부 이미지(프로필/썸네일)의 최소 캐시 보존 시간
-    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
+    minimumCacheTTL: 60 * 60 * 24 * 7, // 7 days
     // Next/Image 원격 최적화 허용 도메인 목록
     // CHZZK/SOOP 썸네일 CDN 도메인이 바뀌면 여기 먼저 추가해야 한다.
     remotePatterns: [
