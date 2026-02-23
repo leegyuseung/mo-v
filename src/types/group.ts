@@ -57,3 +57,9 @@ export type IdolGroupUpsertInput = {
 export type GroupDetailScreenProps = {
   groupCode: string;
 };
+
+/** 관리자 그룹 테이블 행 컴포넌트 props */
+export type GroupRowProps = {
+  group: IdolGroup;
+  matchedMembers: string[];
+};

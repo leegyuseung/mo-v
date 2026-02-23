@@ -7,19 +7,23 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ConfirmAlert from "@/components/common/confirm-alert";
 import { useEntityReportRequests } from "@/hooks/queries/admin/use-entity-report-requests";
 import { useDeleteEntityReportRequest } from "@/hooks/mutations/admin/use-delete-entity-report-request";
-import type { EntityReportRequest } from "@/types/report";
+import type { EntityReportRequest, ReportRequestRowProps } from "@/types/report";
 import { ADMIN_REVIEW_REWARD_POINT } from "@/lib/constant";
 
+/** 신고 대상 유형을 한국어 레이블로 변환한다 */
 function targetTypeLabel(targetType: EntityReportRequest["target_type"]) {
   if (targetType === "streamer") return "버츄얼";
   if (targetType === "group") return "그룹";
   return "소속";
 }
 
-function ReportRequestRow({ request }: { request: EntityReportRequest }) {
+/** 신고 요청 테이블의 개별 행 — 확인/거절 액션 포함 */
+function ReportRequestRow({ request }: ReportRequestRowProps) {
+  /** 확인/거절 다이얼로그 노출 상태 */
   const [confirmAction, setConfirmAction] = useState<"approve" | "reject" | null>(null);
   const { mutate: resolveRequest, isPending } = useDeleteEntityReportRequest();
 
+  /** 확인/거절 처리 핸들러 */
   const handleConfirm = () => {
     if (!confirmAction) return;
 
@@ -89,6 +93,7 @@ function ReportRequestRow({ request }: { request: EntityReportRequest }) {
   );
 }
 
+/** 관리자 신고 관리 화면 — 신고 목록 조회 및 확인/거절 처리 */
 export default function ReportRequestsScreen() {
   const { data: requests, isLoading } = useEntityReportRequests();
 

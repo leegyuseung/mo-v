@@ -6,14 +6,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ConfirmAlert from "@/components/common/confirm-alert";
 import { useStreamerInfoEditRequests } from "@/hooks/queries/admin/use-streamer-info-edit-requests";
 import { useDeleteStreamerInfoEditRequest } from "@/hooks/mutations/admin/use-delete-streamer-info-edit-request";
-import type { StreamerInfoEditRequest } from "@/types/admin";
+import type { InfoEditRequestRowProps } from "@/types/admin";
 import { UserRoundPen } from "lucide-react";
 import { ADMIN_REVIEW_REWARD_POINT } from "@/lib/constant";
 
-function InfoEditRequestRow({ request }: { request: StreamerInfoEditRequest }) {
+/** 정보 수정 요청 테이블의 개별 행 — 확인/거절 액션 포함 */
+function InfoEditRequestRow({ request }: InfoEditRequestRowProps) {
+  /** 확인/거절 다이얼로그 노출 상태 */
   const [confirmAction, setConfirmAction] = useState<"approve" | "reject" | null>(null);
   const { mutate: resolveRequest, isPending } = useDeleteStreamerInfoEditRequest();
 
+  /** 확인/거절 처리 핸들러 */
   const handleConfirm = () => {
     if (!confirmAction) return;
 
@@ -86,6 +89,7 @@ function InfoEditRequestRow({ request }: { request: StreamerInfoEditRequest }) {
   );
 }
 
+/** 관리자 정보 수정 요청 화면 — 요청 목록 조회 및 확인/거절 처리 */
 export default function InfoEditRequestsScreen() {
   const { data: requests, isLoading } = useStreamerInfoEditRequests();
 

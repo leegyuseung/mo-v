@@ -1,21 +1,7 @@
-import type { LucideIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+"use client";
 
-/** IconTooltipButton에 전달하는 props */
-type IconTooltipButtonProps = {
-    /** lucide-react 아이콘 컴포넌트 */
-    icon: LucideIcon;
-    /** 아이콘 추가 className (색상 등) */
-    iconClassName?: string;
-    /** 툴팁에 표시할 레이블 텍스트 */
-    label: string;
-    /** 툴팁 위치. left: 왼쪽 정렬, right: 오른쪽 정렬 */
-    tooltipAlign?: "left" | "right";
-    /** 클릭 핸들러 */
-    onClick?: () => void;
-    /** 비활성 상태 */
-    disabled?: boolean;
-};
+import { Button } from "@/components/ui/button";
+import type { IconTooltipButtonProps } from "@/types/common";
 
 /**
  * 아이콘 버튼 + hover 시 툴팁을 표시하는 공통 컴포넌트.

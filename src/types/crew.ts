@@ -117,3 +117,9 @@ export type CrewDetailRow = {
 export type CrewDetailScreenProps = {
   crewCode: string;
 };
+
+/** 관리자 소속 테이블 행 컴포넌트 props */
+export type CrewRowComponentProps = {
+  crew: Crew;
+  matchedMembers: string[];
+};

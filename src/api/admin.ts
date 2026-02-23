@@ -1,5 +1,5 @@
 import { createClient } from "@/utils/supabase/client";
-import type { DashboardStats } from "@/types/admin";
+import type { DashboardSignupTrendPoint, DashboardStats } from "@/types/admin";
 import type { Profile } from "@/types/profile";
 import { validateNicknameInput } from "@/utils/validate";
 
@@ -7,19 +7,98 @@ export type { DashboardStats, Profile };
 
 const supabase = createClient();
 
-/** 관리자 대시보드 통계를 집계하여 반환한다 (유저 수, 스트리머 수, 그룹 수, 가입방식별 분류) */
+function buildSignupTrend(
+    rows: Array<{ created_at: string; provider: string | null }> | null,
+    days: number
+): DashboardSignupTrendPoint[] {
+    const todayUtc = new Date();
+    const startDate = new Date(
+        Date.UTC(
+            todayUtc.getUTCFullYear(),
+            todayUtc.getUTCMonth(),
+            todayUtc.getUTCDate()
+        )
+    );
+    startDate.setUTCDate(startDate.getUTCDate() - (days - 1));
+
+    const trendMap = new Map<string, DashboardSignupTrendPoint>();
+
+    for (let i = 0; i < days; i += 1) {
+        const date = new Date(startDate);
+        date.setUTCDate(startDate.getUTCDate() + i);
+        const key = date.toISOString().slice(0, 10);
+
+        trendMap.set(key, {
+            date: key,
+            total: 0,
+            email: 0,
+            google: 0,
+            kakao: 0,
+        });
+    }
+
+    (rows || []).forEach((row) => {
+        const dayKey = row.created_at.slice(0, 10);
+        const point = trendMap.get(dayKey);
+        if (!point) return;
+
+        point.total += 1;
+        if (row.provider === "google") {
+            point.google += 1;
+            return;
+        }
+        if (row.provider === "kakao") {
+            point.kakao += 1;
+            return;
+        }
+        point.email += 1;
+    });
+
+    return Array.from(trendMap.values());
+}
+
+/** 관리자 대시보드 통계를 집계하여 반환한다 */
 export async function fetchDashboardStats(): Promise<DashboardStats> {
-    const { count: totalUsers } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true });
+    const trendDays = 14;
+    const todayUtc = new Date();
+    const trendStart = new Date(
+        Date.UTC(
+            todayUtc.getUTCFullYear(),
+            todayUtc.getUTCMonth(),
+            todayUtc.getUTCDate()
+        )
+    );
+    trendStart.setUTCDate(trendStart.getUTCDate() - (trendDays - 1));
 
-    const { count: totalStreamers } = await supabase
-        .from("streamers")
-        .select("*", { count: "exact", head: true });
-
-    const { count: totalGroups } = await supabase
-        .from("idol_groups")
-        .select("*", { count: "exact", head: true });
+    const [
+        { count: totalUsers },
+        { count: totalStreamers },
+        { count: totalGroups },
+        { count: totalCrews },
+        { count: pendingStreamerRequests },
+        { count: pendingInfoEditRequests },
+        { count: pendingReportRequests },
+        { data: signupRows, error: signupRowsError },
+    ] = await Promise.all([
+        supabase.from("profiles").select("*", { count: "exact", head: true }),
+        supabase.from("streamers").select("*", { count: "exact", head: true }),
+        supabase.from("idol_groups").select("*", { count: "exact", head: true }),
+        supabase.from("crews").select("*", { count: "exact", head: true }),
+        supabase
+            .from("streamer_registration_requests")
+            .select("*", { count: "exact", head: true })
+            .eq("status", "pending"),
+        supabase
+            .from("streamer_info_edit_requests")
+            .select("*", { count: "exact", head: true }),
+        supabase
+            .from("entity_report_requests")
+            .select("*", { count: "exact", head: true }),
+        supabase
+            .from("profiles")
+            .select("created_at, provider")
+            .gte("created_at", trendStart.toISOString()),
+    ]);
 
     let emailUsers = 0;
     let googleUsers = 0;
@@ -40,6 +119,13 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
         emailUsers = totalUsers || 0;
     }
 
+    const signupTrend = signupRowsError
+        ? buildSignupTrend(null, trendDays)
+        : buildSignupTrend(
+            (signupRows || []) as Array<{ created_at: string; provider: string | null }>,
+            trendDays
+        );
+
     return {
         totalUsers: totalUsers || 0,
         emailUsers,
@@ -47,6 +133,11 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
         kakaoUsers,
         totalStreamers: totalStreamers || 0,
         totalGroups: totalGroups || 0,
+        totalCrews: totalCrews || 0,
+        pendingStreamerRequests: pendingStreamerRequests || 0,
+        pendingInfoEditRequests: pendingInfoEditRequests || 0,
+        pendingReportRequests: pendingReportRequests || 0,
+        signupTrend,
     };
 }
 

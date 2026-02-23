@@ -1,18 +1,9 @@
+"use client";
+
 import { useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-/** Pagination에 전달하는 props */
-type PaginationProps = {
-    /** 현재 페이지 번호 (1-based) */
-    page: number;
-    /** 전체 페이지 수 */
-    totalPages: number;
-    /** 페이지 변경 콜백 */
-    onPageChange: (page: number) => void;
-    /** 한 번에 표시할 페이지 번호 개수 (기본 5) */
-    visibleCount?: number;
-};
+import type { PaginationProps } from "@/types/common";
 
 /**
  * 페이지 번호 + 이전/다음 버튼을 표시하는 공통 페이지네이션 컴포넌트.

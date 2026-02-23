@@ -10,13 +10,60 @@ export function useRegisterStreamerFromRequest() {
             requestId,
             nickname,
             imageUrl,
+            chzzkId,
+            soopId,
             groupName,
+            crewName,
+            birthday,
+            nationality,
+            gender,
+            genre,
+            firstStreamDate,
+            fandomName,
+            mbti,
+            alias,
+            platformUrl,
+            fancafeUrl,
+            youtubeUrl,
         }: {
             requestId: number;
             nickname: string;
             imageUrl: string;
+            chzzkId: string | null;
+            soopId: string | null;
             groupName: string[] | null;
-        }) => registerStreamerFromRequest(requestId, { nickname, imageUrl, groupName }),
+            crewName: string[] | null;
+            birthday: string | null;
+            nationality: string | null;
+            gender: string | null;
+            genre: string[] | null;
+            firstStreamDate: string | null;
+            fandomName: string | null;
+            mbti: string | null;
+            alias: string[] | null;
+            platformUrl: string | null;
+            fancafeUrl: string | null;
+            youtubeUrl: string | null;
+        }) =>
+            registerStreamerFromRequest(requestId, {
+                nickname,
+                imageUrl,
+                chzzkId,
+                soopId,
+                groupName,
+                crewName,
+                birthday,
+                nationality,
+                gender,
+                genre,
+                firstStreamDate,
+                fandomName,
+                mbti,
+                alias,
+                platformUrl,
+                fancafeUrl,
+                youtubeUrl,
+            }),
         onSuccess: () => {
             queryClient.invalidateQueries({
                 queryKey: ["admin", "pending-streamer-requests"],

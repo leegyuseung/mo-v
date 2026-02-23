@@ -8,7 +8,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useStreamers } from "@/hooks/queries/streamers/use-streamers";
 import { useIdolGroupCodeNames } from "@/hooks/queries/groups/use-idol-group-code-names";
 import { useCrewCodeNames } from "@/hooks/queries/crews/use-crew-code-names";
@@ -27,6 +26,9 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { fetchStarredStreamerIds } from "@/api/star";
 import { getPlatformActiveClass, getPlatformInactiveClass } from "@/utils/platform";
+import PlatformBadge from "@/components/common/platform-badge";
+import StreamerCardSkeleton from "@/components/common/streamer-card-skeleton";
+import { generateArray } from "@/utils/array";
 
 export default function VlistScreen() {
   const [page, setPage] = useState(1);
@@ -168,21 +170,8 @@ export default function VlistScreen() {
 
       {isLoading ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {Array.from({ length: pageSize }).map((_, index) => (
-            <div
-              key={`vlist-skeleton-${index}`}
-              className="rounded-xl border border-gray-100 bg-white p-2.5 shadow-sm"
-            >
-              <Skeleton className="mb-2 h-28 w-full rounded-lg" />
-              <div className="mb-1 flex items-center justify-between gap-1">
-                <Skeleton className="h-4 w-20" />
-                <Skeleton className="h-4 w-12 rounded-full" />
-              </div>
-              <div className="mt-1 flex flex-wrap gap-1.5">
-                <Skeleton className="h-4 w-14 rounded-full" />
-                <Skeleton className="h-4 w-12 rounded-full" />
-              </div>
-            </div>
+          {generateArray(pageSize).map((_, index) => (
+            <StreamerCardSkeleton key={`vlist-skeleton-${index}`} />
           ))}
         </div>
       ) : streamers.length === 0 ? (
@@ -223,14 +212,7 @@ export default function VlistScreen() {
                 <p className="truncate text-sm font-semibold text-gray-900">
                   {streamer.nickname || "이름 미등록"}
                 </p>
-                <span
-                  className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${streamer.platform === "chzzk"
-                    ? "bg-green-100 text-green-700"
-                    : "bg-blue-100 text-blue-700"
-                    }`}
-                >
-                  {streamer.platform?.toUpperCase() || "UNKNOWN"}
-                </span>
+                <PlatformBadge platform={streamer.platform || "UNKNOWN"} />
               </div>
 
               {(streamer.group_name && streamer.group_name.length > 0) ||

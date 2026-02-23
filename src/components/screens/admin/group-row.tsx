@@ -6,7 +6,7 @@ import ConfirmAlert from "@/components/common/confirm-alert";
 import { useUpdateIdolGroup } from "@/hooks/mutations/admin/use-update-idol-group";
 import { useDeleteIdolGroup } from "@/hooks/mutations/admin/use-delete-idol-group";
 import { uploadIdolGroupImage } from "@/api/admin-groups";
-import type { IdolGroupUpsertInput, IdolGroup } from "@/types/group";
+import type { IdolGroupUpsertInput, GroupRowProps } from "@/types/group";
 import { Pencil, Check, X, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import GroupFormFields from "./group-form-fields";
@@ -15,10 +15,7 @@ import GroupFormFields from "./group-form-fields";
 export default function GroupRow({
     group,
     matchedMembers,
-}: {
-    group: IdolGroup;
-    matchedMembers: string[];
-}) {
+}: GroupRowProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -43,15 +40,24 @@ export default function GroupRow({
     const { mutate: updateGroup, isPending: isUpdating } = useUpdateIdolGroup();
     const { mutate: deleteGroup, isPending: isDeleting } = useDeleteIdolGroup();
 
+    /**
+     * 폼 필드 값 변경 핸들러 (nullable 필드 자동 변환).
+     * 빈 문자열을 null로 변환하여 DB에 저장 시 일관성을 유지한다.
+     */
     const setField = (
         key: keyof IdolGroupUpsertInput,
         rawValue: string | boolean | null
     ) => {
+        // bg_color는 boolean을 "true" 문자열 또는 null로 변환 (특수 처리)
         if (key === "bg_color") {
             setForm((prev) => ({ ...prev, bg_color: rawValue ? "true" : null }));
             return;
         }
+
+        // 입력값을 문자열로 정규화
         const valueString = typeof rawValue === "string" ? rawValue : "";
+
+        // null 허용 필드 목록 정의
         const nullableKeys: Array<keyof IdolGroupUpsertInput> = [
             "leader",
             "fandom_name",
@@ -63,6 +69,7 @@ export default function GroupRow({
             "image_url",
         ];
 
+        // nullable 필드는 빈 문자열을 null로 변환, 필수 필드는 빈 문자열 유지
         const value = nullableKeys.includes(key)
             ? valueString || null
             : valueString;
@@ -70,6 +77,7 @@ export default function GroupRow({
         setForm((prev) => ({ ...prev, [key]: value }));
     };
 
+    /** 저장 버튼 핸들러 — 필수값 검증 후 mutation 실행 */
     const handleSave = () => {
         if (!form.group_code.trim() || !form.name.trim()) {
             toast.error("식별코드와 이름은 필수입니다.");
@@ -98,12 +106,14 @@ export default function GroupRow({
         );
     };
 
+    /** 삭제 처리 핸들러 */
     const handleDelete = () => {
         deleteGroup(group.id, {
             onSuccess: () => setIsDeleteAlertOpen(false),
         });
     };
 
+    /** 대표 이미지 업로드 핸들러 */
     const handleUploadImage = async (file: File | null) => {
         if (!file) return;
         setIsUploadingImage(true);

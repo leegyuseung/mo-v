@@ -1,17 +1,8 @@
 "use client";
 
-import type { LucideIcon } from "lucide-react";
+import type { StatCardProps } from "@/types/admin";
 
-type StatCardProps = {
-  title: string;
-  value: number;
-  icon: LucideIcon;
-  color: string;
-  bgLight: string;
-  textColor: string;
-  ratioBase: number;
-};
-
+/** 대시보드 통계 카드 — 제목, 수치, 아이콘, 비율 바를 표시한다 */
 export function StatCard({
   title,
   value,
@@ -20,6 +11,7 @@ export function StatCard({
   bgLight,
   textColor,
   ratioBase,
+  unit = "명",
 }: StatCardProps) {
   const ratio = Math.min(100, ratioBase > 0 ? (value / ratioBase) * 100 : 0);
 
@@ -37,7 +29,7 @@ export function StatCard({
         <span className="text-3xl font-bold text-gray-900">
           {value.toLocaleString()}
         </span>
-        <span className="text-sm text-gray-400 mb-1">명</span>
+        <span className="text-sm text-gray-400 mb-1">{unit}</span>
       </div>
       <div className="mt-3 h-1.5 bg-gray-100 rounded-full overflow-hidden">
         <div
@@ -49,6 +41,7 @@ export function StatCard({
   );
 }
 
+/** 통계 카드의 로딩 스켈레톤 */
 export function StatCardSkeleton() {
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm animate-pulse">

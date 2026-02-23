@@ -116,7 +116,25 @@ export async function deleteStreamerRequest(requestId: number) {
  */
 export async function registerStreamerFromRequest(
     requestId: number,
-    payload: { nickname: string; imageUrl: string; groupName: string[] | null }
+    payload: {
+        nickname: string;
+        imageUrl: string;
+        chzzkId: string | null;
+        soopId: string | null;
+        groupName: string[] | null;
+        crewName: string[] | null;
+        birthday: string | null;
+        nationality: string | null;
+        gender: string | null;
+        genre: string[] | null;
+        firstStreamDate: string | null;
+        fandomName: string | null;
+        mbti: string | null;
+        alias: string[] | null;
+        platformUrl: string | null;
+        fancafeUrl: string | null;
+        youtubeUrl: string | null;
+    }
 ) {
     const { data: request, error: requestError } = await supabase
         .from(STREAMER_REQUEST_TABLE)
@@ -132,10 +150,26 @@ export async function registerStreamerFromRequest(
     const insertPayload = {
         nickname: payload.nickname,
         platform: request.platform,
-        chzzk_id: request.platform === "chzzk" ? request.platform_streamer_id : null,
-        soop_id: request.platform === "soop" ? request.platform_streamer_id : null,
+        chzzk_id:
+            payload.chzzkId ??
+            (request.platform === "chzzk" ? request.platform_streamer_id : null),
+        soop_id:
+            payload.soopId ??
+            (request.platform === "soop" ? request.platform_streamer_id : null),
         image_url: payload.imageUrl,
         group_name: payload.groupName,
+        crew_name: payload.crewName,
+        birthday: payload.birthday,
+        nationality: payload.nationality,
+        gender: payload.gender,
+        genre: payload.genre,
+        first_stream_date: payload.firstStreamDate,
+        fandom_name: payload.fandomName,
+        mbti: payload.mbti,
+        alias: payload.alias,
+        platform_url: payload.platformUrl,
+        fancafe_url: payload.fancafeUrl,
+        youtube_url: payload.youtubeUrl,
     };
 
     const { data: insertedStreamer, error: insertError } = await supabase

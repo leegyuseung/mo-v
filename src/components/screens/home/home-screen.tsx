@@ -10,9 +10,7 @@ import { useLiveStreamers } from "@/hooks/queries/live/use-live-streamers";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useHeartLeaderboard } from "@/hooks/queries/heart/use-heart-leaderboard";
 import { useStarredStreamerIds } from "@/hooks/queries/star/use-starred-streamer-ids";
-
-/** 반복되는 화면 배열 처리를 위한 상수 함수 */
-const generateArray = (length: number) => Array.from({ length });
+import { generateArray } from "@/utils/array";
 
 export default function HomeScreen() {
   const { user } = useAuthStore();
