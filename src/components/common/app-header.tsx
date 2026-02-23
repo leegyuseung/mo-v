@@ -9,6 +9,8 @@ import { useSignOut } from "@/hooks/mutations/auth/use-sign-out";
 import { CalendarDays, Gift, Menu, Star, X } from "lucide-react";
 import { useSidebar } from "../ui/sidebar";
 import AppHeaderProfileMenu from "@/components/common/app-header-profile-menu";
+import AnimatedGiftIcon from "@/components/common/animated-gift-icon";
+import AnimatedRewardHeart from "@/components/common/animated-reward-heart";
 import { claimDailyGiftBox, fetchDailyGiftBoxStatus } from "@/api/event";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -188,16 +190,14 @@ export default function AppHeader() {
                   type="button"
                   onClick={openGiftBox}
                   disabled={isGiftOpening}
-                  className={`relative inline-flex h-28 w-28 items-center justify-center rounded-2xl border-2 border-red-200 bg-white text-red-500 transition ${isGiftOpening ? "scale-110 animate-pulse" : "hover:scale-105"
+                  className={`relative inline-flex h-28 w-28 items-center justify-center rounded-2xl bg-white text-gray-900 transition ${isGiftOpening ? "scale-110 animate-pulse" : "hover:scale-105"
                     }`}
                 >
-                  <Gift className="h-11 w-11" />
+                  <AnimatedGiftIcon className="h-20 w-20 text-black cursor-pointer" />
                 </button>
               ) : (
                 <div className="text-center">
-                  <div className="mx-auto mb-2 inline-flex h-16 w-16 items-center justify-center rounded-full bg-red-50">
-                    <span className="text-2xl">❤️</span>
-                  </div>
+                  <AnimatedRewardHeart className="mx-auto mb-2" />
                   <p className="text-sm text-gray-500">오늘 받은 하트</p>
                   <p className="mt-1 text-3xl font-bold text-red-600">
                     {giftAmount.toLocaleString()}하트
@@ -212,7 +212,7 @@ export default function AppHeader() {
                   type="button"
                   onClick={openGiftBox}
                   disabled={isGiftOpening}
-                  className="cursor-pointer bg-red-500 hover:bg-red-600 text-white"
+                  className="cursor-pointer bg-black hover:bg-gray-900 text-white"
                 >
                   {isGiftOpening ? "상자 여는 중..." : "상자 열기"}
                 </Button>
