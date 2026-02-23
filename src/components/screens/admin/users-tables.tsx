@@ -277,11 +277,7 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
               className="h-8 text-sm w-36"
             />
           ) : streamer.image_url ? (
-            <img
-              src={streamer.image_url}
-              alt={streamer.nickname || ""}
-              className="w-8 h-8 rounded-full object-cover"
-            />
+            <span className="text-gray-400 text-xs">숨김</span>
           ) : (
             <span className="text-gray-400 text-xs">없음</span>
           )}
@@ -483,7 +479,12 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
               className="h-8 text-sm w-52"
             />
           ) : (
-            <span className="text-gray-500 text-xs">{streamer.platform_url || "-"}</span>
+            <span
+              className="inline-block max-w-[180px] truncate align-middle text-gray-500 text-xs"
+              title={streamer.platform_url || ""}
+            >
+              {streamer.platform_url || "-"}
+            </span>
           )}
         </td>
         <td className="px-4 py-3 text-sm">
@@ -495,7 +496,12 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
               className="h-8 text-sm w-52"
             />
           ) : (
-            <span className="text-gray-500 text-xs">{streamer.fancafe_url || "-"}</span>
+            <span
+              className="inline-block max-w-[180px] truncate align-middle text-gray-500 text-xs"
+              title={streamer.fancafe_url || ""}
+            >
+              {streamer.fancafe_url || "-"}
+            </span>
           )}
         </td>
         <td className="px-4 py-3 text-sm">
@@ -507,7 +513,12 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
               className="h-8 text-sm w-52"
             />
           ) : (
-            <span className="text-gray-500 text-xs">{streamer.youtube_url || "-"}</span>
+            <span
+              className="inline-block max-w-[180px] truncate align-middle text-gray-500 text-xs"
+              title={streamer.youtube_url || ""}
+            >
+              {streamer.youtube_url || "-"}
+            </span>
           )}
         </td>
         <td className="px-4 py-3">
