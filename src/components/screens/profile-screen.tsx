@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-    User,
+    UserRound,
     Camera,
     Mail,
     CalendarDays,
@@ -31,9 +31,16 @@ import {
 import { toast } from "sonner";
 import ConfirmAlert from "@/components/common/confirm-alert";
 
-export default function ProfileScreen() {
+type ProfileScreenProps = {
+    embedded?: boolean;
+};
+
+export default function ProfileScreen({ embedded = false }: ProfileScreenProps) {
     const { user, profile, heartPoints, isLoading, clearSession } = useAuthStore();
     const { mutate: updateProfile, isPending } = useUpdateProfile();
+    const loadingContainerClass = embedded ? "w-full" : "max-w-2xl mx-auto p-6 mt-4";
+    const emptyContainerClass = embedded ? "w-full" : "max-w-2xl mx-auto p-6 mt-8";
+    const contentContainerClass = embedded ? "w-full" : "max-w-2xl mx-auto p-6 mt-4";
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -241,7 +248,7 @@ export default function ProfileScreen() {
 
     if (isLoading) {
         return (
-            <div className="max-w-2xl mx-auto p-6 mt-4">
+            <div className={loadingContainerClass}>
                 <div className="mb-8 space-y-2">
                     <Skeleton className="h-8 w-32" />
                     <Skeleton className="h-4 w-56" />
@@ -281,9 +288,9 @@ export default function ProfileScreen() {
 
     if (!user || !profile) {
         return (
-            <div className="max-w-2xl mx-auto p-6 mt-8">
+            <div className={emptyContainerClass}>
                 <div className="text-center py-16">
-                    <User className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                    <UserRound className="w-16 h-16 mx-auto text-gray-300 mb-4" />
                     <h2 className="text-xl font-semibold text-gray-700 mb-2">
                         로그인이 필요합니다
                     </h2>
@@ -296,14 +303,7 @@ export default function ProfileScreen() {
     }
 
     return (
-        <div className="max-w-2xl mx-auto p-6 mt-4">
-            {/* 페이지 헤더 */}
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">프로필 수정</h1>
-                <p className="text-sm text-gray-500 mt-1">
-                    나의 프로필 정보를 수정할 수 있습니다.
-                </p>
-            </div>
+        <div className={contentContainerClass}>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
                 {/* 프로필 사진 섹션 */}
@@ -319,8 +319,8 @@ export default function ProfileScreen() {
                                 ) : profile.avatar_url ? (
                                     <AvatarImage src={profile.avatar_url} alt="프로필 사진" />
                                 ) : (
-                                    <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500">
-                                        <User className="w-12 h-12 text-white" />
+                                    <AvatarFallback className="bg-white border border-gray-100">
+                                        <UserRound className="w-12 h-12 text-gray-300" />
                                     </AvatarFallback>
                                 )}
                             </Avatar>

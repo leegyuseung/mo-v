@@ -107,20 +107,20 @@ export default function AppHeader() {
           />
         </Link>
       </div>
-      <div className="flex items-center gap-2 md:gap-3">
+      <div className="flex items-center gap-1.5 md:gap-3">
         <div className="group relative">
           <Link
             href="/star"
             aria-label="즐겨찾기"
-            className="h-10 w-10 inline-flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer"
+            className="h-9 w-9 md:h-10 md:w-10 inline-flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer"
           >
             <Star className="w-4 h-4" />
           </Link>
-          <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+          <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hidden md:block">
             즐겨찾기
           </span>
         </div>
-        <div className="group relative">
+        <div className="group relative hidden md:block">
           <button
             type="button"
             aria-label="출석 이벤트(준비중)"
@@ -137,15 +137,15 @@ export default function AppHeader() {
             type="button"
             aria-label="선물 이벤트"
             onClick={onClickGiftEvent}
-            className="h-10 w-10 inline-flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer"
+            className="h-9 w-9 md:h-10 md:w-10 inline-flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer"
           >
             <Gift className="w-4 h-4" />
           </button>
-          <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+          <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hidden md:block">
             선물 이벤트 (1~50하트)
           </span>
         </div>
-        <div className="group relative">
+        <div className="group relative hidden md:block">
           <button
             type="button"
             aria-label="메시지 (준비중)"
@@ -157,7 +157,7 @@ export default function AppHeader() {
             메시지 (준비중)
           </span>
         </div>
-        <div className="group relative">
+        <div className="group relative hidden md:block">
           <button
             type="button"
             aria-label="알림(준비중)"

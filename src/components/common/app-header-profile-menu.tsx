@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import type { HeartPoints, Profile } from "@/types/profile";
-import { ChevronRight, Heart, LogOut, User } from "lucide-react";
+import { ChevronRight, Heart, LogOut, UserRound } from "lucide-react";
 
 type AppHeaderProfileMenuProps = {
   user: SupabaseUser;
@@ -56,7 +56,7 @@ export default function AppHeaderProfileMenu({
             className="rounded-full"
           />
         ) : (
-          <User className="w-5 h-5" />
+          <UserRound className="w-5 h-5" />
         )}
         <span className="hidden md:inline">
           {profile?.nickname || user.email || "사용자"}
@@ -76,7 +76,7 @@ export default function AppHeaderProfileMenu({
               />
             ) : (
               <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                <User className="w-6 h-6 text-gray-400" />
+                <UserRound className="w-6 h-6 text-gray-400" />
               </div>
             )}
             <div className="flex-1 min-w-0">
