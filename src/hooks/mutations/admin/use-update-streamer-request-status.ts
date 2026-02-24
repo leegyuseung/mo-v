@@ -10,10 +10,12 @@ export function useUpdateStreamerRequestStatus() {
         mutationFn: ({
             requestId,
             status,
+            reviewNote,
         }: {
             requestId: number;
             status: StreamerRequestStatus;
-        }) => updateStreamerRequestStatus(requestId, status),
+            reviewNote?: string;
+        }) => updateStreamerRequestStatus(requestId, status, reviewNote),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({
                 queryKey: ["admin", "pending-streamer-requests"],
@@ -23,6 +25,8 @@ export function useUpdateStreamerRequestStatus() {
                 toast.success("등록 요청을 승인했습니다.");
             } else if (variables.status === "rejected") {
                 toast.success("등록 요청을 거절했습니다.");
+            } else if (variables.status === "cancelled") {
+                toast.success("등록 요청을 취소했습니다.");
             } else {
                 toast.success("요청 상태를 변경했습니다.");
             }

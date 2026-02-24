@@ -2,17 +2,19 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { resolveStreamerInfoEditRequest } from "@/api/admin-streamers";
 import { toast } from "sonner";
 
-export function useDeleteStreamerInfoEditRequest() {
+export function useResolveStreamerInfoEditRequest() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({
       requestId,
       action,
+      reviewNote,
     }: {
       requestId: number;
       action: "approve" | "reject";
-    }) => resolveStreamerInfoEditRequest(requestId, action),
+      reviewNote?: string;
+    }) => resolveStreamerInfoEditRequest(requestId, action, reviewNote),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["admin", "streamer-info-edit-requests"],

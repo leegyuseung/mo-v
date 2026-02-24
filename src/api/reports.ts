@@ -29,6 +29,7 @@ export async function createEntityReportRequest({
     reporter_id: reporterId,
     reporter_nickname: reporterNickname,
     content: trimmedContent,
+    status: "pending",
   });
 
   if (error) {

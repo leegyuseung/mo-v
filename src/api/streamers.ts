@@ -229,6 +229,7 @@ export async function createStreamerInfoEditRequest({
     streamer_nickname: streamerNickname,
     requester_id: requesterId,
     requester_nickname: requesterNickname,
+    status: "pending",
   });
 
   if (error) {

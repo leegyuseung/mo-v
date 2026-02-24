@@ -157,6 +157,7 @@ export async function createGroupInfoEditRequest({
     streamer_nickname: `[GROUP] ${groupName}`,
     requester_id: requesterId,
     requester_nickname: requesterNickname,
+    status: "pending",
   });
 
   if (error) throw error;

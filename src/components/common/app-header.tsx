@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useSignOut } from "@/hooks/mutations/auth/use-sign-out";
-import { CalendarDays, Gift, Menu, Star, X } from "lucide-react";
+import { Bell, CalendarDays, Gift, Menu, MessageCircle, Star, X } from "lucide-react";
 import { useSidebar } from "../ui/sidebar";
 import AppHeaderProfileMenu from "@/components/common/app-header-profile-menu";
 import AnimatedGiftIcon from "@/components/common/animated-gift-icon";
@@ -143,6 +143,30 @@ export default function AppHeader() {
           </button>
           <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
             선물 이벤트 (1~50하트)
+          </span>
+        </div>
+        <div className="group relative">
+          <button
+            type="button"
+            aria-label="메시지 (준비중)"
+            className="h-10 w-10 inline-flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer"
+          >
+            <MessageCircle className="w-4 h-4" />
+          </button>
+          <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+            메시지 (준비중)
+          </span>
+        </div>
+        <div className="group relative">
+          <button
+            type="button"
+            aria-label="알림(준비중)"
+            className="h-10 w-10 inline-flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer"
+          >
+            <Bell className="w-4 h-4" />
+          </button>
+          <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+            알림 (준비중)
           </span>
         </div>
         {isLoading ? (

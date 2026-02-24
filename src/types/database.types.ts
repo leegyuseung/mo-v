@@ -228,6 +228,10 @@ export type Database = {
           id: number
           reporter_id: string
           reporter_nickname: string | null
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
           target_code: string
           target_name: string | null
           target_type: string
@@ -238,6 +242,10 @@ export type Database = {
           id?: number
           reporter_id: string
           reporter_nickname?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
           target_code: string
           target_name?: string | null
           target_type: string
@@ -248,6 +256,10 @@ export type Database = {
           id?: number
           reporter_id?: string
           reporter_nickname?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
           target_code?: string
           target_name?: string | null
           target_type?: string
@@ -382,6 +394,10 @@ export type Database = {
           id: number
           requester_id: string
           requester_nickname: string | null
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
           streamer_id: number
           streamer_nickname: string
         }
@@ -391,6 +407,10 @@ export type Database = {
           id?: number
           requester_id: string
           requester_nickname?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
           streamer_id: number
           streamer_nickname: string
         }
@@ -400,6 +420,10 @@ export type Database = {
           id?: number
           requester_id?: string
           requester_nickname?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
           streamer_id?: number
           streamer_nickname?: string
         }

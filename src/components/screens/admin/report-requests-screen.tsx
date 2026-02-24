@@ -4,9 +4,10 @@ import { useState } from "react";
 import { Siren } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import ConfirmAlert from "@/components/common/confirm-alert";
 import { useEntityReportRequests } from "@/hooks/queries/admin/use-entity-report-requests";
-import { useDeleteEntityReportRequest } from "@/hooks/mutations/admin/use-delete-entity-report-request";
+import { useResolveEntityReportRequest } from "@/hooks/mutations/admin/use-delete-entity-report-request";
 import type { EntityReportRequest, ReportRequestRowProps } from "@/types/report";
 import { ADMIN_REVIEW_REWARD_POINT } from "@/lib/constant";
 
@@ -21,7 +22,8 @@ function targetTypeLabel(targetType: EntityReportRequest["target_type"]) {
 function ReportRequestRow({ request }: ReportRequestRowProps) {
   /** 확인/거절 다이얼로그 노출 상태 */
   const [confirmAction, setConfirmAction] = useState<"approve" | "reject" | null>(null);
-  const { mutate: resolveRequest, isPending } = useDeleteEntityReportRequest();
+  const [reviewNote, setReviewNote] = useState("");
+  const { mutate: resolveRequest, isPending } = useResolveEntityReportRequest();
 
   /** 확인/거절 처리 핸들러 */
   const handleConfirm = () => {
@@ -31,9 +33,13 @@ function ReportRequestRow({ request }: ReportRequestRowProps) {
       {
         requestId: request.id,
         action: confirmAction,
+        reviewNote: confirmAction === "reject" ? reviewNote.trim() : undefined,
       },
       {
-        onSuccess: () => setConfirmAction(null),
+        onSuccess: () => {
+          setConfirmAction(null);
+          setReviewNote("");
+        },
       }
     );
   };
@@ -80,15 +86,28 @@ function ReportRequestRow({ request }: ReportRequestRowProps) {
         title={confirmAction === "approve" ? "신고 확인" : "신고 거절"}
         description={
           confirmAction === "approve"
-            ? `확인하시겠습니까? 신고자에게 ${ADMIN_REVIEW_REWARD_POINT}하트가 지급되고 신고 데이터는 삭제됩니다.`
-            : "거절하시겠습니까? 하트 지급 없이 신고 데이터가 삭제됩니다."
+            ? `확인하시겠습니까? 신고자에게 ${ADMIN_REVIEW_REWARD_POINT}하트가 지급되고 신고 상태가 저장됩니다.`
+            : "거절하시겠습니까? 하트 지급 없이 신고 상태가 저장됩니다."
         }
         confirmText={confirmAction === "approve" ? "확인" : "거절"}
         cancelText="취소"
         isPending={isPending}
+        confirmDisabled={confirmAction === "reject" && !reviewNote.trim()}
         onConfirm={handleConfirm}
-        onCancel={() => setConfirmAction(null)}
-      />
+        onCancel={() => {
+          setConfirmAction(null);
+          setReviewNote("");
+        }}
+      >
+        {confirmAction === "reject" ? (
+          <Textarea
+            value={reviewNote}
+            onChange={(event) => setReviewNote(event.target.value)}
+            placeholder="거절 사유를 입력해 주세요."
+            className="min-h-[88px]"
+          />
+        ) : null}
+      </ConfirmAlert>
     </>
   );
 }

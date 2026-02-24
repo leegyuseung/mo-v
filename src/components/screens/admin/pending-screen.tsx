@@ -6,13 +6,15 @@ import { Clock, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePendingStreamerRequests } from "@/hooks/queries/admin/use-pending-streamer-requests";
-import { useDeleteStreamerRequest } from "@/hooks/mutations/admin/use-delete-streamer-request";
+import { useUpdateStreamerRequestStatus } from "@/hooks/mutations/admin/use-update-streamer-request-status";
 import { useRegisterStreamerFromRequest } from "@/hooks/mutations/admin/use-register-streamer-from-request";
 import { useChzzkChannelProfile } from "@/hooks/queries/admin/use-chzzk-channel-profile";
 import type { RequestRowProps } from "@/types/admin";
 import StreamerRequestTriggerButton from "@/components/common/streamer-request-trigger-button";
+import ConfirmAlert from "@/components/common/confirm-alert";
 
 /**
  * 쉼표로 구분된 문자열을 배열로 파싱한다 (빈 항목 제거).
@@ -54,8 +56,11 @@ function RequestRow({ request }: RequestRowProps) {
   const [platformUrl, setPlatformUrl] = useState(request.platform_streamer_url || "");
   const [fancafeUrl, setFancafeUrl] = useState("");
   const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [isRejectAlertOpen, setIsRejectAlertOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
 
-  const { mutate: deleteRequest, isPending: isRejecting } = useDeleteStreamerRequest();
+  const { mutate: updateRequestStatus, isPending: isUpdatingStatus } =
+    useUpdateStreamerRequestStatus();
   const { mutate: registerStreamer, isPending: isRegistering } =
     useRegisterStreamerFromRequest();
 
@@ -67,7 +72,7 @@ function RequestRow({ request }: RequestRowProps) {
   } = useChzzkChannelProfile(request.platform_streamer_id, isChzzk);
 
   /** 등록/거절 처리 중 여부 */
-  const isPendingAction = isRejecting || isRegistering;
+  const isPendingAction = isUpdatingStatus || isRegistering;
   /** 닉네임: 사용자 입력 우선, 치지직일 경우 채널명 자동 조회 */
   const effectiveNickname =
     nickname.trim() || (isChzzk ? chzzkProfile?.channelName || "" : "");
@@ -110,7 +115,8 @@ function RequestRow({ request }: RequestRowProps) {
   };
 
   return (
-    <tr className="border-b border-gray-100 hover:bg-gray-50/60 transition-colors align-top">
+    <>
+      <tr className="border-b border-gray-100 hover:bg-gray-50/60 transition-colors align-top">
       <td className="px-4 py-3 text-sm">
         <span
           className={`px-2 py-0.5 rounded-full text-xs font-medium ${request.platform === "chzzk"
@@ -295,7 +301,7 @@ function RequestRow({ request }: RequestRowProps) {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => deleteRequest(request.id)}
+            onClick={() => setIsRejectAlertOpen(true)}
             disabled={isPendingAction}
             className="cursor-pointer border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
           >
@@ -304,7 +310,45 @@ function RequestRow({ request }: RequestRowProps) {
           </Button>
         </div>
       </td>
-    </tr>
+
+      </tr>
+
+      <ConfirmAlert
+        open={isRejectAlertOpen}
+        title="등록 요청 거절"
+        description="거절 사유를 입력해 주세요. 사유와 처리자 ID가 함께 저장됩니다."
+        confirmText="거절"
+        cancelText="취소"
+        isPending={isPendingAction}
+        confirmDisabled={!rejectReason.trim()}
+        onConfirm={() =>
+          updateRequestStatus(
+            {
+              requestId: request.id,
+              status: "rejected",
+              reviewNote: rejectReason.trim(),
+            },
+            {
+              onSuccess: () => {
+                setIsRejectAlertOpen(false);
+                setRejectReason("");
+              },
+            }
+          )
+        }
+        onCancel={() => {
+          setIsRejectAlertOpen(false);
+          setRejectReason("");
+        }}
+      >
+        <Textarea
+          value={rejectReason}
+          onChange={(event) => setRejectReason(event.target.value)}
+          placeholder="거절 사유를 입력해 주세요."
+          className="min-h-[88px]"
+        />
+      </ConfirmAlert>
+    </>
   );
 }
 

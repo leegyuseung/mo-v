@@ -1,4 +1,5 @@
 export type ReportTargetType = "streamer" | "group" | "crew";
+export type ReportRequestStatus = "pending" | "approved" | "rejected" | "cancelled";
 
 export type CreateEntityReportRequestInput = {
   targetType: ReportTargetType;
@@ -18,6 +19,10 @@ export type EntityReportRequest = {
   reporter_nickname: string | null;
   content: string;
   created_at: string;
+  status: ReportRequestStatus;
+  reviewed_at?: string | null;
+  reviewed_by?: string | null;
+  review_note?: string | null;
 };
 
 /** 관리자 신고 요청 행 컴포넌트 props */

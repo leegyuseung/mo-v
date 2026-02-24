@@ -1,6 +1,7 @@
 "use client";
 
 import { createPortal } from "react-dom";
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 
 type ConfirmAlertProps = {
@@ -10,7 +11,9 @@ type ConfirmAlertProps = {
   confirmText?: string;
   cancelText?: string;
   isPending?: boolean;
+  confirmDisabled?: boolean;
   confirmVariant?: "danger" | "default";
+  children?: ReactNode;
   onConfirm: () => void;
   onCancel: () => void;
 };
@@ -22,7 +25,9 @@ export default function ConfirmAlert({
   confirmText = "삭제",
   cancelText = "취소",
   isPending = false,
+  confirmDisabled = false,
   confirmVariant = "danger",
+  children,
   onConfirm,
   onCancel,
 }: ConfirmAlertProps) {
@@ -33,6 +38,7 @@ export default function ConfirmAlert({
       <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl border border-gray-100">
         <h3 className="text-base font-semibold text-gray-900">{title}</h3>
         <p className="mt-2 text-sm text-gray-500">{description}</p>
+        {children ? <div className="mt-3">{children}</div> : null}
 
         <div className="mt-5 flex justify-end gap-2">
           <Button
@@ -52,7 +58,7 @@ export default function ConfirmAlert({
                 ? "bg-gray-800 hover:bg-gray-900"
                 : "bg-red-600 hover:bg-red-700"
             }`}
-            disabled={isPending}
+            disabled={isPending || confirmDisabled}
           >
             {isPending ? "처리중..." : confirmText}
           </Button>

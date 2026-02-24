@@ -2,17 +2,19 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { resolveEntityReportRequest } from "@/api/admin-reports";
 
-export function useDeleteEntityReportRequest() {
+export function useResolveEntityReportRequest() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({
       requestId,
       action,
+      reviewNote,
     }: {
       requestId: number;
       action: "approve" | "reject";
-    }) => resolveEntityReportRequest(requestId, action),
+      reviewNote?: string;
+    }) => resolveEntityReportRequest(requestId, action, reviewNote),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["admin", "entity-report-requests"],

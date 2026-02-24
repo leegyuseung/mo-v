@@ -83,13 +83,28 @@ export async function fetchPendingStreamerRequests(): Promise<
 /** 등록 요청의 상태를 변경한다 (approved/rejected 등) */
 export async function updateStreamerRequestStatus(
     requestId: number,
-    status: StreamerRequestStatus
+    status: StreamerRequestStatus,
+    reviewNote?: string
 ) {
+    const trimmedReviewNote = reviewNote?.trim() || "";
+    if (status === "rejected" && !trimmedReviewNote) {
+        throw new Error("거절 사유를 입력해 주세요.");
+    }
+
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+        throw new Error("로그인이 필요합니다.");
+    }
+
     const { data, error } = await supabase
         .from(STREAMER_REQUEST_TABLE)
         .update({
             status,
+            review_note: status === "rejected" ? trimmedReviewNote : null,
             reviewed_at: new Date().toISOString(),
+            reviewed_by: user.id,
         })
         .eq("id", requestId)
         .select()
@@ -97,16 +112,6 @@ export async function updateStreamerRequestStatus(
 
     if (error) throw error;
     return data;
-}
-
-/** 등록 요청을 삭제한다 */
-export async function deleteStreamerRequest(requestId: number) {
-    const { error } = await supabase
-        .from(STREAMER_REQUEST_TABLE)
-        .delete()
-        .eq("id", requestId);
-
-    if (error) throw error;
 }
 
 /**
@@ -136,6 +141,13 @@ export async function registerStreamerFromRequest(
         youtubeUrl: string | null;
     }
 ) {
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+        throw new Error("로그인이 필요합니다.");
+    }
+
     const { data: request, error: requestError } = await supabase
         .from(STREAMER_REQUEST_TABLE)
         .select("*")
@@ -193,12 +205,21 @@ export async function registerStreamerFromRequest(
         throw heartsError;
     }
 
-    const { error: deleteError } = await supabase
+    const { error: updateError } = await supabase
         .from(STREAMER_REQUEST_TABLE)
-        .delete()
+        .update({
+            status: "approved",
+            review_note: null,
+            reviewed_at: new Date().toISOString(),
+            reviewed_by: user.id,
+        })
         .eq("id", requestId);
 
-    if (deleteError) throw deleteError;
+    if (updateError) {
+        // 요청 상태 저장 실패 시 생성된 버츄얼을 롤백해 중복 등록을 방지한다.
+        await supabase.from(STREAMER_TABLE).delete().eq("id", insertedStreamer.id);
+        throw updateError;
+    }
 }
 
 /** 정보 수정 요청 목록을 최신순으로 조회한다 */
@@ -208,33 +229,25 @@ export async function fetchStreamerInfoEditRequests(): Promise<
     const { data, error } = await supabase
         .from(STREAMER_INFO_EDIT_REQUEST_TABLE)
         .select("*")
+        .eq("status", "pending")
         .order("created_at", { ascending: false });
 
     if (error) throw error;
     return (data || []) as StreamerInfoEditRequest[];
 }
 
-/** 정보 수정 요청을 삭제한다 */
-export async function deleteStreamerInfoEditRequest(requestId: number) {
-  const { error } = await supabase
-    .from(STREAMER_INFO_EDIT_REQUEST_TABLE)
-    .delete()
-    .eq("id", requestId);
-
-  if (error) throw error;
-}
-
 /** 정보 수정 요청을 확인/거절 처리한다. 확인 시 요청자에게 50 하트가 지급된다. */
 export async function resolveStreamerInfoEditRequest(
   requestId: number,
-  action: "approve" | "reject"
+  action: "approve" | "reject",
+  reviewNote?: string
 ) {
   const response = await fetch(
     `/api/admin/info-edit-requests/${requestId}/resolve`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action }),
+      body: JSON.stringify({ action, reviewNote }),
     }
   );
 

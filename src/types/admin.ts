@@ -24,11 +24,14 @@ export type DashboardStats = {
 };
 
 /** 스트리머 등록 요청 상태 */
-export type StreamerRequestStatus =
+export type AdminRequestStatus =
     | "pending"
     | "approved"
     | "rejected"
     | "cancelled";
+
+/** 스트리머 등록 요청 상태 */
+export type StreamerRequestStatus = AdminRequestStatus;
 
 /** 스트리머 등록 요청 데이터 */
 export type StreamerRegistrationRequest = {
@@ -60,6 +63,10 @@ export type StreamerInfoEditRequest = {
     streamer_nickname: string;
     requester_id: string;
     requester_nickname: string | null;
+    status: AdminRequestStatus;
+    reviewed_at?: string | null;
+    reviewed_by?: string | null;
+    review_note?: string | null;
 };
 
 /** 버츄얼/그룹/소속 신고 요청 데이터 */
@@ -72,6 +79,10 @@ export type EntityReportRequest = {
     reporter_id: string;
     reporter_nickname: string | null;
     content: string;
+    status: AdminRequestStatus;
+    reviewed_at?: string | null;
+    reviewed_by?: string | null;
+    review_note?: string | null;
 };
 
 /* ─── Admin UI 컴포넌트 Props ─── */

@@ -163,6 +163,7 @@ export async function createCrewInfoEditRequest({
     streamer_nickname: `[CREW] ${crewName}`,
     requester_id: requesterId,
     requester_nickname: requesterNickname,
+    status: "pending",
   });
 
   if (error) throw error;

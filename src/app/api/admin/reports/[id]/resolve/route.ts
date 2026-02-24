@@ -26,15 +26,28 @@ export async function POST(
   }
 
   let action: ResolveAction;
+  let reviewNote = "";
   try {
-    const body = (await request.json()) as { action?: ResolveAction };
-    action = body.action === "approve" ? "approve" : body.action === "reject" ? "reject" : ("" as ResolveAction);
+    const body = (await request.json()) as {
+      action?: ResolveAction;
+      reviewNote?: string;
+    };
+    action =
+      body.action === "approve"
+        ? "approve"
+        : body.action === "reject"
+          ? "reject"
+          : ("" as ResolveAction);
+    reviewNote = typeof body.reviewNote === "string" ? body.reviewNote.trim() : "";
   } catch {
     return NextResponse.json({ message: "잘못된 요청 본문입니다." }, { status: 400 });
   }
 
   if (action !== "approve" && action !== "reject") {
     return NextResponse.json({ message: "잘못된 처리 방식입니다." }, { status: 400 });
+  }
+  if (action === "reject" && !reviewNote) {
+    return NextResponse.json({ message: "거절 사유를 입력해 주세요." }, { status: 400 });
   }
 
   const cookieStore = await cookies();
@@ -79,7 +92,7 @@ export async function POST(
   try {
     const { data: targetRow, error: targetError } = await admin
       .from("entity_report_requests")
-      .select("id,reporter_id")
+      .select("id,reporter_id,status")
       .eq("id", requestId)
       .maybeSingle();
 
@@ -87,20 +100,32 @@ export async function POST(
     if (!targetRow) {
       return NextResponse.json({ message: "이미 처리되었거나 존재하지 않는 요청입니다." }, { status: 404 });
     }
+    if (targetRow.status !== "pending") {
+      return NextResponse.json({ message: "이미 처리된 요청입니다." }, { status: 409 });
+    }
 
     if (action === "approve") {
       await creditAdminRewardPoint(admin, targetRow.reporter_id, ADMIN_REVIEW_REWARD_POINT, "신고 확인");
     }
 
-    const { error: deleteError } = await admin
+    const nextStatus = action === "approve" ? "approved" : "rejected";
+
+    const { error: updateError } = await admin
       .from("entity_report_requests")
-      .delete()
-      .eq("id", requestId);
-    if (deleteError) throw deleteError;
+      .update({
+        status: nextStatus,
+        review_note: action === "reject" ? reviewNote : null,
+        reviewed_at: new Date().toISOString(),
+        reviewed_by: user.id,
+      })
+      .eq("id", requestId)
+      .eq("status", "pending");
+    if (updateError) throw updateError;
 
     return NextResponse.json({
       success: true,
       action,
+      status: nextStatus,
       rewarded: action === "approve",
       rewardPoint: action === "approve" ? ADMIN_REVIEW_REWARD_POINT : 0,
     });

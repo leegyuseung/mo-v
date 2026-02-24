@@ -90,10 +90,12 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
             .eq("status", "pending"),
         supabase
             .from("streamer_info_edit_requests")
-            .select("*", { count: "exact", head: true }),
+            .select("*", { count: "exact", head: true })
+            .eq("status", "pending"),
         supabase
             .from("entity_report_requests")
-            .select("*", { count: "exact", head: true }),
+            .select("*", { count: "exact", head: true })
+            .eq("status", "pending"),
         supabase
             .from("profiles")
             .select("created_at, provider")
