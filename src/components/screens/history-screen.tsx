@@ -1,8 +1,7 @@
 "use client";
 
 import { useAuthStore } from "@/store/useAuthStore";
-import { fetchHeartPointHistory } from "@/api/heart";
-import { useQuery } from "@tanstack/react-query";
+import { useHeartPointHistory } from "@/hooks/queries/heart/use-heart-point-history";
 import { Heart, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -39,11 +38,7 @@ export default function HistoryScreen() {
         }
     }, [user, isAuthLoading, isInitialized, router]);
 
-    const { data: historyData, isLoading } = useQuery({
-        queryKey: ["heartPointHistory", user?.id],
-        queryFn: () => fetchHeartPointHistory(user!.id),
-        enabled: !!user?.id,
-    });
+    const { data: historyData, isLoading } = useHeartPointHistory(user?.id);
 
     const history = historyData?.data || [];
 

@@ -6,9 +6,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useSignInWithPassword } from "@/hooks/mutations/auth/use-sign-in-with-password";
-import { signInWithProvider } from "@/api/auth";
+import { useSignInWithProvider } from "@/hooks/mutations/auth/use-sign-in-with-provider";
 import { useLoginMethodStore } from "@/store/useLoginMethodStore";
 import type { LoginProvider } from "@/store/useLoginMethodStore";
 import { toast } from "sonner";
@@ -28,8 +28,6 @@ const SOCIAL_PROVIDERS: {
 
 export default function LoginScreen() {
     const router = useRouter();
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
     const {
         lastProvider,
         saveEmail,
@@ -39,19 +37,16 @@ export default function LoginScreen() {
         rememberMe,
         setRememberMe,
     } = useLoginMethodStore();
-
-    // "아이디 저장"이 켜져 있으면 저장된 이메일로 초기값을 설정한다
-    useEffect(() => {
-        if (saveEmail && savedEmail) {
-            setEmail(savedEmail);
-        }
-    }, [saveEmail, savedEmail]);
+    const [email, setEmail] = useState(() => (saveEmail ? savedEmail : ""));
+    const [password, setPassword] = useState("");
 
     const { mutate: signIn, isPending } = useSignInWithPassword({
         onError: () => {
             toast.error("로그인에 실패했습니다.");
         },
     });
+    const { mutateAsync: signInWithProvider, isPending: isSocialSigningIn } =
+        useSignInWithProvider();
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -184,6 +179,7 @@ export default function LoginScreen() {
                                         ? toast.info("네이버 로그인은 준비 중입니다.")
                                         : handleSocialLogin(provider as "google" | "kakao")
                                 }
+                                disabled={isSocialSigningIn}
                                 className="cursor-pointer"
                             >
                                 <Image

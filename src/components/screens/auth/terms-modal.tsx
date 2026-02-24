@@ -7,12 +7,12 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ReactMarkdown from "react-markdown";
 
-interface TermsModalProps {
+type TermsModalProps = {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   content: string;
-}
+};
 
 export function TermsModal({
   isOpen,

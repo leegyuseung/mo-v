@@ -6,15 +6,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { resetPassword } from "@/api/auth";
+import { useResetPassword } from "@/hooks/mutations/auth/use-reset-password";
 import { toast } from "sonner";
 import { Mail } from "lucide-react";
 
 export default function FindPasswordScreen() {
     const router = useRouter();
     const [email, setEmail] = useState("");
-    const [isPending, setIsPending] = useState(false);
     const [isSent, setIsSent] = useState(false);
+    const { mutateAsync: resetPassword, isPending } = useResetPassword();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -23,15 +23,12 @@ export default function FindPasswordScreen() {
             return;
         }
 
-        setIsPending(true);
         try {
             await resetPassword(email);
             setIsSent(true);
             toast.success("비밀번호 재설정 메일이 발송되었습니다.");
         } catch {
             toast.error("메일 발송에 실패했습니다. 이메일을 확인해주세요.");
-        } finally {
-            setIsPending(false);
         }
     };
 

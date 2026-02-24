@@ -1,10 +1,13 @@
 import { createClient } from "@/utils/supabase/client";
-import type { MyStars, StarredCrew, StarredGroup, StarredStreamer } from "@/types/star";
+import type {
+  MyStars,
+  StarTargetType,
+  StarredCrew,
+  StarredGroup,
+  StarredStreamer,
+} from "@/types/star";
 
 const supabase = createClient();
-
-/** 즐겨찾기 대상 타입 */
-export type StarTargetType = "streamer" | "group" | "crew";
 
 // ─── 테이블·컬럼 매핑 ──────────────────────────────────────────────
 const STAR_TABLE = {

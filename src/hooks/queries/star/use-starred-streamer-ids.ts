@@ -7,7 +7,7 @@ import { fetchStarredStreamerIds } from "@/api/star";
  */
 export function useStarredStreamerIds(userId?: string) {
     return useQuery({
-        queryKey: ["home-starred-streamers", userId],
+        queryKey: ["starred-streamers", userId],
         queryFn: () => fetchStarredStreamerIds(userId!),
         enabled: Boolean(userId),
     });

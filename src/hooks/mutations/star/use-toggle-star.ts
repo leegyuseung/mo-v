@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/useAuthStore";
-import { isStarred, addStar, removeStar, type StarTargetType } from "@/api/star";
+import { isStarred, addStar, removeStar } from "@/api/star";
+import type { StarTargetType } from "@/types/star";
 
 /**
  * 즐겨찾기 토글 로직을 공통화한 훅.

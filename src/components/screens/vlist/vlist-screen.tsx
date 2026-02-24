@@ -4,7 +4,6 @@ import Image from "next/image";
 import Pagination from "@/components/common/pagination";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
@@ -24,7 +23,7 @@ import {
 import StreamerRequestTriggerButton from "@/components/common/streamer-request-trigger-button";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { fetchStarredStreamerIds } from "@/api/star";
+import { useStarredStreamerIds } from "@/hooks/queries/star/use-starred-streamer-ids";
 import { getPlatformActiveClass, getPlatformInactiveClass } from "@/utils/platform";
 import PlatformBadge from "@/components/common/platform-badge";
 import StreamerCardSkeleton from "@/components/common/streamer-card-skeleton";
@@ -50,11 +49,11 @@ export default function VlistScreen() {
   });
   const { data: idolGroups } = useIdolGroupCodeNames();
   const { data: crews } = useCrewCodeNames();
-  const { data: starredStreamerIds = new Set<number>() } = useQuery({
-    queryKey: ["starred-streamers", user?.id],
-    queryFn: async () => new Set(await fetchStarredStreamerIds(user!.id)),
-    enabled: Boolean(user?.id),
-  });
+  const { data: starredStreamerIdList = [] } = useStarredStreamerIds(user?.id);
+  const starredStreamerIds = useMemo(
+    () => new Set(starredStreamerIdList),
+    [starredStreamerIdList]
+  );
 
   const streamers = data?.data || [];
   const totalCount = data?.count || 0;

@@ -27,7 +27,7 @@ export default function LiveScreen() {
   const [sortOrder, setSortOrder] = useState<LiveSortOrder>("name_asc");
   /** 라이브 썸네일 이미지 깨짐 추적 (fallback → 프로필 이미지) */
   const brokenImages = useBrokenImages();
-  const { data, isLoading } = useLiveStreamers();
+  const { data, isLoading, isError } = useLiveStreamers();
   const { data: idolGroups } = useIdolGroupCodeNames();
   const { data: crews } = useCrewCodeNames();
 
@@ -183,7 +183,11 @@ export default function LiveScreen() {
       </div>
 
       {/* ─── 라이브 카드 그리드 ─── */}
-      {isLoading ? (
+      {isError ? (
+        <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 text-center text-gray-400">
+          라이브 데이터를 불러오지 못했습니다.
+        </div>
+      ) : isLoading ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {[...Array(pageSize)].map((_, index) => (
             <div

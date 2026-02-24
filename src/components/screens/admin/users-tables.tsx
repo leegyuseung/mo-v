@@ -8,11 +8,12 @@ import { useDeleteStreamer } from "@/hooks/mutations/admin/use-delete-streamer";
 import type { Profile } from "@/types/profile";
 import type { Streamer } from "@/types/streamer";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Pencil, Check, X, Trash2 } from "lucide-react";
 import ConfirmAlert from "@/components/common/confirm-alert";
+import { EditableCell } from "@/components/screens/admin/editable-cell";
 
+/** 테이블 로딩 시 표시되는 스켈레톤 */
 function TableSkeleton({ cols }: { cols: number }) {
   return (
     <>
@@ -29,6 +30,7 @@ function TableSkeleton({ cols }: { cols: number }) {
   );
 }
 
+/** 쉼표로 구분된 텍스트를 배열로 파싱. 빈 입력이면 null 반환 */
 function parseTextArrayInput(input: string): string[] | null {
   const parsed = input
     .split(",")
@@ -36,6 +38,18 @@ function parseTextArrayInput(input: string): string[] | null {
     .filter(Boolean);
 
   return parsed.length > 0 ? parsed : null;
+}
+
+/** URL 필드의 비편집 모드에서 사용되는 truncate 스타일 표시 컴포넌트 */
+function TruncatedUrlDisplay({ url }: { url: string | null }) {
+  return (
+    <span
+      className="inline-block max-w-[180px] truncate align-middle text-gray-500 text-xs"
+      title={url || ""}
+    >
+      {url || "-"}
+    </span>
+  );
 }
 
 function UserRow({ user }: { user: Profile }) {
@@ -83,37 +97,38 @@ function UserRow({ user }: { user: Profile }) {
             {user.provider || "email"}
           </span>
         </td>
+        {/* 닉네임 편집 셀 */}
         <td className="px-4 py-3 text-sm">
-          {isEditing ? (
-            <Input
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              className="h-8 text-sm w-32"
-            />
-          ) : (
-            <span className="text-gray-700">{user.nickname || "-"}</span>
-          )}
+          <EditableCell
+            isEditing={isEditing}
+            value={nickname}
+            onChange={setNickname}
+            className="h-8 text-sm w-32"
+            displayValue={<span className="text-gray-700">{user.nickname || "-"}</span>}
+          />
         </td>
+        {/* 역할 편집 셀 */}
         <td className="px-4 py-3 text-sm">
-          {isEditing ? (
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="h-8 px-2 border rounded-md text-sm bg-white"
-            >
-              <option value="user">user</option>
-              <option value="admin">admin</option>
-            </select>
-          ) : (
-            <span
-              className={`px-2 py-0.5 rounded-full text-xs font-medium ${user.role === "admin"
-                  ? "bg-indigo-100 text-indigo-700"
-                  : "bg-gray-100 text-gray-600"
-                }`}
-            >
-              {user.role}
-            </span>
-          )}
+          <EditableCell
+            isEditing={isEditing}
+            value={role}
+            onChange={setRole}
+            type="select"
+            options={[
+              { value: "user", label: "user" },
+              { value: "admin", label: "admin" },
+            ]}
+            displayValue={
+              <span
+                className={`px-2 py-0.5 rounded-full text-xs font-medium ${user.role === "admin"
+                    ? "bg-indigo-100 text-indigo-700"
+                    : "bg-gray-100 text-gray-600"
+                  }`}
+              >
+                {user.role}
+              </span>
+            }
+          />
         </td>
         <td className="px-4 py-3 text-sm text-gray-400">
           {new Date(user.created_at).toLocaleDateString("ko-KR")}
@@ -268,258 +283,233 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
   return (
     <>
       <tr className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+        {/* 이미지 URL - 비편집 모드에서 존재 여부만 표시하는 특수 케이스 */}
         <td className="px-4 py-3 text-sm">
-          {isEditing ? (
-            <Input
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="이미지 URL"
-              className="h-8 text-sm w-36"
-            />
-          ) : streamer.image_url ? (
-            <span className="text-gray-400 text-xs">숨김</span>
-          ) : (
-            <span className="text-gray-400 text-xs">없음</span>
-          )}
+          <EditableCell
+            isEditing={isEditing}
+            value={imageUrl}
+            onChange={setImageUrl}
+            placeholder="이미지 URL"
+            className="h-8 text-sm w-36"
+            displayValue={
+              <span className="text-gray-400 text-xs">
+                {streamer.image_url ? "숨김" : "없음"}
+              </span>
+            }
+          />
         </td>
+        {/* 닉네임 */}
         <td className="px-4 py-3 text-sm">
-          {isEditing ? (
-            <Input
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              className="h-8 text-sm w-28"
-            />
-          ) : (
-            <span className="text-gray-700 font-medium">{streamer.nickname || "-"}</span>
-          )}
+          <EditableCell
+            isEditing={isEditing}
+            value={nickname}
+            onChange={setNickname}
+            className="h-8 text-sm w-28"
+            displayValue={
+              <span className="text-gray-700 font-medium">{streamer.nickname || "-"}</span>
+            }
+          />
         </td>
+        {/* 플랫폼 - select 타입, 뱃지 스타일 표시 */}
         <td className="px-4 py-3 text-sm">
-          {isEditing ? (
-            <select
-              value={platform}
-              onChange={(e) => setPlatform(e.target.value)}
-              className="h-8 px-2 border rounded-md text-sm bg-white"
-            >
-              <option value="chzzk">chzzk</option>
-              <option value="soop">soop</option>
-            </select>
-          ) : (
-            <span
-              className={`px-2 py-0.5 rounded-full text-xs font-medium ${streamer.platform === "chzzk"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-blue-100 text-blue-700"
-                }`}
-            >
-              {streamer.platform}
-            </span>
-          )}
+          <EditableCell
+            isEditing={isEditing}
+            value={platform}
+            onChange={setPlatform}
+            type="select"
+            options={[
+              { value: "chzzk", label: "chzzk" },
+              { value: "soop", label: "soop" },
+            ]}
+            displayValue={
+              <span
+                className={`px-2 py-0.5 rounded-full text-xs font-medium ${streamer.platform === "chzzk"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-blue-100 text-blue-700"
+                  }`}
+              >
+                {streamer.platform}
+              </span>
+            }
+          />
         </td>
+        {/* 치지직 ID - 비편집 모드에서 잘린 형태로 표시 */}
         <td className="px-4 py-3 text-sm">
-          {isEditing ? (
-            <Input
-              value={chzzkId}
-              onChange={(e) => setChzzkId(e.target.value)}
-              placeholder="chzzk ID"
-              className="h-8 text-sm w-36"
-            />
-          ) : (
-            <span className="text-gray-500 text-xs font-mono">
-              {streamer.chzzk_id ? `${streamer.chzzk_id.slice(0, 12)}...` : "-"}
-            </span>
-          )}
+          <EditableCell
+            isEditing={isEditing}
+            value={chzzkId}
+            onChange={setChzzkId}
+            placeholder="chzzk ID"
+            className="h-8 text-sm w-36"
+            displayValue={
+              <span className="text-gray-500 text-xs font-mono">
+                {streamer.chzzk_id ? `${streamer.chzzk_id.slice(0, 12)}...` : "-"}
+              </span>
+            }
+          />
         </td>
+        {/* SOOP ID */}
         <td className="px-4 py-3 text-sm">
-          {isEditing ? (
-            <Input
-              value={soopId}
-              onChange={(e) => setSoopId(e.target.value)}
-              placeholder="soop ID"
-              className="h-8 text-sm w-28"
-            />
-          ) : (
-            <span className="text-gray-500 text-xs">{streamer.soop_id || "-"}</span>
-          )}
+          <EditableCell
+            isEditing={isEditing}
+            value={soopId}
+            onChange={setSoopId}
+            placeholder="soop ID"
+            className="h-8 text-sm w-28"
+          />
         </td>
+        {/* 그룹명 (text[]) */}
         <td className="px-4 py-3 text-sm">
-          {isEditing ? (
-            <Input
-              value={groupNameInput}
-              onChange={(e) => setGroupNameInput(e.target.value)}
-              placeholder="그룹명 (쉼표로 구분)"
-              className="h-8 text-sm w-44"
-            />
-          ) : (
-            <span className="text-gray-500 text-xs">
-              {streamer.group_name?.join(", ") || "-"}
-            </span>
-          )}
+          <EditableCell
+            isEditing={isEditing}
+            value={groupNameInput}
+            onChange={setGroupNameInput}
+            placeholder="그룹명 (쉼표로 구분)"
+            className="h-8 text-sm w-44"
+            displayValue={
+              <span className="text-gray-500 text-xs">
+                {streamer.group_name?.join(", ") || "-"}
+              </span>
+            }
+          />
         </td>
+        {/* 소속명 (text[]) */}
         <td className="px-4 py-3 text-sm">
-          {isEditing ? (
-            <Input
-              value={crewNameInput}
-              onChange={(e) => setCrewNameInput(e.target.value)}
-              placeholder="소속명 (쉼표로 구분)"
-              className="h-8 text-sm w-44"
-            />
-          ) : (
-            <span className="text-gray-500 text-xs">
-              {streamer.crew_name?.join(", ") || "-"}
-            </span>
-          )}
+          <EditableCell
+            isEditing={isEditing}
+            value={crewNameInput}
+            onChange={setCrewNameInput}
+            placeholder="소속명 (쉼표로 구분)"
+            className="h-8 text-sm w-44"
+            displayValue={
+              <span className="text-gray-500 text-xs">
+                {streamer.crew_name?.join(", ") || "-"}
+              </span>
+            }
+          />
         </td>
+        {/* 생일 */}
         <td className="px-4 py-3 text-sm">
-          {isEditing ? (
-            <Input
-              value={birthday}
-              onChange={(e) => setBirthday(e.target.value)}
-              placeholder="생일 (예: 1월 15일)"
-              className="h-8 text-sm w-44"
-            />
-          ) : (
-            <span className="text-gray-500 text-xs">{streamer.birthday || "-"}</span>
-          )}
+          <EditableCell
+            isEditing={isEditing}
+            value={birthday}
+            onChange={setBirthday}
+            placeholder="생일 (예: 1월 15일)"
+            className="h-8 text-sm w-44"
+          />
         </td>
+        {/* 국적 */}
         <td className="px-4 py-3 text-sm">
-          {isEditing ? (
-            <Input
-              value={nationality}
-              onChange={(e) => setNationality(e.target.value)}
-              placeholder="국적"
-              className="h-8 text-sm w-28"
-            />
-          ) : (
-            <span className="text-gray-500 text-xs">{streamer.nationality || "-"}</span>
-          )}
+          <EditableCell
+            isEditing={isEditing}
+            value={nationality}
+            onChange={setNationality}
+            placeholder="국적"
+            className="h-8 text-sm w-28"
+          />
         </td>
+        {/* 성별 */}
         <td className="px-4 py-3 text-sm">
-          {isEditing ? (
-            <Input
-              value={gender}
-              onChange={(e) => setGender(e.target.value)}
-              placeholder="성별"
-              className="h-8 text-sm w-24"
-            />
-          ) : (
-            <span className="text-gray-500 text-xs">{streamer.gender || "-"}</span>
-          )}
+          <EditableCell
+            isEditing={isEditing}
+            value={gender}
+            onChange={setGender}
+            placeholder="성별"
+            className="h-8 text-sm w-24"
+          />
         </td>
+        {/* 장르 (text[]) */}
         <td className="px-4 py-3 text-sm">
-          {isEditing ? (
-            <Input
-              value={genreInput}
-              onChange={(e) => setGenreInput(e.target.value)}
-              placeholder="장르 (쉼표로 구분)"
-              className="h-8 text-sm w-44"
-            />
-          ) : (
-            <span className="text-gray-500 text-xs">
-              {streamer.genre?.join(", ") || "-"}
-            </span>
-          )}
+          <EditableCell
+            isEditing={isEditing}
+            value={genreInput}
+            onChange={setGenreInput}
+            placeholder="장르 (쉼표로 구분)"
+            className="h-8 text-sm w-44"
+            displayValue={
+              <span className="text-gray-500 text-xs">
+                {streamer.genre?.join(", ") || "-"}
+              </span>
+            }
+          />
         </td>
+        {/* 첫 방송일 */}
         <td className="px-4 py-3 text-sm">
-          {isEditing ? (
-            <Input
-              value={firstStreamDate}
-              onChange={(e) => setFirstStreamDate(e.target.value)}
-              placeholder="첫 방송일 (예: 2023년 5월)"
-              className="h-8 text-sm w-44"
-            />
-          ) : (
-            <span className="text-gray-500 text-xs">
-              {streamer.first_stream_date || "-"}
-            </span>
-          )}
+          <EditableCell
+            isEditing={isEditing}
+            value={firstStreamDate}
+            onChange={setFirstStreamDate}
+            placeholder="첫 방송일 (예: 2023년 5월)"
+            className="h-8 text-sm w-44"
+          />
         </td>
+        {/* 팬덤명 */}
         <td className="px-4 py-3 text-sm">
-          {isEditing ? (
-            <Input
-              value={fandomName}
-              onChange={(e) => setFandomName(e.target.value)}
-              placeholder="팬덤명"
-              className="h-8 text-sm w-28"
-            />
-          ) : (
-            <span className="text-gray-500 text-xs">{streamer.fandom_name || "-"}</span>
-          )}
+          <EditableCell
+            isEditing={isEditing}
+            value={fandomName}
+            onChange={setFandomName}
+            placeholder="팬덤명"
+            className="h-8 text-sm w-28"
+          />
         </td>
+        {/* MBTI */}
         <td className="px-4 py-3 text-sm">
-          {isEditing ? (
-            <Input
-              value={mbti}
-              onChange={(e) => setMbti(e.target.value)}
-              placeholder="MBTI"
-              className="h-8 text-sm w-24"
-            />
-          ) : (
-            <span className="text-gray-500 text-xs">{streamer.mbti || "-"}</span>
-          )}
+          <EditableCell
+            isEditing={isEditing}
+            value={mbti}
+            onChange={setMbti}
+            placeholder="MBTI"
+            className="h-8 text-sm w-24"
+          />
         </td>
+        {/* 별명 (text[]) */}
         <td className="px-4 py-3 text-sm">
-          {isEditing ? (
-            <Input
-              value={aliasInput}
-              onChange={(e) => setAliasInput(e.target.value)}
-              placeholder="별명 (쉼표로 구분)"
-              className="h-8 text-sm w-44"
-            />
-          ) : (
-            <span className="text-gray-500 text-xs">
-              {streamer.alias?.join(", ") || "-"}
-            </span>
-          )}
+          <EditableCell
+            isEditing={isEditing}
+            value={aliasInput}
+            onChange={setAliasInput}
+            placeholder="별명 (쉼표로 구분)"
+            className="h-8 text-sm w-44"
+            displayValue={
+              <span className="text-gray-500 text-xs">
+                {streamer.alias?.join(", ") || "-"}
+              </span>
+            }
+          />
         </td>
+        {/* 플랫폼 주소 - URL truncate 표시 */}
         <td className="px-4 py-3 text-sm">
-          {isEditing ? (
-            <Input
-              value={platformUrl}
-              onChange={(e) => setPlatformUrl(e.target.value)}
-              placeholder="플랫폼 주소"
-              className="h-8 text-sm w-52"
-            />
-          ) : (
-            <span
-              className="inline-block max-w-[180px] truncate align-middle text-gray-500 text-xs"
-              title={streamer.platform_url || ""}
-            >
-              {streamer.platform_url || "-"}
-            </span>
-          )}
+          <EditableCell
+            isEditing={isEditing}
+            value={platformUrl}
+            onChange={setPlatformUrl}
+            placeholder="플랫폼 주소"
+            className="h-8 text-sm w-52"
+            displayValue={<TruncatedUrlDisplay url={streamer.platform_url} />}
+          />
         </td>
+        {/* 팬카페 주소 - URL truncate 표시 */}
         <td className="px-4 py-3 text-sm">
-          {isEditing ? (
-            <Input
-              value={fancafeUrl}
-              onChange={(e) => setFancafeUrl(e.target.value)}
-              placeholder="팬카페 주소"
-              className="h-8 text-sm w-52"
-            />
-          ) : (
-            <span
-              className="inline-block max-w-[180px] truncate align-middle text-gray-500 text-xs"
-              title={streamer.fancafe_url || ""}
-            >
-              {streamer.fancafe_url || "-"}
-            </span>
-          )}
+          <EditableCell
+            isEditing={isEditing}
+            value={fancafeUrl}
+            onChange={setFancafeUrl}
+            placeholder="팬카페 주소"
+            className="h-8 text-sm w-52"
+            displayValue={<TruncatedUrlDisplay url={streamer.fancafe_url} />}
+          />
         </td>
+        {/* 유튜브 주소 - URL truncate 표시 */}
         <td className="px-4 py-3 text-sm">
-          {isEditing ? (
-            <Input
-              value={youtubeUrl}
-              onChange={(e) => setYoutubeUrl(e.target.value)}
-              placeholder="유튜브 주소"
-              className="h-8 text-sm w-52"
-            />
-          ) : (
-            <span
-              className="inline-block max-w-[180px] truncate align-middle text-gray-500 text-xs"
-              title={streamer.youtube_url || ""}
-            >
-              {streamer.youtube_url || "-"}
-            </span>
-          )}
+          <EditableCell
+            isEditing={isEditing}
+            value={youtubeUrl}
+            onChange={setYoutubeUrl}
+            placeholder="유튜브 주소"
+            className="h-8 text-sm w-52"
+            displayValue={<TruncatedUrlDisplay url={streamer.youtube_url} />}
+          />
         </td>
         <td className="px-4 py-3">
           {isEditing ? (

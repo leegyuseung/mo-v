@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCrews } from "@/hooks/queries/admin/use-crews";
 import { useStreamers } from "@/hooks/queries/admin/use-streamers";
 import { useCreateCrew } from "@/hooks/mutations/admin/use-create-crew";
-import { uploadCrewImage } from "@/api/admin-crews";
+import { useUploadCrewImage } from "@/hooks/mutations/admin/use-upload-crew-image";
 import type { CrewUpsertInput } from "@/types/crew";
 import { UsersRound } from "lucide-react";
 import { toast } from "sonner";
@@ -15,11 +15,12 @@ import CrewRow from "./crew-row";
 
 /** 관리자 크루 관리 화면 — 크루 목록, 추가, 멤버 자동 매칭 */
 export default function CrewsScreen() {
-  const { data: crews, isLoading } = useCrews();
+  const { data: crews, isLoading, isError } = useCrews();
   const { data: streamers } = useStreamers();
   const { mutate: createCrew, isPending: isCreating } = useCreateCrew();
+  const { mutateAsync: uploadCrewImage, isPending: isUploadingImage } =
+    useUploadCrewImage();
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [memberEtcInput, setMemberEtcInput] = useState("");
   const [form, setForm] = useState<CrewUpsertInput>({
     crew_code: "",
@@ -111,7 +112,6 @@ export default function CrewsScreen() {
 
   const handleUploadImage = async (file: File | null) => {
     if (!file) return;
-    setIsUploadingImage(true);
     try {
       const publicUrl = await uploadCrewImage(file);
       setForm((prev) => ({ ...prev, image_url: publicUrl }));
@@ -122,8 +122,6 @@ export default function CrewsScreen() {
           ? error.message
           : "대표이미지 업로드 중 오류가 발생했습니다."
       );
-    } finally {
-      setIsUploadingImage(false);
     }
   };
 
@@ -237,6 +235,12 @@ export default function CrewsScreen() {
                   </td>
                 </tr>
               ))
+            ) : isError ? (
+              <tr>
+                <td colSpan={7} className="px-4 py-12 text-center text-sm text-gray-400">
+                  소속 목록을 불러오지 못했습니다.
+                </td>
+              </tr>
             ) : crews && crews.length > 0 ? (
               crews.map((crew) => (
                 <CrewRow

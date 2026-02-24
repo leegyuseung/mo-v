@@ -6,14 +6,13 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useSignOut } from "@/hooks/mutations/auth/use-sign-out";
-import { Bell, CalendarDays, Gift, Menu, MessageCircle, Star, X } from "lucide-react";
+import { useCheckDailyGiftBoxStatus } from "@/hooks/mutations/event/use-check-daily-gift-box-status";
+import { useClaimDailyGiftBox } from "@/hooks/mutations/event/use-claim-daily-gift-box";
+import { Bell, CalendarDays, Gift, Menu, MessageCircle, Star } from "lucide-react";
 import { useSidebar } from "../ui/sidebar";
 import AppHeaderProfileMenu from "@/components/common/app-header-profile-menu";
-import AnimatedGiftIcon from "@/components/common/animated-gift-icon";
-import AnimatedRewardHeart from "@/components/common/animated-reward-heart";
-import { claimDailyGiftBox, fetchDailyGiftBoxStatus } from "@/api/event";
+import GiftEventModal from "@/components/common/gift-event-modal";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 
 export default function AppHeader() {
   const router = useRouter();
@@ -24,8 +23,11 @@ export default function AppHeader() {
   const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
   const [isGiftOpening, setIsGiftOpening] = useState(false);
   const [giftAmount, setGiftAmount] = useState<number | null>(null);
-  const [isGiftChecking, setIsGiftChecking] = useState(false);
+  const { mutateAsync: checkDailyGiftBoxStatus, isPending: isGiftChecking } =
+    useCheckDailyGiftBoxStatus();
+  const { mutateAsync: claimGiftBox } = useClaimDailyGiftBox();
 
+  /** 선물 이벤트 버튼 클릭 — 오늘 참여 여부 확인 후 모달을 연다 */
   const onClickGiftEvent = async () => {
     if (!user) {
       toast.error("로그인 후 참여할 수 있습니다.");
@@ -33,9 +35,8 @@ export default function AppHeader() {
     }
     if (isGiftChecking) return;
 
-    setIsGiftChecking(true);
     try {
-      const status = await fetchDailyGiftBoxStatus();
+      const status = await checkDailyGiftBoxStatus();
       if (status.claimedToday) {
         toast.info(
           status.amount
@@ -50,18 +51,16 @@ export default function AppHeader() {
       const message =
         error instanceof Error ? error.message : "이벤트 상태를 확인하지 못했습니다.";
       toast.error(message);
-    } finally {
-      setIsGiftChecking(false);
     }
   };
 
+  /** 선물상자 열기 — API 호출 후 하트 포인트 갱신 */
   const openGiftBox = async () => {
     if (isGiftOpening || giftAmount !== null) return;
 
     setIsGiftOpening(true);
     try {
-      const result = await claimDailyGiftBox();
-      // 이미 상태가 반영된 서버값으로 바로 갱신한다.
+      const result = await claimGiftBox();
       setHeartPoints({
         id: user!.id,
         point: result.afterPoint ?? heartPoints?.point ?? 0,
@@ -189,70 +188,13 @@ export default function AppHeader() {
         )}
       </div>
 
-      {isGiftModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-sm rounded-2xl border border-gray-100 bg-white p-5 shadow-xl">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-base font-semibold text-gray-900">선물 이벤트</h3>
-              <button
-                type="button"
-                onClick={() => setIsGiftModalOpen(false)}
-                className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-gray-500 hover:bg-gray-50"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="mb-4">
-              <p className="text-sm text-gray-500">하루 한 번 선물상자를 열고 하트를 받아보세요.</p>
-              <p className="mt-1 text-xs font-medium text-rose-500">랜덤 1~50하트</p>
-            </div>
-
-            <div className="mb-5 flex min-h-[180px] items-center justify-center">
-              {giftAmount === null ? (
-                <button
-                  type="button"
-                  onClick={openGiftBox}
-                  disabled={isGiftOpening}
-                  className={`relative inline-flex h-28 w-28 items-center justify-center rounded-2xl bg-white text-gray-900 transition ${isGiftOpening ? "scale-110 animate-pulse" : "hover:scale-105"
-                    }`}
-                >
-                  <AnimatedGiftIcon className="h-20 w-20 text-black cursor-pointer" />
-                </button>
-              ) : (
-                <div className="text-center">
-                  <AnimatedRewardHeart className="mx-auto mb-2" />
-                  <p className="text-sm text-gray-500">오늘 받은 하트</p>
-                  <p className="mt-1 text-3xl font-bold text-red-600">
-                    {giftAmount.toLocaleString()}하트
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-end gap-2">
-              {giftAmount === null ? (
-                <Button
-                  type="button"
-                  onClick={openGiftBox}
-                  disabled={isGiftOpening}
-                  className="cursor-pointer bg-black hover:bg-gray-900 text-white"
-                >
-                  {isGiftOpening ? "상자 여는 중..." : "상자 열기"}
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  onClick={() => setIsGiftModalOpen(false)}
-                  className="cursor-pointer bg-gray-800 hover:bg-gray-900 text-white"
-                >
-                  확인
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <GiftEventModal
+        open={isGiftModalOpen}
+        giftAmount={giftAmount}
+        isGiftOpening={isGiftOpening}
+        onOpenGiftBox={openGiftBox}
+        onClose={() => setIsGiftModalOpen(false)}
+      />
     </div>
   );
 }

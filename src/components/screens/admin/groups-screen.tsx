@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useIdolGroups } from "@/hooks/queries/admin/use-idol-groups";
 import { useStreamers } from "@/hooks/queries/admin/use-streamers";
 import { useCreateIdolGroup } from "@/hooks/mutations/admin/use-create-idol-group";
-import { uploadIdolGroupImage } from "@/api/admin-groups";
+import { useUploadIdolGroupImage } from "@/hooks/mutations/admin/use-upload-idol-group-image";
 import type { IdolGroupUpsertInput } from "@/types/group";
 import { UsersRound } from "lucide-react";
 import { toast } from "sonner";
@@ -15,11 +15,12 @@ import GroupRow from "./group-row";
 
 /** 관리자 그룹 관리 화면 — 그룹 목록, 추가, 멤버 자동 매칭 */
 export default function GroupsScreen() {
-  const { data: groups, isLoading } = useIdolGroups();
+  const { data: groups, isLoading, isError } = useIdolGroups();
   const { data: streamers } = useStreamers();
   const { mutate: createGroup, isPending: isCreating } = useCreateIdolGroup();
+  const { mutateAsync: uploadIdolGroupImage, isPending: isUploadingImage } =
+    useUploadIdolGroupImage();
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [memberEtcInput, setMemberEtcInput] = useState("");
   const [form, setForm] = useState<IdolGroupUpsertInput>({
     group_code: "",
@@ -111,7 +112,6 @@ export default function GroupsScreen() {
 
   const handleUploadImage = async (file: File | null) => {
     if (!file) return;
-    setIsUploadingImage(true);
     try {
       const publicUrl = await uploadIdolGroupImage(file);
       setForm((prev) => ({ ...prev, image_url: publicUrl }));
@@ -122,8 +122,6 @@ export default function GroupsScreen() {
           ? error.message
           : "대표이미지 업로드 중 오류가 발생했습니다."
       );
-    } finally {
-      setIsUploadingImage(false);
     }
   };
 
@@ -240,6 +238,12 @@ export default function GroupsScreen() {
                   </td>
                 </tr>
               ))
+            ) : isError ? (
+              <tr>
+                <td colSpan={7} className="px-4 py-12 text-center text-sm text-gray-400">
+                  그룹 목록을 불러오지 못했습니다.
+                </td>
+              </tr>
             ) : groups && groups.length > 0 ? (
               groups.map((group) => (
                 <GroupRow

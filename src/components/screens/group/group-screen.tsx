@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
 import { Star, UsersRound, UserRound } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useIdolGroupCards } from "@/hooks/queries/groups/use-idol-group-cards";
 import { useAuthStore } from "@/store/useAuthStore";
-import { fetchStarredGroupIds } from "@/api/star";
+import { useStarredGroupIds } from "@/hooks/queries/star/use-starred-group-ids";
 import { useBrokenImages } from "@/hooks/use-broken-images";
 
 export default function GroupScreen() {
@@ -26,11 +25,7 @@ export default function GroupScreen() {
   /** 멤버 아바타 이미지 깨짐 추적 */
   const memberImages = useBrokenImages();
   const { data, isLoading, isFetching } = useIdolGroupCards();
-  const { data: starredGroupIds = new Set<number>() } = useQuery({
-    queryKey: ["starred-groups", user?.id],
-    queryFn: async () => new Set(await fetchStarredGroupIds(user!.id)),
-    enabled: Boolean(user?.id),
-  });
+  const { data: starredGroupIds = new Set<number>() } = useStarredGroupIds(user?.id);
 
   /** 키워드 필터 + 정렬을 적용한 그룹 목록 */
   const groups = useMemo(() => {

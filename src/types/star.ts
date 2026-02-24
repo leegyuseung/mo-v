@@ -1,3 +1,6 @@
+/** 즐겨찾기 대상 타입 */
+export type StarTargetType = "streamer" | "group" | "crew";
+
 export type StarredStreamer = {
   id: number;
   public_id: string | null;

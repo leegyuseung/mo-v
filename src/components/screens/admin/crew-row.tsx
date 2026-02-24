@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import ConfirmAlert from "@/components/common/confirm-alert";
 import { useUpdateCrew } from "@/hooks/mutations/admin/use-update-crew";
 import { useDeleteCrew } from "@/hooks/mutations/admin/use-delete-crew";
-import { uploadCrewImage } from "@/api/admin-crews";
+import { useUploadCrewImage } from "@/hooks/mutations/admin/use-upload-crew-image";
 import type { Crew, CrewUpsertInput } from "@/types/crew";
 import { Pencil, Check, X, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -21,7 +21,6 @@ export default function CrewRow({
 }) {
     const [isEditing, setIsEditing] = useState(false);
     const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
-    const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [memberEtcInput, setMemberEtcInput] = useState(
         crew.member_etc?.join(", ") || ""
     );
@@ -42,6 +41,8 @@ export default function CrewRow({
 
     const { mutate: updateCrew, isPending: isUpdating } = useUpdateCrew();
     const { mutate: deleteCrew, isPending: isDeleting } = useDeleteCrew();
+    const { mutateAsync: uploadCrewImage, isPending: isUploadingImage } =
+        useUploadCrewImage();
 
     const setField = (
         key: keyof CrewUpsertInput,
@@ -106,7 +107,6 @@ export default function CrewRow({
 
     const handleUploadImage = async (file: File | null) => {
         if (!file) return;
-        setIsUploadingImage(true);
         try {
             const publicUrl = await uploadCrewImage(file);
             setForm((prev) => ({ ...prev, image_url: publicUrl }));
@@ -117,8 +117,6 @@ export default function CrewRow({
                     ? error.message
                     : "대표이미지 업로드 중 오류가 발생했습니다."
             );
-        } finally {
-            setIsUploadingImage(false);
         }
     };
 

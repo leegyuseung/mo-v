@@ -3,11 +3,15 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 
-interface AdBannerProps {
+type AdBannerProps = {
     dataAdSlot: string;
     dataAdFormat?: string;
     dataFullWidthResponsive?: boolean;
-}
+};
+
+type AdsByGoogleWindow = Window & {
+    adsbygoogle?: unknown[];
+};
 
 export default function AdBanner({
     dataAdSlot,
@@ -18,10 +22,13 @@ export default function AdBanner({
 
     useEffect(() => {
         try {
-            // @ts-ignore
-            (window.adsbygoogle = window.adsbygoogle || []).push({});
-        } catch (err: any) {
-            console.error("AdSense Error:", err.message);
+            const adsWindow = window as AdsByGoogleWindow;
+            const adsByGoogle = adsWindow.adsbygoogle || [];
+            adsByGoogle.push({});
+            adsWindow.adsbygoogle = adsByGoogle;
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error("AdSense Error:", message);
         }
     }, [pathname]);
 

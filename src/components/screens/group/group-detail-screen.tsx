@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
 import { ArrowBigLeft, Siren, Star, UserRound, UserRoundPen, UsersRound } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
@@ -18,7 +17,7 @@ import {
 import { isSupabaseStorageUrl } from "@/utils/image";
 import InfoEditRequestModal from "@/components/common/info-edit-request-modal";
 import IconTooltipButton from "@/components/common/icon-tooltip-button";
-import { fetchStarCount } from "@/api/star";
+import { useStarCount } from "@/hooks/queries/star/use-star-count";
 import StarCountBadge from "@/components/common/star-count-badge";
 import ReportRequestModal from "@/components/common/report-request-modal";
 import { useCreateEntityReportRequest } from "@/hooks/mutations/reports/use-create-entity-report-request";
@@ -30,11 +29,10 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
   const { user, profile } = useAuthStore();
   const { data: group, isLoading } = useIdolGroupDetail(groupCode);
   const { starred: isStarred, isToggling: isStarToggling, toggle: onClickStar } = useToggleStar("group", group?.id);
-  const { data: groupStarCount = 0, isLoading: isGroupStarCountLoading } = useQuery({
-    queryKey: ["group-star-count", group?.id],
-    queryFn: () => fetchStarCount(group!.id, "group"),
-    enabled: Boolean(group?.id),
-  });
+  const { data: groupStarCount = 0, isLoading: isGroupStarCountLoading } = useStarCount(
+    group?.id,
+    "group"
+  );
   const {
     mutateAsync: createInfoEditRequest,
     isPending: isInfoEditRequestSubmitting,

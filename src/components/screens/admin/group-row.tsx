@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import ConfirmAlert from "@/components/common/confirm-alert";
 import { useUpdateIdolGroup } from "@/hooks/mutations/admin/use-update-idol-group";
 import { useDeleteIdolGroup } from "@/hooks/mutations/admin/use-delete-idol-group";
-import { uploadIdolGroupImage } from "@/api/admin-groups";
+import { useUploadIdolGroupImage } from "@/hooks/mutations/admin/use-upload-idol-group-image";
 import type { IdolGroupUpsertInput, GroupRowProps } from "@/types/group";
 import { Pencil, Check, X, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -18,7 +18,6 @@ export default function GroupRow({
 }: GroupRowProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
-    const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [memberEtcInput, setMemberEtcInput] = useState(
         group.member_etc?.join(", ") || ""
     );
@@ -39,6 +38,8 @@ export default function GroupRow({
 
     const { mutate: updateGroup, isPending: isUpdating } = useUpdateIdolGroup();
     const { mutate: deleteGroup, isPending: isDeleting } = useDeleteIdolGroup();
+    const { mutateAsync: uploadIdolGroupImage, isPending: isUploadingImage } =
+        useUploadIdolGroupImage();
 
     /**
      * 폼 필드 값 변경 핸들러 (nullable 필드 자동 변환).
@@ -116,7 +117,6 @@ export default function GroupRow({
     /** 대표 이미지 업로드 핸들러 */
     const handleUploadImage = async (file: File | null) => {
         if (!file) return;
-        setIsUploadingImage(true);
         try {
             const publicUrl = await uploadIdolGroupImage(file);
             setForm((prev) => ({ ...prev, image_url: publicUrl }));
@@ -127,8 +127,6 @@ export default function GroupRow({
                     ? error.message
                     : "대표이미지 업로드 중 오류가 발생했습니다."
             );
-        } finally {
-            setIsUploadingImage(false);
         }
     };
 

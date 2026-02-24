@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
 import {
   ArrowBigLeft,
   Siren,
@@ -25,7 +24,7 @@ import {
 import { isSupabaseStorageUrl } from "@/utils/image";
 import InfoEditRequestModal from "@/components/common/info-edit-request-modal";
 import IconTooltipButton from "@/components/common/icon-tooltip-button";
-import { fetchStarCount } from "@/api/star";
+import { useStarCount } from "@/hooks/queries/star/use-star-count";
 import StarCountBadge from "@/components/common/star-count-badge";
 import ReportRequestModal from "@/components/common/report-request-modal";
 import { useCreateEntityReportRequest } from "@/hooks/mutations/reports/use-create-entity-report-request";
@@ -37,11 +36,10 @@ export default function CrewDetailScreen({ crewCode }: CrewDetailScreenProps) {
   const { user, profile } = useAuthStore();
   const { data: crew, isLoading } = useCrewDetail(crewCode);
   const { starred: isStarred, isToggling: isStarToggling, toggle: onClickStar } = useToggleStar("crew", crew?.id);
-  const { data: crewStarCount = 0, isLoading: isCrewStarCountLoading } = useQuery({
-    queryKey: ["crew-star-count", crew?.id],
-    queryFn: () => fetchStarCount(crew!.id, "crew"),
-    enabled: Boolean(crew?.id),
-  });
+  const { data: crewStarCount = 0, isLoading: isCrewStarCountLoading } = useStarCount(
+    crew?.id,
+    "crew"
+  );
   const {
     mutateAsync: createInfoEditRequest,
     isPending: isInfoEditRequestSubmitting,

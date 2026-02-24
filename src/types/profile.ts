@@ -49,6 +49,47 @@ export type MyRequestHistory = {
   entityReportRequests: MyEntityReportRequest[];
 };
 
+/** 요청 필터 타입 */
+export type RequestFilter = "all" | "registration" | "info-edit" | "report";
+
+/** 프로필 요청 상태 타입 */
+export type ProfileRequestStatus = "pending" | "approved" | "rejected" | "cancelled";
+
+/** 통합 요청 타입: 등록/정보수정/신고 요청을 하나로 합친 유니온 타입 */
+export type CombinedRequest =
+  | {
+      kind: "registration";
+      id: number;
+      created_at: string;
+      reviewed_at: string | null;
+      status: ProfileRequestStatus;
+      review_note: string | null;
+      platform: string;
+      platform_streamer_url: string;
+    }
+  | {
+      kind: "info-edit";
+      id: number;
+      created_at: string;
+      reviewed_at: string | null;
+      status: ProfileRequestStatus;
+      review_note: string | null;
+      streamer_nickname: string;
+      content: string;
+    }
+  | {
+      kind: "report";
+      id: number;
+      created_at: string;
+      reviewed_at: string | null;
+      status: ProfileRequestStatus;
+      review_note: string | null;
+      target_type: string;
+      target_name: string | null;
+      target_code: string;
+      content: string;
+    };
+
 export type UpdateProfileInput = {
     userId: string;
     nickname?: string;
