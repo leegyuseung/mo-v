@@ -133,12 +133,12 @@ export default function LiveBoxDetailScreen({
     <div className="mx-auto max-w-4xl p-4 md:p-6">
       <Link
         href="/live-box"
-        className="group relative inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-        aria-label="목록"
+        className="group relative inline-flex h-10 w-10 items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+        aria-label="뒤로가기"
       >
         <ArrowBigLeft className="h-4 w-4" />
         <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-          목록
+          뒤로가기
         </span>
       </Link>
 
