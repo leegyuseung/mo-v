@@ -2,6 +2,7 @@
 import Link from "next/link";
 import type { ComponentType } from "react";
 import {
+  Boxes,
   Clapperboard,
   MicVocal,
   Megaphone,
@@ -32,6 +33,7 @@ type MenuItem = {
 // 완성된 화면만 링크를 연결한다.
 const menuItems = [
   { title: "라이브", url: "/live", icon: TvMinimalPlay },
+  { title: "라이브박스", url: "/live-box", icon: Boxes },
   { title: "버츄얼", url: "/vlist", icon: Gem },
   { title: "그룹", url: "/group", icon: MicVocal },
   { title: "소속", url: "/crew", icon: UsersRound },

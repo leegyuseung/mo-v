@@ -143,7 +143,7 @@ export default function GroupScreen() {
             return (
               <article
                 key={group.id}
-                className="cursor-pointer rounded-xl border border-gray-100 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                className="group cursor-pointer rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-gray-400 hover:bg-gray-50/40 hover:shadow-[0_14px_28px_-14px_rgba(0,0,0,0.45)]"
                 onClick={() => router.push(`/group/${group.group_code}`)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {
@@ -187,7 +187,9 @@ export default function GroupScreen() {
                     </div>
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-gray-900">{group.name}</p>
+                    <p className="truncate text-sm font-semibold text-gray-900 transition-colors group-hover:text-black">
+                      {group.name}
+                    </p>
                     <p className="text-xs text-gray-500">
                       멤버 {group.member_count.toLocaleString()}명
                     </p>

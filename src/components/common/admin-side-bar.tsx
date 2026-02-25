@@ -10,6 +10,7 @@ import {
     MicVocal,
     UsersRound,
     Siren,
+    Boxes,
 } from "lucide-react";
 import {
     Sidebar,
@@ -30,6 +31,7 @@ const adminMenuItems = [
     { title: "유저/버츄얼 관리", url: "/admin/users", icon: Users },
     { title: "그룹 관리", url: "/admin/groups", icon: MicVocal },
     { title: "소속 관리", url: "/admin/crews", icon: UsersRound },
+    { title: "박스관리", url: "/admin/live-box", icon: Boxes },
     { title: "버츄얼 등록 대기", url: "/admin/pending", icon: Clock },
     { title: "정보 수정 요청", url: "/admin/infoeditrq", icon: UserRoundPen },
     { title: "신고 관리", url: "/admin/reports", icon: Siren },

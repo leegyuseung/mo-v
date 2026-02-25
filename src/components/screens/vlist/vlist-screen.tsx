@@ -183,7 +183,7 @@ export default function VlistScreen() {
             <Link
               key={streamer.id}
               href={`/vlist/${streamer.public_id ?? streamer.id}`}
-              className="group rounded-xl border border-gray-100 bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              className="group rounded-xl border border-gray-200 bg-white p-2.5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-gray-400 hover:bg-gray-50/40 hover:shadow-[0_14px_28px_-14px_rgba(0,0,0,0.45)]"
             >
               <div className="relative mb-2 h-28 overflow-hidden rounded-lg bg-gray-100">
                 {starredStreamerIds.has(streamer.id) ? (
@@ -208,7 +208,7 @@ export default function VlistScreen() {
               </div>
 
               <div className="mb-1 flex items-center justify-between gap-1">
-                <p className="truncate text-sm font-semibold text-gray-900">
+                <p className="truncate text-sm font-semibold text-gray-900 transition-colors group-hover:text-black">
                   {streamer.nickname || "이름 미등록"}
                 </p>
                 <PlatformBadge platform={streamer.platform || "UNKNOWN"} />

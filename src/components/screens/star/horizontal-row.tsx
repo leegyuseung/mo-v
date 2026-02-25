@@ -39,7 +39,7 @@ export default function HorizontalRow({
           {isEditable && addHref ? (
             <Link
               href={addHref}
-              className="inline-flex h-7 items-center rounded-md border border-gray-200 px-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+              className="hidden h-7 items-center rounded-md border border-gray-200 px-2 text-xs font-medium text-gray-700 hover:bg-gray-50 md:inline-flex"
             >
               추가
             </Link>
@@ -48,7 +48,7 @@ export default function HorizontalRow({
             <button
               type="button"
               onClick={onToggleEditMode}
-              className="inline-flex h-7 cursor-pointer items-center rounded-md border border-gray-200 px-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+              className="hidden h-7 cursor-pointer items-center rounded-md border border-gray-200 px-2 text-xs font-medium text-gray-700 hover:bg-gray-50 md:inline-flex"
             >
               {isEditMode ? "완료" : "수정"}
             </button>

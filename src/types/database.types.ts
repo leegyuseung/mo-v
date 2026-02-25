@@ -179,6 +179,50 @@ export type Database = {
         }
         Relationships: []
       }
+      live_box: {
+        Row: {
+          category: string[]
+          created_at: string
+          created_by: string
+          description: string | null
+          ends_at: string | null
+          id: number
+          participant_streamer_ids: string[]
+          status: string
+          title: string
+        }
+        Insert: {
+          category: string[]
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: never
+          participant_streamer_ids?: string[]
+          status?: string
+          title: string
+        }
+        Update: {
+          category?: string[]
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: never
+          participant_streamer_ids?: string[]
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_box_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
