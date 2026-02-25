@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import Pagination from "@/components/common/pagination";
 import { useLiveStreamers } from "@/hooks/queries/live/use-live-streamers";
+import { useStreamerGenres } from "@/hooks/queries/streamers/use-streamer-genres";
 import { useIdolGroupCodeNames } from "@/hooks/queries/groups/use-idol-group-code-names";
 import { useCrewCodeNames } from "@/hooks/queries/crews/use-crew-code-names";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -23,11 +24,13 @@ export default function LiveScreen() {
   const pageSize = isMobile ? 14 : 15;
   const [page, setPage] = useState(1);
   const [platform, setPlatform] = useState<StreamerPlatform>("all");
+  const [genre, setGenre] = useState("all");
   const [keyword, setKeyword] = useState("");
   const [sortOrder, setSortOrder] = useState<LiveSortOrder>("name_asc");
   /** 라이브 썸네일 이미지 깨짐 추적 (fallback → 프로필 이미지) */
   const brokenImages = useBrokenImages();
   const { data, isLoading, isError } = useLiveStreamers();
+  const { data: genres = [] } = useStreamerGenres();
   const { data: idolGroups } = useIdolGroupCodeNames();
   const { data: crews } = useCrewCodeNames();
 
@@ -43,6 +46,10 @@ export default function LiveScreen() {
         return item.platform === platform;
       })
       .filter((item) => {
+        if (genre === "all") return true;
+        return (item.genre || []).includes(genre);
+      })
+      .filter((item) => {
         if (!keywordLower) return true;
         return (item.nickname || "").toLowerCase().includes(keywordLower);
       })
@@ -54,7 +61,7 @@ export default function LiveScreen() {
         const diff = (a.nickname || "").localeCompare(b.nickname || "", "ko");
         return sortOrder === "name_asc" ? diff : -diff;
       });
-  }, [data, keyword, platform, sortOrder]);
+  }, [data, genre, keyword, platform, sortOrder]);
 
   const totalCount = filteredLiveStreamers.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
@@ -109,6 +116,21 @@ export default function LiveScreen() {
                 {item.label}
               </Button>
             ))}
+            <select
+              value={genre}
+              onChange={(event) => {
+                setGenre(event.target.value);
+                setPage(1);
+              }}
+              className="h-8 rounded-md border border-gray-200 bg-white px-2.5 text-xs text-gray-700 outline-none focus:border-gray-300"
+            >
+              <option value="all">장르 전체</option>
+              {genres.map((genreOption) => (
+                <option key={`live-genre-${genreOption}`} value={genreOption}>
+                  {genreOption}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="flex w-full gap-2 md:w-auto">

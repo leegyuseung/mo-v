@@ -11,6 +11,7 @@ export type StreamerListParams = {
   page: number;
   pageSize: number;
   platform: StreamerPlatform;
+  genre: string;
   sortBy: StreamerSortBy;
   sortOrder: StreamerSortOrder;
   keyword: string;

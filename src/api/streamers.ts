@@ -18,6 +18,7 @@ export async function fetchStreamers({
   page,
   pageSize,
   platform,
+  genre,
   sortBy,
   sortOrder,
   keyword,
@@ -25,12 +26,17 @@ export async function fetchStreamers({
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
   const trimmedKeyword = keyword.trim();
+  const trimmedGenre = genre.trim();
+  const hasGenreFilter = trimmedGenre !== "" && trimmedGenre !== "all";
 
   if (sortBy === "star") {
     let streamerQuery = supabase.from(STREAMER_TABLE).select("*");
 
     if (platform !== "all") {
       streamerQuery = streamerQuery.eq("platform", platform);
+    }
+    if (hasGenreFilter) {
+      streamerQuery = streamerQuery.contains("genre", [trimmedGenre]);
     }
     if (trimmedKeyword) {
       streamerQuery = streamerQuery.ilike("nickname", `%${trimmedKeyword}%`);
@@ -77,6 +83,58 @@ export async function fetchStreamers({
   }
 
   if (sortBy === "heart") {
+    if (hasGenreFilter) {
+      let streamerQuery = supabase.from(STREAMER_TABLE).select("*");
+
+      if (platform !== "all") {
+        streamerQuery = streamerQuery.eq("platform", platform);
+      }
+      if (trimmedKeyword) {
+        streamerQuery = streamerQuery.ilike("nickname", `%${trimmedKeyword}%`);
+      }
+      streamerQuery = streamerQuery.contains("genre", [trimmedGenre]);
+
+      const { data: filteredStreamers, error: streamerError } = await streamerQuery;
+      if (streamerError) throw streamerError;
+
+      const streamersAll = filteredStreamers || [];
+      const streamerIds = streamersAll.map((row) => row.id);
+
+      const heartCountById = new Map<number, number>();
+      if (streamerIds.length > 0) {
+        const { data: rankRows, error: rankError } = await supabase
+          .from("streamer_heart_rank")
+          .select("streamer_id,total_received")
+          .in("streamer_id", streamerIds);
+
+        if (rankError) throw rankError;
+
+        (rankRows || []).forEach((row) => {
+          if (typeof row.streamer_id === "number") {
+            heartCountById.set(row.streamer_id, row.total_received || 0);
+          }
+        });
+      }
+
+      const sorted = [...streamersAll].sort((a, b) => {
+        const aCount = heartCountById.get(a.id) || 0;
+        const bCount = heartCountById.get(b.id) || 0;
+        const diff = aCount - bCount;
+
+        if (diff !== 0) {
+          return sortOrder === "asc" ? diff : -diff;
+        }
+
+        const nameDiff = (a.nickname || "").localeCompare(b.nickname || "", "ko");
+        return nameDiff;
+      });
+
+      return {
+        data: sorted.slice(from, to + 1),
+        count: sorted.length,
+      };
+    }
+
     let rankQuery = supabase
       .from("streamer_heart_rank")
       .select("streamer_id, total_received, nickname, platform", { count: "exact" })
@@ -129,6 +187,9 @@ export async function fetchStreamers({
   if (platform !== "all") {
     query = query.eq("platform", platform);
   }
+  if (hasGenreFilter) {
+    query = query.contains("genre", [trimmedGenre]);
+  }
   if (trimmedKeyword) {
     query = query.ilike("nickname", `%${trimmedKeyword}%`);
   }
@@ -143,6 +204,27 @@ export async function fetchStreamers({
     data: data || [],
     count: count || 0,
   };
+}
+
+/** 버츄얼 장르 목록(중복 제거)을 조회한다. */
+export async function fetchStreamerGenres(): Promise<string[]> {
+  const { data, error } = await supabase.from(STREAMER_TABLE).select("genre");
+
+  if (error) {
+    throw error;
+  }
+
+  const genreSet = new Set<string>();
+  (data || []).forEach((row) => {
+    (row.genre || []).forEach((genreItem: string) => {
+      const normalizedGenre = (genreItem || "").trim();
+      if (normalizedGenre) {
+        genreSet.add(normalizedGenre);
+      }
+    });
+  });
+
+  return Array.from(genreSet).sort((a, b) => a.localeCompare(b, "ko"));
 }
 
 /** publicId 또는 레거시 숫자 ID로 버츄얼 상세를 조회한다 */

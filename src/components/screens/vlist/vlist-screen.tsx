@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { useStreamers } from "@/hooks/queries/streamers/use-streamers";
+import { useStreamerGenres } from "@/hooks/queries/streamers/use-streamer-genres";
 import { useIdolGroupCodeNames } from "@/hooks/queries/groups/use-idol-group-code-names";
 import { useCrewCodeNames } from "@/hooks/queries/crews/use-crew-code-names";
 import type {
@@ -32,6 +33,7 @@ import { generateArray } from "@/utils/array";
 export default function VlistScreen() {
   const [page, setPage] = useState(1);
   const [platform, setPlatform] = useState<StreamerPlatform>("all");
+  const [genre, setGenre] = useState("all");
   const [sortBy, setSortBy] = useState<StreamerSortBy>("name");
   const [sortOrder, setSortOrder] = useState<StreamerSortOrder>("asc");
   const [keyword, setKeyword] = useState("");
@@ -43,10 +45,12 @@ export default function VlistScreen() {
     page,
     pageSize,
     platform,
+    genre,
     sortBy,
     sortOrder,
     keyword,
   });
+  const { data: genres = [] } = useStreamerGenres();
   const { data: idolGroups } = useIdolGroupCodeNames();
   const { data: crews } = useCrewCodeNames();
   const { data: starredStreamerIdList = [] } = useStarredStreamerIds(user?.id);
@@ -77,6 +81,11 @@ export default function VlistScreen() {
 
   const onChangePlatform = (next: StreamerPlatform) => {
     setPlatform(next);
+    setPage(1);
+  };
+
+  const onChangeGenre = (nextGenre: string) => {
+    setGenre(nextGenre);
     setPage(1);
   };
 
@@ -116,6 +125,18 @@ export default function VlistScreen() {
                 {item.label}
               </Button>
             ))}
+            <select
+              value={genre}
+              onChange={(event) => onChangeGenre(event.target.value)}
+              className="h-8 rounded-md border border-gray-200 bg-white px-2.5 text-xs text-gray-700 outline-none focus:border-gray-300"
+            >
+              <option value="all">장르 전체</option>
+              {genres.map((genreOption) => (
+                <option key={`vlist-genre-${genreOption}`} value={genreOption}>
+                  {genreOption}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="flex w-full gap-2 md:w-auto">

@@ -234,7 +234,7 @@ export default function LiveBoxScreen({
                 };
               });
 
-              const visibleParticipants = participantPreviews.slice(0, 10);
+              const visibleParticipants = participantPreviews.slice(0, 17);
               const hiddenParticipantCount = Math.max(
                 0,
                 participantPreviews.length - visibleParticipants.length
