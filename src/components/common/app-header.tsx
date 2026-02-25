@@ -8,7 +8,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useSignOut } from "@/hooks/mutations/auth/use-sign-out";
 import { useCheckDailyGiftBoxStatus } from "@/hooks/mutations/event/use-check-daily-gift-box-status";
 import { useClaimDailyGiftBox } from "@/hooks/mutations/event/use-claim-daily-gift-box";
-import { Bell, CalendarDays, Gift, Menu, MessageCircle, Star } from "lucide-react";
+import { Bell, Gift, Mail, Menu, Star } from "lucide-react";
 import { useSidebar } from "../ui/sidebar";
 import AppHeaderProfileMenu from "@/components/common/app-header-profile-menu";
 import GiftEventModal from "@/components/common/gift-event-modal";
@@ -119,18 +119,6 @@ export default function AppHeader() {
             즐겨찾기
           </span>
         </div>
-        <div className="group relative hidden md:block">
-          <button
-            type="button"
-            aria-label="출석 이벤트(준비중)"
-            className="h-10 w-10 inline-flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer"
-          >
-            <CalendarDays className="w-4 h-4" />
-          </button>
-          <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-            출석이벤트 (준비중)
-          </span>
-        </div>
         <div className="group relative">
           <button
             type="button"
@@ -147,13 +135,13 @@ export default function AppHeader() {
         <div className="group relative hidden md:block">
           <button
             type="button"
-            aria-label="메시지 (준비중)"
+            aria-label="메일 (준비중)"
             className="h-10 w-10 inline-flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer"
           >
-            <MessageCircle className="w-4 h-4" />
+            <Mail className="w-4 h-4" />
           </button>
           <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-            메시지 (준비중)
+            메일 (준비중)
           </span>
         </div>
         <div className="group relative hidden md:block">

@@ -26,6 +26,18 @@ export const STREAMER_REQUEST_MODAL_TEXT = {
   cancelButton: "취소",
 } as const;
 
+export const LIVE_BOX_REQUEST_MODAL_TEXT = {
+  title: "라이브박스 추가 요청",
+  description: "주제와 관련 사이트를 입력해 주세요. 관리자가 확인 후 등록합니다.",
+  topicRequired: "주제를 입력해 주세요.",
+  relatedSiteRequired: "관련 사이트를 입력해 주세요.",
+  relatedSiteInvalid: "올바른 사이트 주소를 입력해 주세요.",
+  alreadyPending: "같은 주제로 처리대기중인 요청이 있습니다.",
+  submitSuccess: "라이브박스 추가 요청이 접수되었습니다.",
+  submitButton: "요청대기",
+  cancelButton: "취소",
+} as const;
+
 export const STREAMER_INFO_EDIT_REQUEST_MODAL_TEXT = {
   title: "정보 수정 요청",
   description: "수정이 필요한 내용을 입력해 주세요. 관리자가 확인 후 반영합니다.",
@@ -58,3 +70,4 @@ export const STREAMER_TABLE = "streamers";
 export const STREAMER_REQUEST_TABLE = "streamer_registration_requests";
 export const STREAMER_INFO_EDIT_REQUEST_TABLE = "streamer_info_edit_requests";
 export const ENTITY_REPORT_REQUEST_TABLE = "entity_report_requests";
+export const LIVE_BOX_REQUEST_TABLE = "live_box_requests";

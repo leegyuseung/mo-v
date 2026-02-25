@@ -43,14 +43,26 @@ export type MyEntityReportRequest = Pick<
   | "reviewed_at"
 >;
 
+export type MyLiveBoxRequest = Pick<
+  Tables<"live_box_requests">,
+  | "id"
+  | "topic"
+  | "related_site"
+  | "status"
+  | "review_note"
+  | "created_at"
+  | "reviewed_at"
+>;
+
 export type MyRequestHistory = {
   streamerRegistrationRequests: MyStreamerRegistrationRequest[];
   infoEditRequests: MyInfoEditRequest[];
   entityReportRequests: MyEntityReportRequest[];
+  liveBoxRequests: MyLiveBoxRequest[];
 };
 
 /** 요청 필터 타입 */
-export type RequestFilter = "all" | "registration" | "info-edit" | "report";
+export type RequestFilter = "all" | "registration" | "info-edit" | "report" | "live-box";
 
 /** 프로필 요청 상태 타입 */
 export type ProfileRequestStatus = "pending" | "approved" | "rejected" | "cancelled";
@@ -88,6 +100,16 @@ export type CombinedRequest =
       target_name: string | null;
       target_code: string;
       content: string;
+    }
+  | {
+      kind: "live-box";
+      id: number;
+      created_at: string;
+      reviewed_at: string | null;
+      status: ProfileRequestStatus;
+      review_note: string | null;
+      topic: string;
+      related_site: string;
     };
 
 export type UpdateProfileInput = {

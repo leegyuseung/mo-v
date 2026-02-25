@@ -24,8 +24,3 @@ export type EntityReportRequest = {
   reviewed_by?: string | null;
   review_note?: string | null;
 };
-
-/** 관리자 신고 요청 행 컴포넌트 props */
-export type ReportRequestRowProps = {
-  request: EntityReportRequest;
-};

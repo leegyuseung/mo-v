@@ -1,4 +1,4 @@
-import type { DashboardSignupTrendPoint } from "@/types/admin";
+import type { DashboardSignupTrendPoint } from "@/types/admin-dashboard";
 
 const CHART_WIDTH = 840;
 const CHART_HEIGHT = 280;

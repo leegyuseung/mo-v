@@ -5,8 +5,10 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { CalendarClock, Search, Tag, UserRound, Users } from "lucide-react";
 import Pagination from "@/components/common/pagination";
+import LiveBoxRequestTriggerButton from "@/components/screens/live-box/live-box-request-trigger-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuthStore } from "@/store/useAuthStore";
 import type { LiveBox, LiveBoxParticipantProfile } from "@/types/live-box";
 
 const PAGE_SIZE = 9;
@@ -50,6 +52,7 @@ export default function LiveBoxScreen({
   hasLiveBoxesError = false,
   hasParticipantProfilesError = false,
 }: LiveBoxScreenProps) {
+  const { user } = useAuthStore();
   const [keyword, setKeyword] = useState("");
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<LiveBoxStatusFilter>("all");
@@ -194,7 +197,7 @@ export default function LiveBoxScreen({
             </Button>
           </div>
 
-          <div className="w-full md:w-auto">
+          <div className="flex w-full items-center gap-2 md:w-auto">
             <select
               value={sortOption}
               onChange={(event) => {
@@ -207,6 +210,12 @@ export default function LiveBoxScreen({
               <option value="title_asc">제목순</option>
               <option value="participants_desc">참여자순</option>
             </select>
+            {user ? (
+              <LiveBoxRequestTriggerButton
+                label="추가요청"
+                className="h-9 shrink-0 cursor-pointer whitespace-nowrap border-gray-200 text-gray-700"
+              />
+            ) : null}
           </div>
         </div>
 

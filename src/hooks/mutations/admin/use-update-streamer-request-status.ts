@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateStreamerRequestStatus } from "@/api/admin-streamers";
-import type { StreamerRequestStatus } from "@/types/admin";
+import type { StreamerRequestStatus } from "@/types/admin-requests";
 import { toast } from "sonner";
 
 export function useUpdateStreamerRequestStatus() {

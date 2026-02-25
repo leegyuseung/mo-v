@@ -1,17 +1,22 @@
 import { createClient } from "@/utils/supabase/client";
-import type { LiveBox, LiveBoxCreateInput, LiveBoxUpdateInput } from "@/types/live-box";
+import type {
+  LiveBox,
+  LiveBoxCreateInput,
+  LiveBoxUpdateInput,
+  LiveBoxWithCreatorProfile,
+} from "@/types/live-box";
 
 const supabase = createClient();
 
 /** 관리자 박스 목록을 최신순으로 조회한다. */
-export async function fetchLiveBoxes(): Promise<LiveBox[]> {
+export async function fetchLiveBoxes(): Promise<LiveBoxWithCreatorProfile[]> {
   const { data, error } = await supabase
     .from("live_box")
-    .select("*")
+    .select("*, creator_profile:profiles!live_box_created_by_fkey(nickname)")
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return data || [];
+  return (data || []) as LiveBoxWithCreatorProfile[];
 }
 
 /** 라이브 박스를 생성한다. created_by는 DB 기본값(auth.uid())을 사용한다. */

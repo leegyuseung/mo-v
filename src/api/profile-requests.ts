@@ -10,6 +10,7 @@ export async function fetchMyRequestHistory(userId: string): Promise<MyRequestHi
     streamerRegistrationResult,
     infoEditResult,
     entityReportResult,
+    liveBoxRequestResult,
   ] = await Promise.all([
     supabase
       .from("streamer_registration_requests")
@@ -26,16 +27,23 @@ export async function fetchMyRequestHistory(userId: string): Promise<MyRequestHi
       .select("id,target_type,target_name,target_code,content,status,review_note,created_at,reviewed_at")
       .eq("reporter_id", userId)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("live_box_requests")
+      .select("id,topic,related_site,status,review_note,created_at,reviewed_at")
+      .eq("requester_id", userId)
+      .order("created_at", { ascending: false }),
   ]);
 
   if (streamerRegistrationResult.error) throw streamerRegistrationResult.error;
   if (infoEditResult.error) throw infoEditResult.error;
   if (entityReportResult.error) throw entityReportResult.error;
+  if (liveBoxRequestResult.error) throw liveBoxRequestResult.error;
 
   return {
     streamerRegistrationRequests: streamerRegistrationResult.data || [],
     infoEditRequests: infoEditResult.data || [],
     entityReportRequests: entityReportResult.data || [],
+    liveBoxRequests: liveBoxRequestResult.data || [],
   };
 }
 
@@ -77,6 +85,21 @@ export async function cancelMyRequest({
   if (requestKind === "info-edit") {
     const { data, error } = await supabase
       .from("streamer_info_edit_requests")
+      .update(payload)
+      .eq("id", requestId)
+      .eq("requester_id", userId)
+      .eq("status", "pending")
+      .select("id")
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) throw new Error("대기 중인 요청만 취소할 수 있습니다.");
+    return data;
+  }
+
+  if (requestKind === "live-box") {
+    const { data, error } = await supabase
+      .from("live_box_requests")
       .update(payload)
       .eq("id", requestId)
       .eq("requester_id", userId)

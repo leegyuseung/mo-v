@@ -1,5 +1,5 @@
 import { createClient } from "@/utils/supabase/client";
-import type { DashboardSignupTrendPoint, DashboardStats } from "@/types/admin";
+import type { DashboardSignupTrendPoint, DashboardStats } from "@/types/admin-dashboard";
 import type { Profile } from "@/types/profile";
 import { validateNicknameInput } from "@/utils/validate";
 
@@ -75,15 +75,18 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
         { count: totalStreamers },
         { count: totalGroups },
         { count: totalCrews },
+        { count: totalLiveBoxes },
         { count: pendingStreamerRequests },
         { count: pendingInfoEditRequests },
         { count: pendingReportRequests },
+        { count: pendingLiveBoxRequests },
         { data: signupRows, error: signupRowsError },
     ] = await Promise.all([
         supabase.from("profiles").select("*", { count: "exact", head: true }),
         supabase.from("streamers").select("*", { count: "exact", head: true }),
         supabase.from("idol_groups").select("*", { count: "exact", head: true }),
         supabase.from("crews").select("*", { count: "exact", head: true }),
+        supabase.from("live_box").select("*", { count: "exact", head: true }),
         supabase
             .from("streamer_registration_requests")
             .select("*", { count: "exact", head: true })
@@ -94,6 +97,10 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
             .eq("status", "pending"),
         supabase
             .from("entity_report_requests")
+            .select("*", { count: "exact", head: true })
+            .eq("status", "pending"),
+        supabase
+            .from("live_box_requests")
             .select("*", { count: "exact", head: true })
             .eq("status", "pending"),
         supabase
@@ -136,9 +143,11 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
         totalStreamers: totalStreamers || 0,
         totalGroups: totalGroups || 0,
         totalCrews: totalCrews || 0,
+        totalLiveBoxes: totalLiveBoxes || 0,
         pendingStreamerRequests: pendingStreamerRequests || 0,
         pendingInfoEditRequests: pendingInfoEditRequests || 0,
         pendingReportRequests: pendingReportRequests || 0,
+        pendingLiveBoxRequests: pendingLiveBoxRequests || 0,
         signupTrend,
     };
 }

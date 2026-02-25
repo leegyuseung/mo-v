@@ -223,6 +223,57 @@ export type Database = {
           },
         ]
       }
+      live_box_requests: {
+        Row: {
+          created_at: string
+          id: number
+          related_site: string
+          requester_id: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          topic: string
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          related_site: string
+          requester_id: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          topic: string
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          related_site?: string
+          requester_id?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          topic?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_box_requests_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "live_box_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

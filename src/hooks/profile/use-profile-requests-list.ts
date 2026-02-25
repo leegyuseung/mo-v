@@ -17,6 +17,7 @@ type UseProfileRequestsListResult = {
   registrationCount: number;
   infoEditCount: number;
   reportCount: number;
+  liveBoxCount: number;
   totalCount: number;
 };
 
@@ -68,7 +69,18 @@ export function useProfileRequestsList(
       content: request.content,
     }));
 
-    return [...registrationRequests, ...infoEditRequests, ...reportRequests].sort(
+    const liveBoxRequests: CombinedRequest[] = data.liveBoxRequests.map((request) => ({
+      kind: "live-box",
+      id: request.id,
+      created_at: request.created_at,
+      reviewed_at: request.reviewed_at,
+      status: normalizeProfileRequestStatus(request.status),
+      review_note: request.review_note,
+      topic: request.topic,
+      related_site: request.related_site,
+    }));
+
+    return [...registrationRequests, ...infoEditRequests, ...reportRequests, ...liveBoxRequests].sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
   }, [data]);
@@ -82,6 +94,9 @@ export function useProfileRequestsList(
     }
     if (filter === "report") {
       return combinedRequests.filter((request) => request.kind === "report");
+    }
+    if (filter === "live-box") {
+      return combinedRequests.filter((request) => request.kind === "live-box");
     }
     return combinedRequests;
   }, [combinedRequests, filter]);
@@ -101,7 +116,8 @@ export function useProfileRequestsList(
   const registrationCount = data?.streamerRegistrationRequests.length || 0;
   const infoEditCount = data?.infoEditRequests.length || 0;
   const reportCount = data?.entityReportRequests.length || 0;
-  const totalCount = registrationCount + infoEditCount + reportCount;
+  const liveBoxCount = data?.liveBoxRequests.length || 0;
+  const totalCount = registrationCount + infoEditCount + reportCount + liveBoxCount;
 
   return {
     filter,
@@ -114,6 +130,7 @@ export function useProfileRequestsList(
     registrationCount,
     infoEditCount,
     reportCount,
+    liveBoxCount,
     totalCount,
   };
 }

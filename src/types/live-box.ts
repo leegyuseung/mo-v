@@ -7,6 +7,13 @@ export type LiveBox = Tables<"live_box">;
 
 export type LiveBoxInsert = TablesInsert<"live_box">;
 
+/** 관리자 목록에서 생성자 닉네임을 함께 표시하기 위한 타입 */
+export type LiveBoxWithCreatorProfile = LiveBox & {
+  creator_profile: {
+    nickname: string | null;
+  } | null;
+};
+
 /** 관리자에서 박스 생성 시 사용하는 입력 타입 */
 export type LiveBoxCreateInput = {
   title: string;

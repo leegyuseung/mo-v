@@ -116,21 +116,6 @@ export default function LiveScreen() {
                 {item.label}
               </Button>
             ))}
-            <select
-              value={genre}
-              onChange={(event) => {
-                setGenre(event.target.value);
-                setPage(1);
-              }}
-              className="h-8 rounded-md border border-gray-200 bg-white px-2.5 text-xs text-gray-700 outline-none focus:border-gray-300"
-            >
-              <option value="all">장르 전체</option>
-              {genres.map((genreOption) => (
-                <option key={`live-genre-${genreOption}`} value={genreOption}>
-                  {genreOption}
-                </option>
-              ))}
-            </select>
           </div>
 
           <div className="flex w-full gap-2 md:w-auto">
@@ -146,54 +131,71 @@ export default function LiveScreen() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">정렬</span>
-          <Button
-            type="button"
-            size="sm"
-            variant="default"
-            onClick={() =>
-              setSortOrder((prev) => {
-                const next =
-                  prev === "name_asc"
-                    ? "name_desc"
-                    : prev === "name_desc"
-                      ? "name_asc"
-                      : "name_asc";
-                setPage(1);
-                return next;
-              })
-            }
-            className={`cursor-pointer ${isNameSort
-              ? "bg-gray-800 hover:bg-gray-900 text-white"
-              : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-              }`}
+        <div className="flex items-center gap-2 overflow-x-auto">
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="text-sm text-gray-500">정렬</span>
+            <Button
+              type="button"
+              size="sm"
+              variant="default"
+              onClick={() =>
+                setSortOrder((prev) => {
+                  const next =
+                    prev === "name_asc"
+                      ? "name_desc"
+                      : prev === "name_desc"
+                        ? "name_asc"
+                        : "name_asc";
+                  setPage(1);
+                  return next;
+                })
+              }
+              className={`cursor-pointer ${isNameSort
+                ? "bg-gray-800 hover:bg-gray-900 text-white"
+                : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                }`}
+            >
+              가나다순
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="default"
+              onClick={() =>
+                setSortOrder((prev) => {
+                  const next =
+                    prev === "viewer_desc"
+                      ? "viewer_asc"
+                      : prev === "viewer_asc"
+                        ? "viewer_desc"
+                        : "viewer_desc";
+                  setPage(1);
+                  return next;
+                })
+              }
+              className={`cursor-pointer ${isViewerSort
+                ? "bg-gray-800 hover:bg-gray-900 text-white"
+                : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                }`}
+            >
+              시청자 수
+            </Button>
+          </div>
+          <select
+            value={genre}
+            onChange={(event) => {
+              setGenre(event.target.value);
+              setPage(1);
+            }}
+            className="ml-auto h-9 w-32 shrink-0 rounded-md border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none focus:border-gray-300 md:w-44"
           >
-            가나다순
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="default"
-            onClick={() =>
-              setSortOrder((prev) => {
-                const next =
-                  prev === "viewer_desc"
-                    ? "viewer_asc"
-                    : prev === "viewer_asc"
-                      ? "viewer_desc"
-                      : "viewer_desc";
-                setPage(1);
-                return next;
-              })
-            }
-            className={`cursor-pointer ${isViewerSort
-              ? "bg-gray-800 hover:bg-gray-900 text-white"
-              : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-              }`}
-          >
-            시청자 수
-          </Button>
+            <option value="all">전체</option>
+            {genres.map((genreOption) => (
+              <option key={`live-genre-${genreOption}`} value={genreOption}>
+                {genreOption}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 

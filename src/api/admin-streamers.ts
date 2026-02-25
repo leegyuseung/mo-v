@@ -4,7 +4,7 @@ import type {
     StreamerInfoEditRequest,
     StreamerRegistrationRequest,
     StreamerRequestStatus,
-} from "@/types/admin";
+} from "@/types/admin-requests";
 import type { Streamer } from "@/types/streamer";
 import {
     STREAMER_INFO_EDIT_REQUEST_TABLE,

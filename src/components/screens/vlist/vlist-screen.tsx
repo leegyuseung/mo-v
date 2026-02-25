@@ -125,18 +125,6 @@ export default function VlistScreen() {
                 {item.label}
               </Button>
             ))}
-            <select
-              value={genre}
-              onChange={(event) => onChangeGenre(event.target.value)}
-              className="h-8 rounded-md border border-gray-200 bg-white px-2.5 text-xs text-gray-700 outline-none focus:border-gray-300"
-            >
-              <option value="all">장르 전체</option>
-              {genres.map((genreOption) => (
-                <option key={`vlist-genre-${genreOption}`} value={genreOption}>
-                  {genreOption}
-                </option>
-              ))}
-            </select>
           </div>
 
           <div className="flex w-full gap-2 md:w-auto">
@@ -152,35 +140,49 @@ export default function VlistScreen() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-gray-500">정렬</span>
-          <Button
-            type="button"
-            size="sm"
-            variant={sortBy === "name" ? "default" : "outline"}
-            onClick={() => onChangeSort("name")}
-            className={`cursor-pointer ${sortBy === "name" ? "bg-gray-800 hover:bg-gray-900 text-white" : ""}`}
+        <div className="flex items-center gap-2 overflow-x-auto">
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="text-sm text-gray-500">정렬</span>
+            <Button
+              type="button"
+              size="sm"
+              variant={sortBy === "name" ? "default" : "outline"}
+              onClick={() => onChangeSort("name")}
+              className={`cursor-pointer ${sortBy === "name" ? "bg-gray-800 hover:bg-gray-900 text-white" : ""}`}
+            >
+              가나다순
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={sortBy === "heart" ? "default" : "outline"}
+              onClick={() => onChangeSort("heart")}
+              className={`cursor-pointer ${sortBy === "heart" ? "bg-gray-800 hover:bg-gray-900 text-white" : ""}`}
+            >
+              하트순
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={sortBy === "star" ? "default" : "outline"}
+              onClick={() => onChangeSort("star")}
+              className={`cursor-pointer ${sortBy === "star" ? "bg-gray-800 hover:bg-gray-900 text-white" : ""}`}
+            >
+              즐겨찾기순
+            </Button>
+          </div>
+          <select
+            value={genre}
+            onChange={(event) => onChangeGenre(event.target.value)}
+            className="ml-auto h-9 w-32 shrink-0 rounded-md border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none focus:border-gray-300 md:w-44"
           >
-            가나다순
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant={sortBy === "heart" ? "default" : "outline"}
-            onClick={() => onChangeSort("heart")}
-            className={`cursor-pointer ${sortBy === "heart" ? "bg-gray-800 hover:bg-gray-900 text-white" : ""}`}
-          >
-            하트순
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant={sortBy === "star" ? "default" : "outline"}
-            onClick={() => onChangeSort("star")}
-            className={`cursor-pointer ${sortBy === "star" ? "bg-gray-800 hover:bg-gray-900 text-white" : ""}`}
-          >
-            즐겨찾기순
-          </Button>
+            <option value="all">전체</option>
+            {genres.map((genreOption) => (
+              <option key={`vlist-genre-${genreOption}`} value={genreOption}>
+                {genreOption}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 

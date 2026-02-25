@@ -1,6 +1,6 @@
 "use client";
 
-import type { StatCardProps } from "@/types/admin";
+import type { StatCardProps } from "@/types/admin-component-props";
 
 /** 대시보드 통계 카드 — 제목, 수치, 아이콘, 비율 바를 표시한다 */
 export function StatCard({
