@@ -16,12 +16,40 @@ type LiveBoxDetailPageProps = {
   }>;
 };
 
-export const metadata: Metadata = {
-  title: {
-    absolute: SITE_TITLE,
-  },
-  description: SITE_DESCRIPTION,
-};
+export async function generateMetadata({
+  params,
+}: LiveBoxDetailPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const parsedId = Number(id);
+
+  if (!Number.isFinite(parsedId) || parsedId <= 0) {
+    return {
+      title: { absolute: SITE_TITLE },
+      description: SITE_DESCRIPTION,
+    };
+  }
+
+  try {
+    const liveBox = await fetchPublicLiveBoxByIdOnServer(parsedId);
+    const liveBoxTitle = liveBox?.title?.trim();
+    const liveBoxDescription = liveBox?.description?.trim();
+
+    return {
+      title: {
+        absolute: liveBoxTitle ? `${SITE_TITLE} | ${liveBoxTitle}` : SITE_TITLE,
+      },
+      description: liveBoxDescription || SITE_DESCRIPTION,
+      alternates: {
+        canonical: `/live-box/${parsedId}`,
+      },
+    };
+  } catch {
+    return {
+      title: { absolute: SITE_TITLE },
+      description: SITE_DESCRIPTION,
+    };
+  }
+}
 
 export default async function LiveBoxDetailPage({ params }: LiveBoxDetailPageProps) {
   const { id } = await params;
