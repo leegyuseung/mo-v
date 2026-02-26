@@ -3,17 +3,50 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo } from "react";
-import { UserRound } from "lucide-react";
+import { CalendarClock, Tag, UserRound, Users } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { StreamerHeartLeaderboardItem } from "@/types/heart";
 import { useLiveStreamers } from "@/hooks/queries/live/use-live-streamers";
+import { useLiveBoxes } from "@/hooks/queries/live-box/use-live-boxes";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useHeartLeaderboard } from "@/hooks/queries/heart/use-heart-leaderboard";
 import { useStarredStreamerIds } from "@/hooks/queries/star/use-starred-streamer-ids";
 import { generateArray } from "@/utils/array";
 
+/** 홈 화면에 표시할 최대 라이브박스 개수 */
+const HOME_LIVE_BOX_COUNT = 3;
+
+function getStatusBadgeClass(status: string) {
+  if (status === "진행중") return "bg-green-50 text-green-700 border-green-200";
+  if (status === "종료") return "bg-gray-100 text-gray-600 border-gray-200";
+  return "bg-amber-50 text-amber-700 border-amber-200";
+}
+
+function formatEndsAt(value: string | null) {
+  if (!value) return "미설정";
+  return new Date(value).toLocaleString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+}
+
 export default function HomeScreen() {
   const { user } = useAuthStore();
+
+  /* ─────────── 데이터 페치(라이브박스) ─────────── */
+  const { data: liveBoxData = [], isLoading: isLiveBoxLoading, isError: isLiveBoxError } = useLiveBoxes();
+
+  /** 진행중인 라이브박스만 셔플하여 최대 3개 표시 */
+  const topLiveBoxes = useMemo(() => {
+    const ongoing = liveBoxData.filter((box) => box.status === "진행중");
+    const shuffled = [...ongoing];
+    for (let i = shuffled.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled.slice(0, HOME_LIVE_BOX_COUNT);
+  }, [liveBoxData]);
 
   /* ─────────── 데이터 페치(하트 랭킹) ─────────── */
   const { data: liveData, isLoading: isLiveLoading } = useLiveStreamers();
@@ -85,7 +118,7 @@ export default function HomeScreen() {
   }, [liveData, starredStreamerIds]);
 
   return (
-    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-2">
       {/* ─── 배너 영역 ─── */}
       <section className="mx-auto w-full max-w-[1200px]">
         <div className="h-[200px] md:h-[200px] rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center flex flex-col items-center justify-center">
@@ -128,7 +161,7 @@ export default function HomeScreen() {
                   랭킹 조회에 실패했습니다.
                 </div>
               ) : (
-                <div className="space-y-2.5">
+                <div className="space-y-0.5">
                   {generateArray(5).map((_, index) => {
                     const item = getRankRows(card.data)[index];
                     if (!item) {
@@ -385,6 +418,101 @@ export default function HomeScreen() {
             </div>
           </div>
         )}
+      </section>
+
+      {/* ─── 라이브박스 섹션 ─── */}
+      <section className="p-4 md:p-6">
+        <div className="rounded-2xl border border-gray-100 bg-white p-4">
+          <div className="mb-4 flex items-center justify-between">
+            <span className="inline-flex items-center justify-center rounded-full bg-violet-600 px-2 py-0.5 text-[10px] text-white">
+              LIVE BOX
+            </span>
+            <Link
+              href="/live-box"
+              className="text-xs font-medium text-gray-500 underline-offset-2 hover:text-gray-700 hover:underline"
+            >
+              전체
+            </Link>
+          </div>
+
+          {isLiveBoxLoading ? (
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+              {generateArray(3).map((_, i) => (
+                <div key={`home-livebox-skeleton-${i}`} className="rounded-xl border border-gray-100 p-3 space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+              ))}
+            </div>
+          ) : isLiveBoxError ? (
+            <div className="py-8 text-center text-sm text-gray-400">
+              라이브박스를 불러오지 못했습니다.
+            </div>
+          ) : topLiveBoxes.length === 0 ? (
+            <div className="py-8 text-center text-sm text-gray-400">
+              진행중인 라이브박스가 없습니다.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+              {topLiveBoxes.map((box) => (
+                <Link
+                  key={box.id}
+                  href={`/live-box/${box.id}`}
+                  className="group block rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-gray-400 hover:bg-gray-50/40 hover:shadow-[0_14px_28px_-14px_rgba(0,0,0,0.45)]"
+                >
+                  {/* 제목 + 상태 */}
+                  <div className="mb-2 flex items-start justify-between gap-2">
+                    <h4 className="text-sm font-semibold text-gray-900 line-clamp-1">
+                      {box.title}
+                    </h4>
+                    <span
+                      className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${getStatusBadgeClass(box.status)}`}
+                    >
+                      {box.status}
+                    </span>
+                  </div>
+
+                  {/* 카테고리 */}
+                  <div className="mb-2 flex items-center gap-1 text-xs text-gray-500">
+                    <Tag className="h-3 w-3 shrink-0" />
+                    <div className="flex flex-wrap gap-1 min-w-0">
+                      {box.category.length > 0 ? (
+                        box.category.map((item) => (
+                          <span
+                            key={`home-lb-${box.id}-cat-${item}`}
+                            className="rounded-full border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[10px]"
+                          >
+                            {item}
+                          </span>
+                        ))
+                      ) : (
+                        <span>-</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 설명 */}
+                  <p className="mb-3 truncate text-xs text-gray-500">
+                    {box.description?.trim() || "설명이 없습니다."}
+                  </p>
+
+                  {/* 참여자수 + 마감일시 */}
+                  <div className="flex items-center gap-3 text-[11px] text-gray-500">
+                    <span className="inline-flex items-center gap-1">
+                      <Users className="h-3 w-3 text-gray-400" />
+                      {box.participant_streamer_ids.length}명
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <CalendarClock className="h-3 w-3 text-gray-400" />
+                      {formatEndsAt(box.ends_at)}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
       </section>
     </div>
   );
