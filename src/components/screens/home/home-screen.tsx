@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo } from "react";
-import { CalendarClock, Tag, UserRound, Users } from "lucide-react";
+import { CalendarClock, PartyPopper, Tag, ThumbsUp, UserRound, Users } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { StreamerHeartLeaderboardItem } from "@/types/heart";
 import { useLiveStreamers } from "@/hooks/queries/live/use-live-streamers";
@@ -11,7 +11,9 @@ import { useLiveBoxes } from "@/hooks/queries/live-box/use-live-boxes";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useHeartLeaderboard } from "@/hooks/queries/heart/use-heart-leaderboard";
 import { useStarredStreamerIds } from "@/hooks/queries/star/use-starred-streamer-ids";
+import { useHomeShowcaseData } from "@/hooks/queries/home/use-home-showcase-data";
 import { generateArray } from "@/utils/array";
+import type { HomeShowcaseStreamer } from "@/types/home";
 
 /** 홈 화면에 표시할 최대 라이브박스 개수 */
 const HOME_LIVE_BOX_COUNT = 3;
@@ -31,21 +33,105 @@ function formatEndsAt(value: string | null) {
   });
 }
 
+function getStreamerRingClass(platform: string | null) {
+  if (platform === "chzzk") return "border-green-500";
+  if (platform === "soop") return "border-blue-500";
+  return "border-gray-300";
+}
+
+function getDdayLabel(days: number | null | undefined) {
+  if (days === null || days === undefined) return "-";
+  if (days <= 0) return "D-day";
+  return `D-${days}`;
+}
+
+function ShowcaseStreamerList({
+  streamers,
+  emptyText,
+  showBirthdayMeta = false,
+  enableScrollWhenMany = false,
+}: {
+  streamers: HomeShowcaseStreamer[];
+  emptyText: string;
+  showBirthdayMeta?: boolean;
+  enableScrollWhenMany?: boolean;
+}) {
+  if (streamers.length === 0) {
+    return <p className="py-6 text-center text-xs text-gray-400">{emptyText}</p>;
+  }
+
+  const listClassName =
+    enableScrollWhenMany ? "max-h-[140px] space-y-2 overflow-y-auto pt-1 pr-1" : "space-y-2";
+
+  return (
+    <div className={listClassName}>
+      {streamers.map((streamer) => (
+        <Link
+          key={`home-showcase-streamer-${streamer.id}`}
+          href={`/vlist/${streamer.public_id || String(streamer.id)}`}
+          className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/60 p-2 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:bg-gray-100/60 hover:shadow-[0_14px_28px_-14px_rgba(0,0,0,0.45)]"
+        >
+          <div
+            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 bg-white p-0.5 ${getStreamerRingClass(
+              streamer.platform
+            )}`}
+          >
+            <div className="relative h-full w-full overflow-hidden rounded-full bg-gray-100">
+              {streamer.image_url ? (
+                <Image
+                  src={streamer.image_url}
+                  alt={streamer.nickname || "streamer"}
+                  fill
+                  sizes="44px"
+                  loading="lazy"
+                  className="object-cover"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center">
+                  <UserRound className="h-4 w-4 text-gray-300" />
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold text-gray-900">
+              {streamer.nickname || "이름 미등록"}
+            </p>
+            {showBirthdayMeta ? (
+              <p className="inline-flex items-center gap-1.5 text-[11px] text-gray-500">
+                <span>생일: {streamer.birthday || "-"}</span>
+                <span className="font-semibold text-gray-700">
+                  {getDdayLabel(streamer.daysUntilBirthday)}
+                </span>
+              </p>
+            ) : null}
+          </div>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
 export default function HomeScreen() {
   const { user } = useAuthStore();
+
+  /* ─────────── 데이터 페치(홈 상단 쇼케이스) ─────────── */
+  const {
+    data: showcaseData,
+    isLoading: isShowcaseLoading,
+    isError: isShowcaseError,
+  } = useHomeShowcaseData();
+  const upcomingBirthdayCount = showcaseData?.upcomingBirthdays.length || 0;
 
   /* ─────────── 데이터 페치(라이브박스) ─────────── */
   const { data: liveBoxData = [], isLoading: isLiveBoxLoading, isError: isLiveBoxError } = useLiveBoxes();
 
-  /** 진행중인 라이브박스만 셔플하여 최대 3개 표시 */
+  /** 진행중인 라이브박스를 최신 등록순으로 최대 3개 표시 */
   const topLiveBoxes = useMemo(() => {
-    const ongoing = liveBoxData.filter((box) => box.status === "진행중");
-    const shuffled = [...ongoing];
-    for (let i = shuffled.length - 1; i > 0; i -= 1) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled.slice(0, HOME_LIVE_BOX_COUNT);
+    return liveBoxData
+      .filter((box) => box.status === "진행중")
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, HOME_LIVE_BOX_COUNT);
   }, [liveBoxData]);
 
   /* ─────────── 데이터 페치(하트 랭킹) ─────────── */
@@ -99,15 +185,16 @@ export default function HomeScreen() {
   const getRankRows = (items: StreamerHeartLeaderboardItem[]) =>
     items.filter((item) => (item.total_received ?? 0) > 0).slice(0, 5);
 
-  /* ─────────── 라이브 중인 스트리머 셔플 ─────────── */
+  /* ─────────── 라이브 중인 스트리머 상위 4명 ─────────── */
   const topLiveStreamers = useMemo(() => {
-    const source = (liveData || []).filter((item) => item.isLive);
-    const shuffled = [...source];
-    for (let i = shuffled.length - 1; i > 0; i -= 1) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled.slice(0, 4);
+    return (liveData || [])
+      .filter((item) => item.isLive)
+      .sort((a, b) => {
+        const diff = (b.viewerCount ?? 0) - (a.viewerCount ?? 0);
+        if (diff !== 0) return diff;
+        return (a.nickname || "").localeCompare(b.nickname || "", "ko");
+      })
+      .slice(0, 4);
   }, [liveData]);
 
   /* ─────────── 즐겨찾기 + 라이브 ─────────── */
@@ -189,7 +276,7 @@ export default function HomeScreen() {
                       <Link
                         key={`${card.key}-${item.streamer_id}`}
                         href={`/vlist/${item.public_id ?? item.streamer_id}`}
-                        className="group flex items-center gap-3 rounded-xl px-2 py-1.5 transition hover:bg-gray-50"
+                        className="group flex items-center gap-3 rounded-xl border border-transparent px-2 py-1.5 transition hover:border-gray-300 hover:bg-gray-50"
                       >
                         <span className="w-7 text-xs font-bold text-gray-500">
                           {index + 1}위
@@ -222,6 +309,130 @@ export default function HomeScreen() {
               )}
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ─── 쇼케이스 섹션 (생일/추천/콘텐츠) ─── */}
+      <section className="p-4 md:p-6">
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
+          <div className="rounded-2xl border border-gray-100 bg-white p-4 xl:col-span-1">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-800">
+                <PartyPopper className="h-4 w-4 text-pink-500" />
+                생일
+              </h3>
+              <span className="text-[11px] text-gray-400">{upcomingBirthdayCount}명</span>
+            </div>
+            {isShowcaseLoading ? (
+              <div className="space-y-2">
+                {generateArray(2).map((_, index) => (
+                  <div key={`home-showcase-birthday-skeleton-${index}`} className="flex items-center gap-3 rounded-xl border border-gray-100 p-2">
+                    <Skeleton className="h-11 w-11 rounded-full" />
+                    <div className="flex-1 space-y-1">
+                      <Skeleton className="h-3 w-24" />
+                      <Skeleton className="h-3 w-14" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : isShowcaseError ? (
+              <p className="py-6 text-center text-xs text-gray-400">데이터를 불러오지 못했습니다.</p>
+            ) : (
+              <ShowcaseStreamerList
+                streamers={showcaseData?.upcomingBirthdays || []}
+                emptyText="D-3 이내 생일 버츄얼이 없습니다."
+                showBirthdayMeta
+                enableScrollWhenMany
+              />
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-gray-100 bg-white p-4 xl:col-span-1">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-800">
+                <ThumbsUp className="h-4 w-4 text-blue-500" />
+                추천
+              </h3>
+            </div>
+            {isShowcaseLoading ? (
+              <div className="space-y-2">
+                {generateArray(2).map((_, index) => (
+                  <div key={`home-showcase-recommend-skeleton-${index}`} className="flex items-center gap-3 rounded-xl border border-gray-100 p-2">
+                    <Skeleton className="h-11 w-11 rounded-full" />
+                    <div className="flex-1 space-y-1">
+                      <Skeleton className="h-3 w-24" />
+                      <Skeleton className="h-3 w-14" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : isShowcaseError ? (
+              <p className="py-6 text-center text-xs text-gray-400">데이터를 불러오지 못했습니다.</p>
+            ) : (
+              <ShowcaseStreamerList
+                streamers={showcaseData?.recommendedStreamers || []}
+                emptyText="추천 버츄얼이 없습니다."
+              />
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-gray-100 bg-white p-4 xl:col-span-2">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-gray-800">콘텐츠</h3>
+              <Link
+                href="/contents"
+                className="text-[11px] font-medium text-gray-500 underline-offset-2 hover:text-gray-700 hover:underline"
+              >
+                전체
+              </Link>
+            </div>
+            {isShowcaseLoading ? (
+              <div className="flex gap-2 overflow-hidden">
+                {generateArray(6).map((_, index) => (
+                  <Skeleton
+                    key={`home-showcase-content-skeleton-${index}`}
+                    className="h-8 min-w-24 rounded-full"
+                  />
+                ))}
+              </div>
+            ) : isShowcaseError ? (
+              <p className="py-6 text-center text-xs text-gray-400">데이터를 불러오지 못했습니다.</p>
+            ) : (showcaseData?.contentTitles || []).length === 0 ? (
+              <p className="py-6 text-center text-xs text-gray-400">등록된 콘텐츠가 없습니다.</p>
+            ) : (
+              <div className="max-h-[136px] space-y-2 overflow-y-auto pr-1">
+                {(showcaseData?.contentTitles || []).map((content) => (
+                  <Link
+                    key={`home-showcase-content-${content.id}`}
+                    href={`/contents/${content.id}`}
+                    className="flex items-center justify-between gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700 shadow-sm transition-colors duration-200 hover:border-gray-300 hover:bg-gray-100"
+                  >
+                    <span className="truncate font-medium">{content.title}</span>
+                    <div className="flex shrink-0 items-center gap-1 whitespace-nowrap">
+                      {content.isNew ? (
+                        <span className="rounded-full border border-sky-200 bg-sky-50 px-1.5 py-0.5 text-[10px] font-semibold text-sky-700">
+                          NEW
+                        </span>
+                      ) : null}
+                      {content.isClosingSoon ? (
+                        <span className="rounded-full border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+                          마감임박
+                        </span>
+                      ) : null}
+                      {content.participant_composition === "버츄얼만" ? (
+                        <span className="rounded-full border border-gray-300 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-gray-700">
+                          버츄얼만
+                        </span>
+                      ) : null}
+                      <span className="ml-1 text-[11px] font-semibold text-gray-600">
+                        모집마감 {getDdayLabel(content.daysUntilRecruitmentEnd)}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
@@ -297,7 +508,7 @@ export default function HomeScreen() {
                           href={streamer.liveUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex cursor-pointer"
+                          className="group inline-flex cursor-pointer"
                         >
                           <div
                             className={`mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full border-2 bg-gray-100 p-0.5 md:h-20 md:w-20 ${ringClass}`}
@@ -311,7 +522,7 @@ export default function HomeScreen() {
                                   sizes="(min-width: 768px) 80px, 56px"
                                   priority={index === 0}
                                   loading={index === 0 ? "eager" : "lazy"}
-                                  className="object-cover"
+                                  className="object-cover transition-transform duration-200 group-hover:scale-110"
                                 />
                               ) : (
                                 <div className="flex h-full w-full items-center justify-center">
@@ -384,7 +595,7 @@ export default function HomeScreen() {
                           href={streamer.liveUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex cursor-pointer"
+                          className="group inline-flex cursor-pointer"
                         >
                           <div
                             className={`mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full border-2 bg-gray-100 p-0.5 md:h-20 md:w-20 ${ringClass}`}
@@ -397,7 +608,7 @@ export default function HomeScreen() {
                                   fill
                                   sizes="(min-width: 768px) 80px, 56px"
                                   loading="lazy"
-                                  className="object-cover"
+                                  className="object-cover transition-transform duration-200 group-hover:scale-110"
                                 />
                               ) : (
                                 <div className="flex h-full w-full items-center justify-center">

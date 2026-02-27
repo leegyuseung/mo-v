@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,6 +19,10 @@ import {
 } from "@/types/content";
 
 const PARTICIPANT_OPTIONS = ["버츄얼만", "버츄얼포함"] as const;
+
+type ContentsWriteContactFormValues = {
+  contactEmail: string;
+};
 
 /** 콘텐츠 작성 폼 화면 */
 export default function ContentsWriteScreen() {
@@ -51,9 +56,25 @@ export default function ContentsWriteScreen() {
 
   const [participationRequirement, setParticipationRequirement] = useState("");
   const [description, setDescription] = useState("");
-  const [email, setEmail] = useState("");
   const [discord, setDiscord] = useState("");
   const [otherContact, setOtherContact] = useState("");
+  const {
+    register,
+    watch,
+    formState: { errors: formErrors },
+  } = useForm<ContentsWriteContactFormValues>({
+    mode: "onBlur",
+    defaultValues: {
+      contactEmail: "",
+    },
+  });
+  const email = watch("contactEmail");
+
+  const renderValidationMessage = (message?: string) => (
+    <p className={`min-h-4 text-xs ${message ? "text-red-500" : "text-transparent"}`}>
+      {message || "\u00a0"}
+    </p>
+  );
 
   useEffect(() => {
     return () => {
@@ -256,7 +277,7 @@ export default function ContentsWriteScreen() {
               placeholder="콘텐츠 제목"
               className={titleError ? "border-red-400 focus-visible:ring-red-200" : undefined}
             />
-            {titleError ? <p className="text-xs text-red-500">{titleError}</p> : null}
+            {renderValidationMessage(titleError)}
           </div>
 
           <div className="space-y-1.5">
@@ -283,9 +304,7 @@ export default function ContentsWriteScreen() {
                 applicationUrlError ? "border-red-400 focus-visible:ring-red-200" : undefined
               }
             />
-            {applicationUrlError ? (
-              <p className="text-xs text-red-500">{applicationUrlError}</p>
-            ) : null}
+            {renderValidationMessage(applicationUrlError)}
           </div>
 
           <div className="space-y-2">
@@ -406,9 +425,7 @@ export default function ContentsWriteScreen() {
                   }
                 />
               </div>
-              {recruitmentScheduleError ? (
-                <p className="text-xs text-red-500">{recruitmentScheduleError}</p>
-              ) : null}
+              {renderValidationMessage(recruitmentScheduleError)}
             </div>
 
             <div className="space-y-1.5">
@@ -444,9 +461,7 @@ export default function ContentsWriteScreen() {
                   }
                 />
               </div>
-              {contentScheduleError ? (
-                <p className="text-xs text-red-500">{contentScheduleError}</p>
-              ) : null}
+              {renderValidationMessage(contentScheduleError)}
             </div>
           </div>
 
@@ -512,10 +527,13 @@ export default function ContentsWriteScreen() {
               <p className="text-sm font-medium text-gray-800">이메일</p>
               <Input
                 type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
+                {...register("contactEmail")}
                 placeholder="이메일 주소"
+                className={
+                  formErrors.contactEmail ? "border-red-400 focus-visible:ring-red-200" : undefined
+                }
               />
+              {renderValidationMessage(formErrors.contactEmail?.message)}
             </div>
             <div className="space-y-1.5">
               <p className="text-sm font-medium text-gray-800">디스코드</p>
