@@ -30,7 +30,11 @@ import PlatformBadge from "@/components/common/platform-badge";
 import StreamerCardSkeleton from "@/components/common/streamer-card-skeleton";
 import { generateArray } from "@/utils/array";
 
-export default function VlistScreen() {
+type VlistScreenProps = {
+  initialStarredStreamerIds?: number[];
+};
+
+export default function VlistScreen({ initialStarredStreamerIds = [] }: VlistScreenProps) {
   const [page, setPage] = useState(1);
   const [platform, setPlatform] = useState<StreamerPlatform>("all");
   const [genre, setGenre] = useState("all");
@@ -53,7 +57,10 @@ export default function VlistScreen() {
   const { data: genres = [] } = useStreamerGenres();
   const { data: idolGroups } = useIdolGroupCodeNames();
   const { data: crews } = useCrewCodeNames();
-  const { data: starredStreamerIdList = [] } = useStarredStreamerIds(user?.id);
+  const { data: starredStreamerIdList = [] } = useStarredStreamerIds(
+    user?.id,
+    initialStarredStreamerIds
+  );
   const starredStreamerIds = useMemo(
     () => new Set(starredStreamerIdList),
     [starredStreamerIdList]

@@ -16,7 +16,11 @@ import { useStarredCrewIds } from "@/hooks/queries/star/use-starred-crew-ids";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useBrokenImages } from "@/hooks/use-broken-images";
 
-export default function CrewScreen() {
+type CrewScreenProps = {
+  initialStarredCrewIds?: number[];
+};
+
+export default function CrewScreen({ initialStarredCrewIds = [] }: CrewScreenProps) {
   const router = useRouter();
   const { user } = useAuthStore();
   const isMobile = useIsMobile();
@@ -30,7 +34,10 @@ export default function CrewScreen() {
   /** 멤버 아바타 이미지 깨짐 추적 */
   const memberImages = useBrokenImages();
   const { data, isLoading, isFetching } = useCrewCards();
-  const { data: starredCrewIds = new Set<number>() } = useStarredCrewIds(user?.id);
+  const { data: starredCrewIds = new Set<number>() } = useStarredCrewIds(
+    user?.id,
+    initialStarredCrewIds
+  );
 
   /** 키워드 필터 + 정렬을 적용한 소속 목록 */
   const crews = useMemo(() => {

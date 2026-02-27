@@ -52,3 +52,26 @@ export async function fetchIsContentFavoriteOnServer(contentId: number): Promise
   if (error) return false;
   return Boolean(data);
 }
+
+/** 서버 컴포넌트에서 현재 로그인 유저의 콘텐츠 좋아요 ID 목록을 조회한다. */
+export async function fetchMyFavoriteContentIdsOnServer(): Promise<number[]> {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from("content_favorites")
+    .select("content_id")
+    .eq("user_id", user.id);
+
+  if (error || !data) return [];
+
+  return data
+    .map((row) => row.content_id)
+    .filter((contentId): contentId is number => Number.isFinite(contentId));
+}

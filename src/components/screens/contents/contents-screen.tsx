@@ -13,6 +13,7 @@ import type { Content } from "@/types/content";
 
 type ContentsScreenProps = {
   initialContents: Content[];
+  initialFavoriteContentIds?: number[];
   hasContentsError?: boolean;
   nowTimestamp: number;
 };
@@ -72,11 +73,12 @@ function getDefaultSortDirection(sortKey: ContentSortKey): SortDirection {
 /** 콘텐츠 목록 화면 */
 export default function ContentsScreen({
   initialContents,
+  initialFavoriteContentIds = [],
   hasContentsError = false,
   nowTimestamp,
 }: ContentsScreenProps) {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, isLoading: isAuthLoading } = useAuthStore();
   const [searchKeyword, setSearchKeyword] = useState("");
   const [badgeFilter, setBadgeFilter] = useState<BadgeFilter>("all");
   const [sortKey, setSortKey] = useState<ContentSortKey>("created");
@@ -89,11 +91,19 @@ export default function ContentsScreen({
   const [favoriteCountByContentId, setFavoriteCountByContentId] = useState<Record<number, number>>(
     {}
   );
-  const [likedContentIds, setLikedContentIds] = useState<Set<number>>(new Set());
+  const [likedContentIds, setLikedContentIds] = useState<Set<number>>(
+    new Set(initialFavoriteContentIds)
+  );
   const [favoritePendingIds, setFavoritePendingIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     let isMounted = true;
+
+    if (isAuthLoading) {
+      return () => {
+        isMounted = false;
+      };
+    }
 
     if (!user) {
       setLikedContentIds(new Set());
@@ -125,7 +135,7 @@ export default function ContentsScreen({
     return () => {
       isMounted = false;
     };
-  }, [user]);
+  }, [isAuthLoading, user]);
   const contents = useMemo(() => {
     const now = nowTimestamp;
     const todayStart = new Date(now);
