@@ -39,7 +39,7 @@ const menuItems = [
   { title: "소속", url: "/crew", icon: UsersRound },
   { title: "순위", icon: Trophy },
   { title: "홍보", icon: Megaphone },
-  { title: "콘텐츠", icon: Clapperboard },
+  { title: "콘텐츠", url: "/contents", icon: Clapperboard },
 ] satisfies MenuItem[];
 
 const isNavigableItem = (item: MenuItem) => {

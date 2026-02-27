@@ -5,7 +5,7 @@ import type {
   IdolGroupCodeName,
   IdolGroupDetail,
 } from "@/types/group";
-import { STREAMER_INFO_EDIT_REQUEST_TABLE } from "@/lib/constant";
+import { ENTITY_INFO_EDIT_REQUEST_TABLE } from "@/lib/constant";
 
 const supabase = createClient();
 
@@ -138,7 +138,8 @@ export async function fetchIdolGroupDetailByCode(
 
 export async function createGroupInfoEditRequest({
   content,
-  streamerId,
+  groupId,
+  groupCode,
   groupName,
   requesterId,
   requesterNickname,
@@ -148,13 +149,12 @@ export async function createGroupInfoEditRequest({
     throw new Error("수정 요청 내용을 입력해 주세요.");
   }
 
-  // 기존 streamer_info_edit_requests 테이블을 재사용한다.
-  // FK 제약(streamer_id -> streamers.id) 때문에 실제 존재하는 streamer_id를 사용한다.
-  // group 요청임을 구분하기 위해 streamer_nickname에 [GROUP] prefix를 사용한다.
-  const { error } = await supabase.from(STREAMER_INFO_EDIT_REQUEST_TABLE).insert({
+  const { error } = await supabase.from(ENTITY_INFO_EDIT_REQUEST_TABLE).insert({
+    target_type: "group",
+    target_id: groupId,
+    target_code: groupCode,
+    target_name: groupName,
     content: trimmedContent,
-    streamer_id: streamerId,
-    streamer_nickname: `[GROUP] ${groupName}`,
     requester_id: requesterId,
     requester_nickname: requesterNickname,
     status: "pending",

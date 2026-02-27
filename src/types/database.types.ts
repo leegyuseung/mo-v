@@ -71,6 +71,127 @@ export type Database = {
         }
         Relationships: []
       }
+      contents: {
+        Row: {
+          application_url: string
+          contact_discord: string | null
+          contact_email: string | null
+          contact_other: string | null
+          content_end_at: string | null
+          content_start_at: string | null
+          content_type: string[]
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          deleted_by: string | null
+          description: string | null
+          favorite_count: number
+          host_name: string | null
+          host_organization: string | null
+          id: number
+          image_url: string | null
+          max_participants: number | null
+          min_participants: number | null
+          participant_composition: Database["public"]["Enums"]["participant_composition_enum"]
+          participation_requirement: string | null
+          review_note: string | null
+          recruitment_end_at: string | null
+          recruitment_start_at: string | null
+          reward: string | null
+          status: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+          view_count: number
+        }
+        Insert: {
+          application_url: string
+          contact_discord?: string | null
+          contact_email?: string | null
+          contact_other?: string | null
+          content_end_at?: string | null
+          content_start_at?: string | null
+          content_type: string[]
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          description?: string | null
+          favorite_count?: number
+          host_name?: string | null
+          host_organization?: string | null
+          id?: never
+          image_url?: string | null
+          max_participants?: number | null
+          min_participants?: number | null
+          participant_composition: Database["public"]["Enums"]["participant_composition_enum"]
+          participation_requirement?: string | null
+          review_note?: string | null
+          recruitment_end_at?: string | null
+          recruitment_start_at?: string | null
+          reward?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          view_count?: number
+        }
+        Update: {
+          application_url?: string
+          contact_discord?: string | null
+          contact_email?: string | null
+          contact_other?: string | null
+          content_end_at?: string | null
+          content_start_at?: string | null
+          content_type?: string[]
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          description?: string | null
+          favorite_count?: number
+          host_name?: string | null
+          host_organization?: string | null
+          id?: never
+          image_url?: string | null
+          max_participants?: number | null
+          min_participants?: number | null
+          participant_composition?: Database["public"]["Enums"]["participant_composition_enum"]
+          participation_requirement?: string | null
+          review_note?: string | null
+          recruitment_end_at?: string | null
+          recruitment_start_at?: string | null
+          reward?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contents_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contents_deleted_by_fkey"
+            columns: ["deleted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contents_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       heart_point_history: {
         Row: {
           after_point: number
@@ -363,6 +484,72 @@ export type Database = {
           {
             foreignKeyName: "entity_report_requests_reporter_id_fkey"
             columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      entity_info_edit_requests: {
+        Row: {
+          content: string
+          created_at: string
+          id: number
+          requester_id: string
+          requester_nickname: string | null
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          target_code: string | null
+          target_id: number
+          target_name: string
+          target_type: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: never
+          requester_id: string
+          requester_nickname?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          target_code?: string | null
+          target_id: number
+          target_name: string
+          target_type: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: never
+          requester_id?: string
+          requester_nickname?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          target_code?: string | null
+          target_id?: number
+          target_name?: string
+          target_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_info_edit_requests_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entity_info_edit_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -792,7 +979,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      participant_composition_enum: "버츄얼포함" | "버츄얼만"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -919,6 +1106,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      participant_composition_enum: ["버츄얼포함", "버츄얼만"],
+    },
   },
 } as const

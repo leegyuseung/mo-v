@@ -23,7 +23,7 @@ export default function PendingScreen() {
           <p className="text-sm text-gray-500">유저가 요청한 버츄얼 등록 대기 목록입니다.</p>
         </div>
         <StreamerRequestTriggerButton
-          className="h-9 cursor-pointer whitespace-nowrap border-gray-200 text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="h-9"
           onSubmitted={() =>
             queryClient.invalidateQueries({
               queryKey: ["admin", "pending-streamer-requests"],

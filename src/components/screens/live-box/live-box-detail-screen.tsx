@@ -3,7 +3,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowBigLeft, CalendarClock, ExternalLink, Tag, UserRound, Users } from "lucide-react";
+import {
+  ArrowBigLeft,
+  CalendarClock,
+  ExternalLink,
+  Loader,
+  Pause,
+  Tag,
+  UserRound,
+  Users,
+  X,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import type { LiveStreamer } from "@/types/live";
 import type { LiveBox, LiveBoxParticipantProfile } from "@/types/live-box";
@@ -29,8 +39,18 @@ function formatEndsAt(value: string | null) {
 
 function getStatusBadgeClass(status: string) {
   if (status === "진행중") return "bg-green-50 text-green-700 border-green-200";
-  if (status === "종료") return "bg-gray-100 text-gray-600 border-gray-200";
-  return "bg-amber-50 text-amber-700 border-amber-200";
+  if (status === "종료") return "bg-red-50 text-red-700 border-red-200";
+  return "bg-gray-100 text-gray-600 border-gray-200";
+}
+
+function StatusIcon({ status }: { status: string }) {
+  if (status === "진행중") {
+    return <Loader className="h-3.5 w-3.5 animate-spin" />;
+  }
+  if (status === "종료") {
+    return <X className="h-3.5 w-3.5" />;
+  }
+  return <Pause className="h-3.5 w-3.5" />;
 }
 
 export default function LiveBoxDetailScreen({
@@ -146,10 +166,11 @@ export default function LiveBoxDetailScreen({
         <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
           <h1 className="text-2xl font-semibold text-gray-900">{liveBox.title}</h1>
           <span
-            className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium ${getStatusBadgeClass(
+            className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${getStatusBadgeClass(
               liveBox.status
             )}`}
           >
+            <StatusIcon status={liveBox.status} />
             {liveBox.status}
           </span>
         </div>
@@ -190,7 +211,7 @@ export default function LiveBoxDetailScreen({
           </div>
           <div className="flex items-center gap-1.5">
             <CalendarClock className="h-4 w-4 text-gray-400" />
-            <span>마감일시 {formatEndsAt(liveBox.ends_at)}</span>
+            <span>종료일시 {formatEndsAt(liveBox.ends_at)}</span>
           </div>
         </div>
 

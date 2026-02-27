@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/useAuthStore";
 import StreamerRequestModal from "@/components/screens/vlist/streamer-request-modal";
+import { cn } from "@/lib/utils";
 
 type StreamerRequestTriggerButtonProps = {
   label?: string;
@@ -32,10 +33,12 @@ export default function StreamerRequestTriggerButton({
     <>
       <Button
         type="button"
-        variant="outline"
         onClick={handleClick}
         disabled={!user}
-        className={className}
+        className={cn(
+          "h-9 cursor-pointer whitespace-nowrap bg-gray-800 text-white hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-50",
+          className
+        )}
       >
         {label}
       </Button>

@@ -8,7 +8,7 @@ import type {
   StreamerCrewRow,
   CrewDetailRow,
 } from "@/types/crew";
-import { STREAMER_INFO_EDIT_REQUEST_TABLE } from "@/lib/constant";
+import { ENTITY_INFO_EDIT_REQUEST_TABLE } from "@/lib/constant";
 
 const supabase = createClient();
 
@@ -141,13 +141,10 @@ export async function fetchCrewDetailByCode(
   };
 }
 
-/**
- * 크루 정보 수정 요청을 생성한다.
- * streamer_info_edit_requests 테이블을 재사용하며, streamer_nickname에 [CREW] prefix를 사용해 구분한다
- */
 export async function createCrewInfoEditRequest({
   content,
-  streamerId,
+  crewId,
+  crewCode,
   crewName,
   requesterId,
   requesterNickname,
@@ -157,10 +154,12 @@ export async function createCrewInfoEditRequest({
     throw new Error("수정 요청 내용을 입력해 주세요.");
   }
 
-  const { error } = await supabase.from(STREAMER_INFO_EDIT_REQUEST_TABLE).insert({
+  const { error } = await supabase.from(ENTITY_INFO_EDIT_REQUEST_TABLE).insert({
+    target_type: "crew",
+    target_id: crewId,
+    target_code: crewCode,
+    target_name: crewName,
     content: trimmedContent,
-    streamer_id: streamerId,
-    streamer_nickname: `[CREW] ${crewName}`,
     requester_id: requesterId,
     requester_nickname: requesterNickname,
     status: "pending",

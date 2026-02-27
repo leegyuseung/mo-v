@@ -113,10 +113,12 @@ export default function ProfileRequestCard({
             <div className="mb-1 flex items-center gap-2">
               <FilePenLine className="h-4 w-4 text-indigo-500" />
               <span className="text-sm font-medium text-gray-800">
-                {getInfoEditTargetLabel(request.streamer_nickname)}
+                {getInfoEditTargetLabel(request.target_type)}
               </span>
             </div>
-            <p className="truncate text-xs text-gray-500">{request.streamer_nickname}</p>
+            <p className="truncate text-xs text-gray-500">
+              대상: {request.target_name || request.target_code || "-"}
+            </p>
           </div>
           <span
             className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${getProfileRequestStatusClass(request.status)}`}

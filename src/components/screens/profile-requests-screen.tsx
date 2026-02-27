@@ -49,6 +49,7 @@ export default function ProfileRequestsScreen({ embedded = false }: ProfileReque
       await cancelMyRequest({
         requestId: request.id,
         requestKind: request.kind,
+        infoEditSource: request.kind === "info-edit" ? request.source : undefined,
         userId: user.id,
       });
     } finally {

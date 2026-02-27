@@ -1,12 +1,14 @@
 import { createClient } from "@/utils/supabase/client";
 import type {
     ChzzkChannelProfile,
+    EntityInfoEditRequest,
     StreamerInfoEditRequest,
     StreamerRegistrationRequest,
     StreamerRequestStatus,
 } from "@/types/admin-requests";
 import type { Streamer } from "@/types/streamer";
 import {
+    ENTITY_INFO_EDIT_REQUEST_TABLE,
     STREAMER_INFO_EDIT_REQUEST_TABLE,
     STREAMER_REQUEST_TABLE,
     STREAMER_TABLE,
@@ -233,7 +235,19 @@ export async function fetchStreamerInfoEditRequests(): Promise<
         .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return (data || []) as StreamerInfoEditRequest[];
+  return (data || []) as StreamerInfoEditRequest[];
+}
+
+/** 그룹/크루 정보 수정 요청 목록을 최신순으로 조회한다 */
+export async function fetchEntityInfoEditRequests(): Promise<EntityInfoEditRequest[]> {
+  const { data, error } = await supabase
+    .from(ENTITY_INFO_EDIT_REQUEST_TABLE)
+    .select("*")
+    .eq("status", "pending")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return (data || []) as EntityInfoEditRequest[];
 }
 
 /** 정보 수정 요청을 확인/거절 처리한다. 확인 시 요청자에게 50 하트가 지급된다. */
@@ -244,6 +258,29 @@ export async function resolveStreamerInfoEditRequest(
 ) {
   const response = await fetch(
     `/api/admin/info-edit-requests/${requestId}/resolve`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action, reviewNote }),
+    }
+  );
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.message || "요청 처리에 실패했습니다.");
+  }
+
+  return response.json();
+}
+
+/** 그룹/크루 정보 수정 요청을 확인/거절 처리한다. 확인 시 요청자에게 50 하트가 지급된다. */
+export async function resolveEntityInfoEditRequest(
+  requestId: number,
+  action: "approve" | "reject",
+  reviewNote?: string
+) {
+  const response = await fetch(
+    `/api/admin/entity-info-edit-requests/${requestId}/resolve`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },

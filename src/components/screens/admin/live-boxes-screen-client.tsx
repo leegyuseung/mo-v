@@ -174,7 +174,7 @@ export default function LiveBoxesScreen() {
         <div className="flex items-center gap-2">
           <Boxes className="w-5 h-5 text-indigo-500" />
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">박스관리</h1>
+            <h1 className="text-2xl font-bold text-gray-900">박스 관리</h1>
             <p className="text-sm text-gray-500">주제별 라이브박스를 생성하고 상태를 관리합니다.</p>
           </div>
         </div>
@@ -234,7 +234,7 @@ export default function LiveBoxesScreen() {
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">참여자 수</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">생성자</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">생성일시</th>
-              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">마감일시</th>
+              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">종료일시</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">수정</th>
             </tr>
           </thead>

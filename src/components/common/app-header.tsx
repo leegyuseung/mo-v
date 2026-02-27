@@ -2,7 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useSignOut } from "@/hooks/mutations/auth/use-sign-out";
@@ -13,9 +13,6 @@ import { useSidebar } from "../ui/sidebar";
 import AppHeaderProfileMenu from "@/components/common/app-header-profile-menu";
 import GiftEventModal from "@/components/common/gift-event-modal";
 import { toast } from "sonner";
-
-/** 스크롤 임계값 — 이 값 이상 내려가면 미니바로 전환 */
-const SCROLL_THRESHOLD = 80;
 
 export default function AppHeader() {
   const router = useRouter();
@@ -29,28 +26,6 @@ export default function AppHeader() {
   const { mutateAsync: checkDailyGiftBoxStatus, isPending: isGiftChecking } =
     useCheckDailyGiftBoxStatus();
   const { mutateAsync: claimGiftBox } = useClaimDailyGiftBox();
-
-  /* ─── 스크롤 감지: 기본 헤더 ↔ 미니바 전환 ─── */
-  const [isScrolled, setIsScrolled] = useState(false);
-  const lastScrollY = useRef(0);
-
-  const handleScroll = useCallback((event: Event) => {
-    const target = event.currentTarget as HTMLElement;
-    const scrollY = target.scrollTop;
-    setIsScrolled(scrollY > SCROLL_THRESHOLD);
-    lastScrollY.current = scrollY;
-  }, []);
-
-  useEffect(() => {
-    /** 스크롤 컨테이너: 레이아웃의 overflow-y-auto div */
-    const scrollContainer = document.querySelector<HTMLElement>(
-      "[data-scroll-container]"
-    );
-    if (!scrollContainer) return;
-
-    scrollContainer.addEventListener("scroll", handleScroll, { passive: true });
-    return () => scrollContainer.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
 
   /** 선물 이벤트 버튼 클릭 — 오늘 참여 여부 확인 후 모달을 연다 */
   const onClickGiftEvent = async () => {
@@ -110,150 +85,79 @@ export default function AppHeader() {
   };
 
   return (
-    <>
-      {/* ─── 기본 헤더: 스크롤 전 표시 ─── */}
-      <div
-        className={`relative z-30 flex items-center justify-between px-3 md:px-6 h-[72px] w-full bg-white transition-all duration-300 ${
-          isScrolled ? "opacity-0 pointer-events-none" : "opacity-100"
-        }`}
-      >
-        <div className="flex items-center gap-2">
-          <button
-            onClick={toggleSidebar}
-            className="md:-ml-3 h-10 w-10 inline-flex items-center justify-center rounded-lg cursor-pointer text-gray-700 hover:bg-gray-100 transition-colors"
-            aria-label="메뉴 열기"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-          <Link href={"/"}>
-            <Image
-              src={"/logo.png"}
-              alt=""
-              height={72}
-              width={72}
-              loading="eager"
-              priority
-              className="cursor-pointer"
-            />
-          </Link>
-        </div>
-        <div className="flex items-center gap-1.5 md:gap-3">
-          <div className="group relative">
-            <Link
-              href="/star"
-              aria-label="즐겨찾기"
-              className="h-9 w-9 md:h-10 md:w-10 inline-flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer"
-            >
-              <Star className="w-4 h-4 text-black" />
-            </Link>
-            <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hidden md:block">
-              즐겨찾기
-            </span>
-          </div>
-          <div className="group relative">
-            <button
-              type="button"
-              aria-label="선물 이벤트"
-              onClick={onClickGiftEvent}
-              className="h-9 w-9 md:h-10 md:w-10 inline-flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer"
-            >
-              <Gift className="w-4 h-4 text-black" />
-            </button>
-            <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hidden md:block">
-              선물 이벤트 (1~50하트)
-            </span>
-          </div>
-          <div className="group relative hidden md:block">
-            <button
-              type="button"
-              aria-label="메일 (준비중)"
-              className="h-10 w-10 inline-flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer"
-            >
-              <Mail className="w-4 h-4" />
-            </button>
-            <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-              메일 (준비중)
-            </span>
-          </div>
-          <div className="group relative hidden md:block">
-            <button
-              type="button"
-              aria-label="알림(준비중)"
-              className="h-10 w-10 inline-flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer"
-            >
-              <Bell className="w-4 h-4" />
-            </button>
-            <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-              알림 (준비중)
-            </span>
-          </div>
-          {isLoading ? (
-            <div className="w-16 md:w-20 h-8 bg-gray-100 animate-pulse rounded-xl" />
-          ) : user ? (
-            <AppHeaderProfileMenu
-              user={user}
-              profile={profile}
-              heartPoints={heartPoints}
-              isSigningOut={isSigningOut}
-              onSignOut={signOut}
-            />
-          ) : (
-            <button
-              onClick={() => router.push("/login")}
-              className="h-10 rounded-xl px-3 cursor-pointer text-sm hover:bg-sidebar-accent"
-            >
-              로그인
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* ─── 미니바: 스크롤 후 글래스모피즘으로 표시 ─── */}
-      <div
-        className={`fixed top-3 left-1/2 z-50 -translate-x-1/2 flex items-center gap-1 rounded-2xl border border-white/30 bg-white/60 px-2 py-1.5 shadow-lg backdrop-blur-xl transition-all duration-300 ${
-          isScrolled
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 -translate-y-4 pointer-events-none"
-        }`}
-      >
+    <div className="relative z-30 flex items-center justify-between px-3 md:px-6 h-[72px] w-full bg-white">
+      <div className="flex items-center gap-2">
         <button
           onClick={toggleSidebar}
-          className="h-9 w-9 inline-flex items-center justify-center rounded-xl text-gray-700 hover:bg-white/50 cursor-pointer transition-colors"
+          className="md:-ml-3 h-10 w-10 inline-flex items-center justify-center rounded-lg cursor-pointer text-gray-700 hover:bg-gray-100 transition-colors"
           aria-label="메뉴 열기"
         >
-          <Menu className="w-4 h-4" />
+          <Menu className="w-5 h-5" />
         </button>
-
-        <Link
-          href="/"
-          className="h-9 w-9 inline-flex items-center justify-center rounded-xl hover:bg-white/50 transition-colors"
-        >
-          <Image src="/logo.png" alt="" height={28} width={28} className="cursor-pointer" />
+        <Link href={"/"}>
+          <Image
+            src={"/logo.png"}
+            alt=""
+            height={72}
+            width={72}
+            loading="eager"
+            priority
+            className="cursor-pointer"
+          />
         </Link>
-
-        <div className="mx-0.5 h-5 w-px bg-gray-300/50" />
-
-        <Link
-          href="/star"
-          aria-label="즐겨찾기"
-          className="h-9 w-9 inline-flex items-center justify-center rounded-xl text-gray-700 hover:bg-white/50 cursor-pointer transition-colors"
-        >
-          <Star className="w-4 h-4" />
-        </Link>
-
-        <button
-          type="button"
-          aria-label="선물 이벤트"
-          onClick={onClickGiftEvent}
-          className="h-9 w-9 inline-flex items-center justify-center rounded-xl text-gray-700 hover:bg-white/50 cursor-pointer transition-colors"
-        >
-          <Gift className="w-4 h-4" />
-        </button>
-
-        <div className="mx-0.5 h-5 w-px bg-gray-300/50" />
-
+      </div>
+      <div className="flex items-center gap-1.5 md:gap-3">
+        <div className="group relative">
+          <Link
+            href="/star"
+            aria-label="즐겨찾기"
+            className="h-9 w-9 md:h-10 md:w-10 inline-flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer"
+          >
+            <Star className="w-4 h-4 text-black" />
+          </Link>
+          <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hidden md:block">
+            즐겨찾기
+          </span>
+        </div>
+        <div className="group relative">
+          <button
+            type="button"
+            aria-label="선물 이벤트"
+            onClick={onClickGiftEvent}
+            className="h-9 w-9 md:h-10 md:w-10 inline-flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer"
+          >
+            <Gift className="w-4 h-4 text-black" />
+          </button>
+          <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hidden md:block">
+            선물 이벤트 (1~50하트)
+          </span>
+        </div>
+        <div className="group relative hidden md:block">
+          <button
+            type="button"
+            aria-label="메시지 (준비중)"
+            className="h-10 w-10 inline-flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer"
+          >
+            <Mail className="w-4 h-4" />
+          </button>
+          <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+            메시지 (준비중)
+          </span>
+        </div>
+        <div className="group relative hidden md:block">
+          <button
+            type="button"
+            aria-label="알림(준비중)"
+            className="h-10 w-10 inline-flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer"
+          >
+            <Bell className="w-4 h-4" />
+          </button>
+          <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+            알림 (준비중)
+          </span>
+        </div>
         {isLoading ? (
-          <div className="w-9 h-9 bg-white/40 animate-pulse rounded-xl" />
+          <div className="w-16 md:w-20 h-8 bg-gray-100 animate-pulse rounded-xl" />
         ) : user ? (
           <AppHeaderProfileMenu
             user={user}
@@ -265,7 +169,7 @@ export default function AppHeader() {
         ) : (
           <button
             onClick={() => router.push("/login")}
-            className="h-9 rounded-xl px-2.5 cursor-pointer text-xs text-gray-700 hover:bg-white/50 transition-colors"
+            className="h-10 rounded-xl px-3 cursor-pointer text-sm hover:bg-sidebar-accent"
           >
             로그인
           </button>
@@ -279,6 +183,6 @@ export default function AppHeader() {
         onOpenGiftBox={openGiftBox}
         onClose={() => setIsGiftModalOpen(false)}
       />
-    </>
+    </div>
   );
 }

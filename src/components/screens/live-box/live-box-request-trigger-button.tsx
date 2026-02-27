@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import LiveBoxRequestModal from "@/components/screens/live-box/live-box-request-modal";
+import { cn } from "@/lib/utils";
 
 type LiveBoxRequestTriggerButtonProps = {
   label?: string;
@@ -21,9 +22,11 @@ export default function LiveBoxRequestTriggerButton({
     <>
       <Button
         type="button"
-        variant="outline"
         onClick={() => setIsModalOpen(true)}
-        className={className}
+        className={cn(
+          "h-9 cursor-pointer whitespace-nowrap bg-gray-800 text-white hover:bg-gray-900",
+          className
+        )}
       >
         {label}
       </Button>

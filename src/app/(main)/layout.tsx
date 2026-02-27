@@ -14,7 +14,7 @@ export default function MainLayout({
         <AppHeader />
         <div className="flex h-[calc(100vh-72px)] overflow-hidden">
           <AppSideBar />
-          <div className="w-full min-h-0 overflow-y-auto" data-scroll-container>
+          <div className="w-full min-h-0 overflow-y-auto">
             <div className="flex min-h-full flex-col">
               <main className="flex-1">{children}</main>
               <AppFooter />

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { CalendarClock, Search, Tag, UserRound, Users } from "lucide-react";
+import { CalendarClock, Loader, Pause, Search, Tag, UserRound, Users, X } from "lucide-react";
 import Pagination from "@/components/common/pagination";
 import LiveBoxRequestTriggerButton from "@/components/screens/live-box/live-box-request-trigger-button";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,8 @@ import type { LiveBox, LiveBoxParticipantProfile } from "@/types/live-box";
 const PAGE_SIZE = 9;
 
 type LiveBoxStatusFilter = "all" | "ongoing" | "closed";
-type LiveBoxSortOption = "created_desc" | "title_asc" | "participants_desc";
+type LiveBoxSortKey = "created" | "title" | "participants";
+type LiveBoxSortDirection = "asc" | "desc";
 
 type LiveBoxParticipantPreview = {
   platformId: string;
@@ -41,8 +42,23 @@ function formatEndsAt(value: string | null) {
 
 function getStatusBadgeClass(status: string) {
   if (status === "진행중") return "bg-green-50 text-green-700 border-green-200";
-  if (status === "종료") return "bg-gray-100 text-gray-600 border-gray-200";
-  return "bg-amber-50 text-amber-700 border-amber-200";
+  if (status === "종료") return "bg-red-50 text-red-700 border-red-200";
+  return "bg-gray-100 text-gray-600 border-gray-200";
+}
+
+function StatusIcon({ status }: { status: string }) {
+  if (status === "진행중") {
+    return <Loader className="h-3.5 w-3.5 animate-spin" />;
+  }
+  if (status === "종료") {
+    return <X className="h-3.5 w-3.5" />;
+  }
+  return <Pause className="h-3.5 w-3.5" />;
+}
+
+function getDefaultSortDirection(sortKey: LiveBoxSortKey): LiveBoxSortDirection {
+  if (sortKey === "title") return "asc";
+  return "desc";
 }
 
 /** 라이브박스 목록 화면 (검색 + 필터/정렬 + 페이지네이션) */
@@ -56,7 +72,8 @@ export default function LiveBoxScreen({
   const [keyword, setKeyword] = useState("");
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<LiveBoxStatusFilter>("all");
-  const [sortOption, setSortOption] = useState<LiveBoxSortOption>("created_desc");
+  const [sortKey, setSortKey] = useState<LiveBoxSortKey>("created");
+  const [sortDirection, setSortDirection] = useState<LiveBoxSortDirection>("desc");
   const [brokenParticipantImageById, setBrokenParticipantImageById] = useState<
     Record<string, boolean>
   >({});
@@ -113,19 +130,24 @@ export default function LiveBoxScreen({
         return box.status === "종료";
       })
       .sort((a, b) => {
-        if (sortOption === "title_asc") {
-          return a.title.localeCompare(b.title, "ko");
+        if (sortKey === "title") {
+          const diff = a.title.localeCompare(b.title, "ko");
+          return sortDirection === "asc" ? diff : -diff;
         }
 
-        if (sortOption === "participants_desc") {
+        if (sortKey === "participants") {
           const diff =
-            b.participant_streamer_ids.length - a.participant_streamer_ids.length;
-          if (diff !== 0) return diff;
+            a.participant_streamer_ids.length - b.participant_streamer_ids.length;
+          if (diff !== 0) {
+            return sortDirection === "asc" ? diff : -diff;
+          }
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         }
 
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        const diff = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        return sortDirection === "asc" ? diff : -diff;
       });
-  }, [initialLiveBoxes, keyword, participantByPlatformId, sortOption, statusFilter]);
+  }, [initialLiveBoxes, keyword, participantByPlatformId, sortDirection, sortKey, statusFilter]);
 
   const totalCount = filteredLiveBoxes.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
@@ -134,6 +156,17 @@ export default function LiveBoxScreen({
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
   );
+
+  const onClickSortButton = (nextSortKey: LiveBoxSortKey) => {
+    setPage(1);
+    if (sortKey === nextSortKey) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+      return;
+    }
+
+    setSortKey(nextSortKey);
+    setSortDirection(getDefaultSortDirection(nextSortKey));
+  };
 
   return (
     <div className="mx-auto max-w-7xl p-4 md:p-6">
@@ -162,7 +195,9 @@ export default function LiveBoxScreen({
                 setPage(1);
               }}
               className={`cursor-pointer ${
-                statusFilter === "all" ? "bg-gray-900 text-white hover:bg-gray-800" : ""
+                statusFilter === "all"
+                  ? "border-gray-900 bg-gray-900 text-white hover:bg-gray-800 hover:text-white"
+                  : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-700"
               }`}
             >
               전체
@@ -176,7 +211,9 @@ export default function LiveBoxScreen({
                 setPage(1);
               }}
               className={`cursor-pointer ${
-                statusFilter === "ongoing" ? "bg-gray-900 text-white hover:bg-gray-800" : ""
+                statusFilter === "ongoing"
+                  ? "border-gray-900 bg-gray-900 text-white hover:bg-gray-800 hover:text-white"
+                  : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-700"
               }`}
             >
               진행중
@@ -190,30 +227,59 @@ export default function LiveBoxScreen({
                 setPage(1);
               }}
               className={`cursor-pointer ${
-                statusFilter === "closed" ? "bg-gray-900 text-white hover:bg-gray-800" : ""
+                statusFilter === "closed"
+                  ? "border-gray-900 bg-gray-900 text-white hover:bg-gray-800 hover:text-white"
+                  : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-700"
               }`}
             >
-              마감
+              종료
             </Button>
           </div>
 
           <div className="flex w-full items-center gap-2 md:w-auto">
-            <select
-              value={sortOption}
-              onChange={(event) => {
-                setSortOption(event.target.value as LiveBoxSortOption);
-                setPage(1);
-              }}
-              className="h-9 w-full rounded-md border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none focus:border-gray-300 md:w-48"
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => onClickSortButton("created")}
+              className={`cursor-pointer ${
+                sortKey === "created"
+                  ? "border-gray-900 bg-gray-900 text-white hover:bg-gray-800 hover:text-white"
+                  : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-700"
+              }`}
             >
-              <option value="created_desc">등록순 (최신)</option>
-              <option value="title_asc">제목순</option>
-              <option value="participants_desc">참여자순</option>
-            </select>
+              등록순
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => onClickSortButton("title")}
+              className={`cursor-pointer ${
+                sortKey === "title"
+                  ? "border-gray-900 bg-gray-900 text-white hover:bg-gray-800 hover:text-white"
+                  : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-700"
+              }`}
+            >
+              제목순
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => onClickSortButton("participants")}
+              className={`cursor-pointer ${
+                sortKey === "participants"
+                  ? "border-gray-900 bg-gray-900 text-white hover:bg-gray-800 hover:text-white"
+                  : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-700"
+              }`}
+            >
+              참여자순
+            </Button>
             {user ? (
               <LiveBoxRequestTriggerButton
                 label="추가요청"
-                className="h-9 shrink-0 cursor-pointer whitespace-nowrap border-gray-200 text-gray-700"
+                className="h-8 shrink-0"
               />
             ) : null}
           </div>
@@ -260,10 +326,11 @@ export default function LiveBoxScreen({
                       {box.title}
                     </h2>
                     <span
-                      className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${getStatusBadgeClass(
+                      className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${getStatusBadgeClass(
                         box.status
                       )}`}
                     >
+                      <StatusIcon status={box.status} />
                       {box.status}
                     </span>
                   </div>
@@ -346,7 +413,7 @@ export default function LiveBoxScreen({
                     </div>
                     <div className="flex items-center gap-1.5">
                       <CalendarClock className="h-3.5 w-3.5 text-gray-400" />
-                      <span>마감일시 {formatEndsAt(box.ends_at)}</span>
+                      <span>종료일시 {formatEndsAt(box.ends_at)}</span>
                     </div>
                   </div>
                 </Link>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ExternalLink, Eye, UserRound } from "lucide-react";
+import { ExternalLink, Eye, Search, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -119,15 +119,18 @@ export default function LiveScreen() {
           </div>
 
           <div className="flex w-full gap-2 md:w-auto">
-            <Input
-              value={keyword}
-              onChange={(e) => {
-                setKeyword(e.target.value);
-                setPage(1);
-              }}
-              placeholder="버츄얼 명을 입력해 주세요"
-              className="h-9 border-gray-200 bg-white md:w-80"
-            />
+            <div className="relative w-full md:w-80">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Input
+                value={keyword}
+                onChange={(e) => {
+                  setKeyword(e.target.value);
+                  setPage(1);
+                }}
+                placeholder="버츄얼 명을 입력해 주세요"
+                className="h-9 border-gray-200 bg-white pl-9"
+              />
+            </div>
           </div>
         </div>
 

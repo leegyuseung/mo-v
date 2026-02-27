@@ -64,15 +64,12 @@ export default function CrewDetailScreen({ crewCode }: CrewDetailScreenProps) {
       toast.error("로그인 후 정보 수정 요청이 가능합니다.");
       return;
     }
-    if (!crew.members_detail || crew.members_detail.length === 0) {
-      toast.error("연결된 멤버가 없어 요청을 접수할 수 없습니다.");
-      return;
-    }
 
     try {
       await createInfoEditRequest({
         content,
-        streamerId: crew.members_detail[0].id,
+        crewId: crew.id,
+        crewCode: crew.crew_code,
         crewName: crew.name,
         requesterId: user.id,
         requesterNickname: profile?.nickname || null,

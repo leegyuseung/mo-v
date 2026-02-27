@@ -16,6 +16,7 @@ import { ADMIN_REVIEW_REWARD_POINT } from "@/lib/constant";
 function targetTypeLabel(targetType: EntityReportRequest["target_type"]) {
   if (targetType === "streamer") return "버츄얼";
   if (targetType === "group") return "그룹";
+  if (targetType === "contents") return "콘텐츠";
   return "소속";
 }
 
@@ -48,7 +49,7 @@ function ReportRequestRow({ request }: ReportRequestRowProps) {
   return (
     <>
       <tr className="border-b border-gray-100 hover:bg-gray-50/60 transition-colors">
-        <td className="px-4 py-3 text-sm text-gray-500">
+        <td className="w-36 px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
           {new Date(request.created_at).toLocaleString("ko-KR")}
         </td>
         <td className="px-4 py-3 text-sm text-gray-700">{targetTypeLabel(request.target_type)}</td>
@@ -56,8 +57,10 @@ function ReportRequestRow({ request }: ReportRequestRowProps) {
         <td className="px-4 py-3 text-sm text-gray-600">
           {request.reporter_nickname || request.reporter_id}
         </td>
-        <td className="px-4 py-3 text-sm text-gray-700 whitespace-pre-wrap break-words">
-          {request.content}
+        <td className="px-4 py-3 text-sm text-gray-700">
+          <div className="max-w-[560px] overflow-x-auto whitespace-pre">
+            {request.content}
+          </div>
         </td>
         <td className="px-4 py-3 text-sm">
           <AdminRequestActionButtons
@@ -117,11 +120,11 @@ export default function ReportRequestsScreen() {
         <table className="w-full text-left min-w-[1040px]">
           <thead>
             <tr className="bg-gray-50/80 border-b border-gray-100">
-              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">요청일시</th>
+              <th className="w-36 px-4 py-3 text-xs font-semibold text-gray-500 uppercase">요청일시</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">구분</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">대상명</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">요청자</th>
-              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">신고 내용</th>
+              <th className="min-w-[560px] px-4 py-3 text-xs font-semibold text-gray-500 uppercase">신고 내용</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-28">처리</th>
             </tr>
           </thead>

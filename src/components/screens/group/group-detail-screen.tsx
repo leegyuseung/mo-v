@@ -57,15 +57,12 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
       toast.error("로그인 후 정보 수정 요청이 가능합니다.");
       return;
     }
-    if (!group.members_detail || group.members_detail.length === 0) {
-      toast.error("연결된 멤버가 없어 요청을 접수할 수 없습니다.");
-      return;
-    }
 
     try {
       await createInfoEditRequest({
         content,
-        streamerId: group.members_detail[0].id,
+        groupId: group.id,
+        groupCode: group.group_code,
         groupName: group.name,
         requesterId: user.id,
         requesterNickname: profile?.nickname || null,

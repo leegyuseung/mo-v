@@ -34,7 +34,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: now,
       changeFrequency: "weekly",
       priority: 0.6,
-    }, {
+    },
+    {
       url: `${SITE_URL}/crew`,
       lastModified: now,
       changeFrequency: "weekly",

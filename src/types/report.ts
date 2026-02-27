@@ -1,4 +1,4 @@
-export type ReportTargetType = "streamer" | "group" | "crew";
+export type ReportTargetType = "streamer" | "group" | "crew" | "contents";
 export type ReportRequestStatus = "pending" | "approved" | "rejected" | "cancelled";
 
 export type CreateEntityReportRequestInput = {

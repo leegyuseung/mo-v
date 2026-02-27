@@ -60,6 +60,23 @@ export type StreamerInfoEditRequest = {
   review_note?: string | null;
 };
 
+/** 그룹/크루 정보 수정 요청 데이터 */
+export type EntityInfoEditRequest = {
+  id: number;
+  created_at: string;
+  content: string;
+  target_type: "group" | "crew" | "contents";
+  target_id: number;
+  target_code: string | null;
+  target_name: string;
+  requester_id: string;
+  requester_nickname: string | null;
+  status: AdminRequestStatus;
+  reviewed_at?: string | null;
+  reviewed_by?: string | null;
+  review_note?: string | null;
+};
+
 /** 버츄얼/그룹/소속 신고 요청 데이터 */
 export type EntityReportRequest = {
   id: number;

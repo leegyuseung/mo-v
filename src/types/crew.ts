@@ -63,7 +63,8 @@ export type CrewDetail = {
 /** 크루 정보 수정 요청 입력 타입 */
 export type CreateCrewInfoEditRequestInput = {
   content: string;
-  streamerId: number;
+  crewId: number;
+  crewCode: string;
   crewName: string;
   requesterId: string;
   requesterNickname: string | null;

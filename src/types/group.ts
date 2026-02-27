@@ -31,7 +31,8 @@ export type IdolGroupDetail = Tables<"idol_groups"> & {
 
 export type CreateGroupInfoEditRequestInput = {
   content: string;
-  streamerId: number;
+  groupId: number;
+  groupCode: string;
   groupName: string;
   requesterId: string;
   requesterNickname: string | null;

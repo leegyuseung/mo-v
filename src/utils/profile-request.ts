@@ -30,14 +30,16 @@ export function formatProfileRequestDateTime(value: string | null) {
   return new Date(value).toLocaleString("ko-KR");
 }
 
-export function getInfoEditTargetLabel(streamerNickname: string) {
-  if (streamerNickname.startsWith("[GROUP]")) return "정보 수정 요청 (그룹)";
-  if (streamerNickname.startsWith("[CREW]")) return "정보 수정 요청 (소속)";
+export function getInfoEditTargetLabel(targetType: string) {
+  if (targetType === "group") return "정보 수정 요청 (그룹)";
+  if (targetType === "crew") return "정보 수정 요청 (소속)";
+  if (targetType === "contents") return "정보 수정 요청 (콘텐츠)";
   return "정보 수정 요청 (버츄얼)";
 }
 
 export function getReportTargetLabel(request: MyEntityReportRequest) {
   if (request.target_type === "group") return "신고 요청 (그룹)";
   if (request.target_type === "crew") return "신고 요청 (소속)";
+  if (request.target_type === "contents") return "신고 요청 (콘텐츠)";
   return "신고 요청 (버츄얼)";
 }

@@ -11,12 +11,14 @@ export function useCancelMyRequest() {
     mutationFn: ({
       requestId,
       requestKind,
+      infoEditSource,
       userId,
     }: {
       requestId: number;
       requestKind: CombinedRequest["kind"];
+      infoEditSource?: "streamer" | "entity";
       userId: string;
-    }) => cancelMyRequest({ requestId, requestKind, userId }),
+    }) => cancelMyRequest({ requestId, requestKind, infoEditSource, userId }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["profile", "my-request-history", variables.userId],

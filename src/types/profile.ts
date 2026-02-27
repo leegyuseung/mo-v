@@ -20,15 +20,19 @@ export type MyStreamerRegistrationRequest = Pick<
 >;
 
 export type MyInfoEditRequest = Pick<
-  Tables<"streamer_info_edit_requests">,
+  Tables<"entity_info_edit_requests">,
   | "id"
-  | "streamer_nickname"
+  | "target_type"
+  | "target_name"
+  | "target_code"
   | "content"
   | "status"
   | "review_note"
   | "created_at"
   | "reviewed_at"
->;
+> & {
+  source: "streamer" | "entity";
+};
 
 export type MyEntityReportRequest = Pick<
   Tables<"entity_report_requests">,
@@ -86,7 +90,10 @@ export type CombinedRequest =
       reviewed_at: string | null;
       status: ProfileRequestStatus;
       review_note: string | null;
-      streamer_nickname: string;
+      source: "streamer" | "entity";
+      target_type: string;
+      target_name: string;
+      target_code: string | null;
       content: string;
     }
   | {

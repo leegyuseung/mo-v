@@ -52,7 +52,10 @@ export function useProfileRequestsList(
       reviewed_at: request.reviewed_at,
       status: normalizeProfileRequestStatus(request.status),
       review_note: request.review_note,
-      streamer_nickname: request.streamer_nickname,
+      source: request.source,
+      target_type: request.target_type,
+      target_name: request.target_name,
+      target_code: request.target_code,
       content: request.content,
     }));
 
