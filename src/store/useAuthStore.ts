@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { User } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/client";
 import type { Profile, HeartPoints } from "@/types/profile";
 import type { AuthState, AuthActions } from "@/types/auth";
@@ -10,7 +9,7 @@ export type { Profile, HeartPoints };
 
 const supabase = createClient();
 
-export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
+export const useAuthStore = create<AuthState & AuthActions>((set) => ({
     // State
     user: null,
     profile: null,

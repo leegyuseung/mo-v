@@ -10,18 +10,15 @@ import { useState } from "react";
 import { useSignInWithPassword } from "@/hooks/mutations/auth/use-sign-in-with-password";
 import { useSignInWithProvider } from "@/hooks/mutations/auth/use-sign-in-with-provider";
 import { useLoginMethodStore } from "@/store/useLoginMethodStore";
-import type { LoginProvider } from "@/store/useLoginMethodStore";
 import { toast } from "sonner";
 import AppFooter from "@/components/common/app-footer";
 
 /** 소셜 로그인 버튼 정보 */
 const SOCIAL_PROVIDERS: {
-    provider: LoginProvider | null;
+    provider: "google" | "kakao";
     src: string;
     alt: string;
-    disabled?: boolean;
 }[] = [
-        { provider: null, src: "/naver_login_icon.png", alt: "네이버 로그인", disabled: true },
         { provider: "kakao", src: "/kakao_login_icon.png", alt: "카카오 로그인" },
         { provider: "google", src: "/google_login_icon.svg", alt: "구글 로그인" },
     ];
@@ -171,14 +168,10 @@ export default function LoginScreen() {
                     </div>
                 </div>
                 <div className="flex justify-center gap-3 md:gap-4">
-                    {SOCIAL_PROVIDERS.map(({ provider, src, alt, disabled }) => (
+                    {SOCIAL_PROVIDERS.map(({ provider, src, alt }) => (
                         <div key={alt} className="relative">
                             <button
-                                onClick={() =>
-                                    disabled
-                                        ? toast.info("네이버 로그인은 준비 중입니다.")
-                                        : handleSocialLogin(provider as "google" | "kakao")
-                                }
+                                onClick={() => handleSocialLogin(provider)}
                                 disabled={isSocialSigningIn}
                                 className="cursor-pointer"
                             >
