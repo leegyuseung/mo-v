@@ -5,7 +5,6 @@ export type HomeShowcaseStreamer = {
   image_url: string | null;
   platform: string | null;
   birthday?: string | null;
-  birthdayLabel?: string | null;
   daysUntilBirthday?: number | null;
 };
 

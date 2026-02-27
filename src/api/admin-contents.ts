@@ -8,6 +8,24 @@ import type {
 } from "@/types/content";
 
 const supabase = createClient();
+const MAX_CONTENT_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_CONTENT_IMAGE_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]);
+
+export function validateContentImageFile(file: File) {
+  if (!ALLOWED_CONTENT_IMAGE_MIME_TYPES.has(file.type)) {
+    throw new Error("이미지는 JPG/PNG/WEBP/GIF 형식만 업로드할 수 있습니다.");
+  }
+
+  if (file.size > MAX_CONTENT_IMAGE_SIZE_BYTES) {
+    throw new Error("이미지 용량은 5MB 이하만 업로드할 수 있습니다.");
+  }
+}
 
 /** 관리자 콘텐츠 목록을 최신순으로 조회한다. */
 export async function fetchAdminContents(): Promise<ContentWithAuthorProfile[]> {
@@ -76,7 +94,16 @@ export async function deleteAdminContent(contentId: number): Promise<void> {
 
 /** 콘텐츠 이미지를 Storage에 업로드하고 공개 URL을 반환한다. */
 export async function uploadContentImage(file: File, userId: string): Promise<string> {
-  const fileExt = (file.name.split(".").pop() || "png").toLowerCase();
+  validateContentImageFile(file);
+
+  const fileExtByMimeType: Record<string, string> = {
+    "image/jpeg": "jpg",
+    "image/jpg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/gif": "gif",
+  };
+  const fileExt = fileExtByMimeType[file.type] || "png";
   const randomKey =
     typeof crypto !== "undefined" && "randomUUID" in crypto
       ? crypto.randomUUID().replace(/-/g, "")

@@ -1,132 +1,31 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { useMemo } from "react";
-import { CalendarClock, PartyPopper, Tag, ThumbsUp, UserRound, Users } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import type { StreamerHeartLeaderboardItem } from "@/types/heart";
+import HomeHeartRankSection from "@/components/screens/home/home-heart-rank-section";
+import HomeLiveBoxSection from "@/components/screens/home/home-live-box-section";
+import HomeLiveStarSection from "@/components/screens/home/home-live-star-section";
+import HomeShowcaseSection from "@/components/screens/home/home-showcase-section";
 import { useLiveStreamers } from "@/hooks/queries/live/use-live-streamers";
 import { useLiveBoxes } from "@/hooks/queries/live-box/use-live-boxes";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useHeartLeaderboard } from "@/hooks/queries/heart/use-heart-leaderboard";
 import { useStarredStreamerIds } from "@/hooks/queries/star/use-starred-streamer-ids";
 import { useHomeShowcaseData } from "@/hooks/queries/home/use-home-showcase-data";
-import { generateArray } from "@/utils/array";
-import type { HomeShowcaseStreamer } from "@/types/home";
+import type { HomeRankCard } from "@/types/home-screen";
 
-/** 홈 화면에 표시할 최대 라이브박스 개수 */
 const HOME_LIVE_BOX_COUNT = 3;
-
-function getStatusBadgeClass(status: string) {
-  if (status === "진행중") return "bg-green-50 text-green-700 border-green-200";
-  if (status === "종료") return "bg-gray-100 text-gray-600 border-gray-200";
-  return "bg-amber-50 text-amber-700 border-amber-200";
-}
-
-function formatEndsAt(value: string | null) {
-  if (!value) return "미설정";
-  return new Date(value).toLocaleString("ko-KR", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-}
-
-function getStreamerRingClass(platform: string | null) {
-  if (platform === "chzzk") return "border-green-500";
-  if (platform === "soop") return "border-blue-500";
-  return "border-gray-300";
-}
-
-function getDdayLabel(days: number | null | undefined) {
-  if (days === null || days === undefined) return "-";
-  if (days <= 0) return "D-day";
-  return `D-${days}`;
-}
-
-function ShowcaseStreamerList({
-  streamers,
-  emptyText,
-  showBirthdayMeta = false,
-  enableScrollWhenMany = false,
-}: {
-  streamers: HomeShowcaseStreamer[];
-  emptyText: string;
-  showBirthdayMeta?: boolean;
-  enableScrollWhenMany?: boolean;
-}) {
-  if (streamers.length === 0) {
-    return <p className="py-6 text-center text-xs text-gray-400">{emptyText}</p>;
-  }
-
-  const listClassName =
-    enableScrollWhenMany ? "max-h-[140px] space-y-2 overflow-y-auto pt-1 pr-1" : "space-y-2";
-
-  return (
-    <div className={listClassName}>
-      {streamers.map((streamer) => (
-        <Link
-          key={`home-showcase-streamer-${streamer.id}`}
-          href={`/vlist/${streamer.public_id || String(streamer.id)}`}
-          className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/60 p-2 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:bg-gray-100/60 hover:shadow-[0_14px_28px_-14px_rgba(0,0,0,0.45)]"
-        >
-          <div
-            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 bg-white p-0.5 ${getStreamerRingClass(
-              streamer.platform
-            )}`}
-          >
-            <div className="relative h-full w-full overflow-hidden rounded-full bg-gray-100">
-              {streamer.image_url ? (
-                <Image
-                  src={streamer.image_url}
-                  alt={streamer.nickname || "streamer"}
-                  fill
-                  sizes="44px"
-                  loading="lazy"
-                  className="object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center">
-                  <UserRound className="h-4 w-4 text-gray-300" />
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-gray-900">
-              {streamer.nickname || "이름 미등록"}
-            </p>
-            {showBirthdayMeta ? (
-              <p className="inline-flex items-center gap-1.5 text-[11px] text-gray-500">
-                <span>생일: {streamer.birthday || "-"}</span>
-                <span className="font-semibold text-gray-700">
-                  {getDdayLabel(streamer.daysUntilBirthday)}
-                </span>
-              </p>
-            ) : null}
-          </div>
-        </Link>
-      ))}
-    </div>
-  );
-}
 
 export default function HomeScreen() {
   const { user } = useAuthStore();
-
-  /* ─────────── 데이터 페치(홈 상단 쇼케이스) ─────────── */
   const {
     data: showcaseData,
     isLoading: isShowcaseLoading,
     isError: isShowcaseError,
   } = useHomeShowcaseData();
-  const upcomingBirthdayCount = showcaseData?.upcomingBirthdays.length || 0;
 
-  /* ─────────── 데이터 페치(라이브박스) ─────────── */
-  const { data: liveBoxData = [], isLoading: isLiveBoxLoading, isError: isLiveBoxError } = useLiveBoxes();
+  const { data: liveBoxData = [], isLoading: isLiveBoxLoading, isError: isLiveBoxError } =
+    useLiveBoxes();
 
-  /** 진행중인 라이브박스를 최신 등록순으로 최대 3개 표시 */
   const topLiveBoxes = useMemo(() => {
     return liveBoxData
       .filter((box) => box.status === "진행중")
@@ -134,12 +33,8 @@ export default function HomeScreen() {
       .slice(0, HOME_LIVE_BOX_COUNT);
   }, [liveBoxData]);
 
-  /* ─────────── 데이터 페치(하트 랭킹) ─────────── */
   const { data: liveData, isLoading: isLiveLoading } = useLiveStreamers();
-  const {
-    data: allRank = [],
-    isLoading: isAllRankLoading,
-  } = useHeartLeaderboard("all", 5);
+  const { data: allRank = [], isLoading: isAllRankLoading } = useHeartLeaderboard("all", 5);
   const {
     data: monthlyRank = [],
     isLoading: isMonthlyRankLoading,
@@ -151,41 +46,29 @@ export default function HomeScreen() {
     isError: isWeeklyRankError,
   } = useHeartLeaderboard("weekly", 5);
 
-  /** 랭킹 카드 배열: 전체 / 이번달 / 이번주 */
-  const rankCards: Array<{
-    key: string;
-    title: string;
-    data: StreamerHeartLeaderboardItem[];
-    isLoading: boolean;
-    isError?: boolean;
-  }> = [
-      {
-        key: "all",
-        title: "총 하트 TOP 5",
-        data: allRank,
-        isLoading: isAllRankLoading,
-      },
-      {
-        key: "monthly",
-        title: "이번달 하트 TOP 5",
-        data: monthlyRank,
-        isLoading: isMonthlyRankLoading,
-        isError: isMonthlyRankError,
-      },
-      {
-        key: "weekly",
-        title: "이번주 하트 TOP 5",
-        data: weeklyRank,
-        isLoading: isWeeklyRankLoading,
-        isError: isWeeklyRankError,
-      },
-    ];
+  const rankCards: HomeRankCard[] = [
+    {
+      key: "all",
+      title: "총 하트 TOP 5",
+      data: allRank,
+      isLoading: isAllRankLoading,
+    },
+    {
+      key: "monthly",
+      title: "이번달 하트 TOP 5",
+      data: monthlyRank,
+      isLoading: isMonthlyRankLoading,
+      isError: isMonthlyRankError,
+    },
+    {
+      key: "weekly",
+      title: "이번주 하트 TOP 5",
+      data: weeklyRank,
+      isLoading: isWeeklyRankLoading,
+      isError: isWeeklyRankError,
+    },
+  ];
 
-  /** 0보다 큰 하트를 가진 항목만 최대 5개까지 반환한다 */
-  const getRankRows = (items: StreamerHeartLeaderboardItem[]) =>
-    items.filter((item) => (item.total_received ?? 0) > 0).slice(0, 5);
-
-  /* ─────────── 라이브 중인 스트리머 상위 4명 ─────────── */
   const topLiveStreamers = useMemo(() => {
     return (liveData || [])
       .filter((item) => item.isLive)
@@ -197,7 +80,6 @@ export default function HomeScreen() {
       .slice(0, 4);
   }, [liveData]);
 
-  /* ─────────── 즐겨찾기 + 라이브 ─────────── */
   const { data: starredStreamerIds = [] } = useStarredStreamerIds(user?.id);
   const liveFavoriteStreamers = useMemo(() => {
     const idSet = new Set(starredStreamerIds);
@@ -205,10 +87,9 @@ export default function HomeScreen() {
   }, [liveData, starredStreamerIds]);
 
   return (
-    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-2">
-      {/* ─── 배너 영역 ─── */}
+    <div className="mx-auto max-w-7xl space-y-2 p-4 md:p-6">
       <section className="mx-auto w-full max-w-[1200px]">
-        <div className="h-[200px] md:h-[200px] rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center flex flex-col items-center justify-center">
+        <div className="flex h-[200px] flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center md:h-[200px]">
           <h2 className="text-lg font-semibold text-gray-800">배너 영역</h2>
           <p className="mt-2 text-sm text-gray-500">
             버츄얼 광고(생일, 앨범홍보, 컨텐츠홍보) 배너등록 준비중
@@ -216,515 +97,27 @@ export default function HomeScreen() {
         </div>
       </section>
 
-      {/* ─── 하트 랭킹 카드 섹션 ─── */}
-      <section className="p-4 md:p-6">
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-          {rankCards.map((card) => (
-            <div
-              key={card.key}
-              className="rounded-2xl border border-gray-100 bg-white p-4"
-            >
-              <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-gray-800">{card.title}</h3>
-              </div>
+      <HomeHeartRankSection rankCards={rankCards} />
 
-              {card.isLoading ? (
-                <div className="space-y-3">
-                  {generateArray(5).map((_, slotIndex) => (
-                    <div
-                      key={`home-heart-skeleton-${card.key}-${slotIndex}`}
-                      className="flex items-center gap-3"
-                    >
-                      <Skeleton className="h-9 w-9 rounded-full" />
-                      <div className="flex-1 space-y-1">
-                        <Skeleton className="h-3 w-24" />
-                        <Skeleton className="h-3 w-16" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : card.isError ? (
-                <div className="py-8 text-center text-sm text-gray-400">
-                  랭킹 조회에 실패했습니다.
-                </div>
-              ) : (
-                <div className="space-y-0.5">
-                  {generateArray(5).map((_, index) => {
-                    const item = getRankRows(card.data)[index];
-                    if (!item) {
-                      return (
-                        <div
-                          key={`${card.key}-empty-${index}`}
-                          className="flex items-center gap-3 rounded-xl px-2 py-1.5"
-                        >
-                          <span className="w-7 text-xs font-bold text-gray-300">
-                            {index + 1}위
-                          </span>
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100">
-                            <UserRound className="h-4 w-4 text-gray-300" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium text-gray-300">
-                              -
-                            </p>
-                          </div>
-                        </div>
-                      );
-                    }
+      <HomeShowcaseSection
+        showcaseData={showcaseData}
+        isShowcaseLoading={isShowcaseLoading}
+        isShowcaseError={isShowcaseError}
+      />
 
-                    return (
-                      <Link
-                        key={`${card.key}-${item.streamer_id}`}
-                        href={`/vlist/${item.public_id ?? item.streamer_id}`}
-                        className="group flex items-center gap-3 rounded-xl border border-transparent px-2 py-1.5 transition hover:border-gray-300 hover:bg-gray-50"
-                      >
-                        <span className="w-7 text-xs font-bold text-gray-500">
-                          {index + 1}위
-                        </span>
-                        <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-gray-100">
-                          {item.image_url ? (
-                            <Image
-                              src={item.image_url}
-                              alt={item.nickname || "virtual"}
-                              fill
-                              sizes="36px"
-                              loading="lazy"
-                              className="object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center">
-                              <UserRound className="h-4 w-4 text-gray-300" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-gray-900">
-                            {item.nickname || "이름 미등록"}
-                          </p>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
+      <HomeLiveStarSection
+        isLiveLoading={isLiveLoading}
+        topLiveStreamers={topLiveStreamers}
+        isLoggedIn={Boolean(user)}
+        starredStreamerIds={starredStreamerIds}
+        liveFavoriteStreamers={liveFavoriteStreamers}
+      />
 
-      {/* ─── 쇼케이스 섹션 (생일/추천/콘텐츠) ─── */}
-      <section className="p-4 md:p-6">
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
-          <div className="rounded-2xl border border-gray-100 bg-white p-4 xl:col-span-1">
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-800">
-                <PartyPopper className="h-4 w-4 text-pink-500" />
-                생일
-              </h3>
-              <span className="text-[11px] text-gray-400">{upcomingBirthdayCount}명</span>
-            </div>
-            {isShowcaseLoading ? (
-              <div className="space-y-2">
-                {generateArray(2).map((_, index) => (
-                  <div key={`home-showcase-birthday-skeleton-${index}`} className="flex items-center gap-3 rounded-xl border border-gray-100 p-2">
-                    <Skeleton className="h-11 w-11 rounded-full" />
-                    <div className="flex-1 space-y-1">
-                      <Skeleton className="h-3 w-24" />
-                      <Skeleton className="h-3 w-14" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : isShowcaseError ? (
-              <p className="py-6 text-center text-xs text-gray-400">데이터를 불러오지 못했습니다.</p>
-            ) : (
-              <ShowcaseStreamerList
-                streamers={showcaseData?.upcomingBirthdays || []}
-                emptyText="D-3 이내 생일 버츄얼이 없습니다."
-                showBirthdayMeta
-                enableScrollWhenMany
-              />
-            )}
-          </div>
-
-          <div className="rounded-2xl border border-gray-100 bg-white p-4 xl:col-span-1">
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-800">
-                <ThumbsUp className="h-4 w-4 text-blue-500" />
-                추천
-              </h3>
-            </div>
-            {isShowcaseLoading ? (
-              <div className="space-y-2">
-                {generateArray(2).map((_, index) => (
-                  <div key={`home-showcase-recommend-skeleton-${index}`} className="flex items-center gap-3 rounded-xl border border-gray-100 p-2">
-                    <Skeleton className="h-11 w-11 rounded-full" />
-                    <div className="flex-1 space-y-1">
-                      <Skeleton className="h-3 w-24" />
-                      <Skeleton className="h-3 w-14" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : isShowcaseError ? (
-              <p className="py-6 text-center text-xs text-gray-400">데이터를 불러오지 못했습니다.</p>
-            ) : (
-              <ShowcaseStreamerList
-                streamers={showcaseData?.recommendedStreamers || []}
-                emptyText="추천 버츄얼이 없습니다."
-              />
-            )}
-          </div>
-
-          <div className="rounded-2xl border border-gray-100 bg-white p-4 xl:col-span-2">
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-gray-800">콘텐츠</h3>
-              <Link
-                href="/contents"
-                className="text-[11px] font-medium text-gray-500 underline-offset-2 hover:text-gray-700 hover:underline"
-              >
-                전체
-              </Link>
-            </div>
-            {isShowcaseLoading ? (
-              <div className="flex gap-2 overflow-hidden">
-                {generateArray(6).map((_, index) => (
-                  <Skeleton
-                    key={`home-showcase-content-skeleton-${index}`}
-                    className="h-8 min-w-24 rounded-full"
-                  />
-                ))}
-              </div>
-            ) : isShowcaseError ? (
-              <p className="py-6 text-center text-xs text-gray-400">데이터를 불러오지 못했습니다.</p>
-            ) : (showcaseData?.contentTitles || []).length === 0 ? (
-              <p className="py-6 text-center text-xs text-gray-400">등록된 콘텐츠가 없습니다.</p>
-            ) : (
-              <div className="max-h-[136px] space-y-2 overflow-y-auto pr-1">
-                {(showcaseData?.contentTitles || []).map((content) => (
-                  <Link
-                    key={`home-showcase-content-${content.id}`}
-                    href={`/contents/${content.id}`}
-                    className="flex items-center justify-between gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700 shadow-sm transition-colors duration-200 hover:border-gray-300 hover:bg-gray-100"
-                  >
-                    <span className="truncate font-medium">{content.title}</span>
-                    <div className="flex shrink-0 items-center gap-1 whitespace-nowrap">
-                      {content.isNew ? (
-                        <span className="rounded-full border border-sky-200 bg-sky-50 px-1.5 py-0.5 text-[10px] font-semibold text-sky-700">
-                          NEW
-                        </span>
-                      ) : null}
-                      {content.isClosingSoon ? (
-                        <span className="rounded-full border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
-                          마감임박
-                        </span>
-                      ) : null}
-                      {content.participant_composition === "버츄얼만" ? (
-                        <span className="rounded-full border border-gray-300 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-gray-700">
-                          버츄얼만
-                        </span>
-                      ) : null}
-                      <span className="ml-1 text-[11px] font-semibold text-gray-600">
-                        모집마감 {getDdayLabel(content.daysUntilRecruitmentEnd)}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ─── 라이브 & 즐겨찾기 카드 섹션 ─── */}
-      <section className="p-4 md:p-6">
-        {isLiveLoading ? (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {generateArray(2).map((_, cardIndex) => (
-              <div
-                key={`home-live-skeleton-card-${cardIndex}`}
-                className="rounded-2xl border border-gray-100 bg-white p-4"
-              >
-                <Skeleton className="mb-4 h-5 w-16 rounded-full" />
-                <div className="grid grid-cols-4 gap-2 md:gap-3">
-                  {generateArray(4).map((_, slotIndex) => (
-                    <div
-                      key={`home-live-skeleton-slot-${cardIndex}-${slotIndex}`}
-                      className="rounded-xl p-2 text-center"
-                    >
-                      <Skeleton className="mx-auto mb-2 h-14 w-14 rounded-full md:h-20 md:w-20" />
-                      <Skeleton className="mx-auto hidden h-3 w-16 md:block" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* ── LIVE 카드 ── */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-4">
-              <div className="mb-4 flex items-center justify-between">
-                <span className="inline-flex items-center justify-center rounded-full bg-red-600 px-2 py-0.5 text-[10px] text-white">
-                  LIVE
-                </span>
-                <Link
-                  href="/live"
-                  className="text-xs font-medium text-gray-500 underline-offset-2 hover:text-gray-700 hover:underline"
-                >
-                  전체
-                </Link>
-              </div>
-              {topLiveStreamers.length === 0 ? (
-                <div className="py-8 text-center text-sm text-gray-400">
-                  라이브중인 버츄얼이 없습니다.
-                </div>
-              ) : (
-                <div className="grid grid-cols-4 gap-2 md:gap-3">
-                  {generateArray(4).map((_, index) => {
-                    const streamer = topLiveStreamers[index];
-                    if (!streamer) {
-                      return (
-                        <div
-                          key={`live-empty-${index}`}
-                          className="rounded-xl p-2 text-center"
-                        >
-                          <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full border-2 border-gray-200 bg-gray-50/70 md:h-20 md:w-20">
-                            <UserRound className="h-5 w-5 text-gray-300 md:h-7 md:w-7" />
-                          </div>
-                          <p className="hidden truncate text-xs text-transparent md:block">.</p>
-                        </div>
-                      );
-                    }
-
-                    const ringClass =
-                      streamer.platform === "chzzk"
-                        ? "border-green-500"
-                        : "border-blue-500";
-
-                    return (
-                      <div key={streamer.id} className="rounded-xl p-2 text-center">
-                        <Link
-                          href={streamer.liveUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="group inline-flex cursor-pointer"
-                        >
-                          <div
-                            className={`mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full border-2 bg-gray-100 p-0.5 md:h-20 md:w-20 ${ringClass}`}
-                          >
-                            <div className="relative h-full w-full overflow-hidden rounded-full">
-                              {streamer.image_url ? (
-                                <Image
-                                  src={streamer.image_url}
-                                  alt={streamer.nickname || "streamer"}
-                                  fill
-                                  sizes="(min-width: 768px) 80px, 56px"
-                                  priority={index === 0}
-                                  loading={index === 0 ? "eager" : "lazy"}
-                                  className="object-cover transition-transform duration-200 group-hover:scale-110"
-                                />
-                              ) : (
-                                <div className="flex h-full w-full items-center justify-center">
-                                  <UserRound className="h-7 w-7 text-gray-300" />
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </Link>
-                        <p className="hidden truncate text-xs font-semibold text-gray-900 md:block">
-                          {streamer.nickname || "이름 미등록"}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* ── STAR(즐겨찾기) 카드 ── */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-4">
-              <div className="mb-4 flex items-center justify-between">
-                <span className="inline-flex items-center justify-center rounded-full bg-yellow-500 px-2 py-0.5 text-[10px] text-white">
-                  STAR
-                </span>
-                <Link
-                  href="/star"
-                  className="text-xs font-medium text-gray-500 underline-offset-2 hover:text-gray-700 hover:underline"
-                >
-                  전체
-                </Link>
-              </div>
-              {!user ? (
-                <div className="py-8 text-center text-sm text-gray-400">
-                  로그인 후 이용해 주세요.
-                </div>
-              ) : starredStreamerIds.length === 0 ? (
-                <div className="py-8 text-center text-sm text-gray-500">
-                  <Link href="/vlist" className="underline underline-offset-2 hover:text-gray-700">
-                    즐겨찾기하러가기
-                  </Link>
-                </div>
-              ) : liveFavoriteStreamers.length === 0 ? (
-                <div className="py-8 text-center text-sm text-gray-400">
-                  즐겨찾기한 버츄얼 중 라이브 중인 버츄얼이 없습니다.
-                </div>
-              ) : (
-                <div className="grid grid-cols-4 gap-2 md:gap-3">
-                  {generateArray(4).map((_, index) => {
-                    const streamer = liveFavoriteStreamers[index];
-                    if (!streamer) {
-                      return (
-                        <div key={`favorite-empty-${index}`} className="rounded-xl p-2 text-center">
-                          <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full border-2 border-gray-200 bg-gray-50 md:h-20 md:w-20">
-                            <UserRound className="h-5 w-5 text-gray-300 md:h-7 md:w-7" />
-                          </div>
-                          <p className="hidden truncate text-xs text-transparent md:block">.</p>
-                        </div>
-                      );
-                    }
-
-                    const ringClass =
-                      streamer.platform === "chzzk"
-                        ? "border-green-500"
-                        : "border-blue-500";
-
-                    return (
-                      <div key={`favorite-live-${streamer.id}`} className="rounded-xl p-2 text-center">
-                        <Link
-                          href={streamer.liveUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="group inline-flex cursor-pointer"
-                        >
-                          <div
-                            className={`mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full border-2 bg-gray-100 p-0.5 md:h-20 md:w-20 ${ringClass}`}
-                          >
-                            <div className="relative h-full w-full overflow-hidden rounded-full">
-                              {streamer.image_url ? (
-                                <Image
-                                  src={streamer.image_url}
-                                  alt={streamer.nickname || "streamer"}
-                                  fill
-                                  sizes="(min-width: 768px) 80px, 56px"
-                                  loading="lazy"
-                                  className="object-cover transition-transform duration-200 group-hover:scale-110"
-                                />
-                              ) : (
-                                <div className="flex h-full w-full items-center justify-center">
-                                  <UserRound className="h-7 w-7 text-gray-300" />
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </Link>
-                        <p className="hidden truncate text-xs font-semibold text-gray-900 md:block">
-                          {streamer.nickname || "이름 미등록"}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </section>
-
-      {/* ─── 라이브박스 섹션 ─── */}
-      <section className="p-4 md:p-6">
-        <div className="rounded-2xl border border-gray-100 bg-white p-4">
-          <div className="mb-4 flex items-center justify-between">
-            <span className="inline-flex items-center justify-center rounded-full bg-violet-600 px-2 py-0.5 text-[10px] text-white">
-              LIVE BOX
-            </span>
-            <Link
-              href="/live-box"
-              className="text-xs font-medium text-gray-500 underline-offset-2 hover:text-gray-700 hover:underline"
-            >
-              전체
-            </Link>
-          </div>
-
-          {isLiveBoxLoading ? (
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-              {generateArray(3).map((_, i) => (
-                <div key={`home-livebox-skeleton-${i}`} className="rounded-xl border border-gray-100 p-3 space-y-2">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-3 w-full" />
-                  <Skeleton className="h-3 w-20" />
-                </div>
-              ))}
-            </div>
-          ) : isLiveBoxError ? (
-            <div className="py-8 text-center text-sm text-gray-400">
-              라이브박스를 불러오지 못했습니다.
-            </div>
-          ) : topLiveBoxes.length === 0 ? (
-            <div className="py-8 text-center text-sm text-gray-400">
-              진행중인 라이브박스가 없습니다.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-              {topLiveBoxes.map((box) => (
-                <Link
-                  key={box.id}
-                  href={`/live-box/${box.id}`}
-                  className="group block rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-gray-400 hover:bg-gray-50/40 hover:shadow-[0_14px_28px_-14px_rgba(0,0,0,0.45)]"
-                >
-                  {/* 제목 + 상태 */}
-                  <div className="mb-2 flex items-start justify-between gap-2">
-                    <h4 className="text-sm font-semibold text-gray-900 line-clamp-1">
-                      {box.title}
-                    </h4>
-                    <span
-                      className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${getStatusBadgeClass(box.status)}`}
-                    >
-                      {box.status}
-                    </span>
-                  </div>
-
-                  {/* 카테고리 */}
-                  <div className="mb-2 flex items-center gap-1 text-xs text-gray-500">
-                    <Tag className="h-3 w-3 shrink-0" />
-                    <div className="flex flex-wrap gap-1 min-w-0">
-                      {box.category.length > 0 ? (
-                        box.category.map((item) => (
-                          <span
-                            key={`home-lb-${box.id}-cat-${item}`}
-                            className="rounded-full border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[10px]"
-                          >
-                            {item}
-                          </span>
-                        ))
-                      ) : (
-                        <span>-</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* 설명 */}
-                  <p className="mb-3 truncate text-xs text-gray-500">
-                    {box.description?.trim() || "설명이 없습니다."}
-                  </p>
-
-                  {/* 참여자수 + 마감일시 */}
-                  <div className="flex items-center gap-3 text-[11px] text-gray-500">
-                    <span className="inline-flex items-center gap-1">
-                      <Users className="h-3 w-3 text-gray-400" />
-                      {box.participant_streamer_ids.length}명
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <CalendarClock className="h-3 w-3 text-gray-400" />
-                      {formatEndsAt(box.ends_at)}
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+      <HomeLiveBoxSection
+        isLiveBoxLoading={isLiveBoxLoading}
+        isLiveBoxError={isLiveBoxError}
+        topLiveBoxes={topLiveBoxes}
+      />
     </div>
   );
 }

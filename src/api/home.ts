@@ -76,19 +76,11 @@ function getDaysUntilBirthday(birthday: string | null): number | null {
   return Math.floor((targetUtc - todayUtc) / (24 * 60 * 60 * 1000));
 }
 
-function formatMonthDayLabel(birthday: string | null): string | null {
-  if (!birthday) return null;
-  const monthDay = parseMonthDay(birthday);
-  if (!monthDay) return null;
-  return `${String(monthDay.month).padStart(2, "0")}.${String(monthDay.day).padStart(2, "0")}`;
-}
-
 function pickUpcomingBirthdayStreamers(rows: StreamerRow[]): HomeShowcaseStreamer[] {
   return rows
     .map((row) => ({
       ...row,
       daysUntilBirthday: getDaysUntilBirthday(row.birthday),
-      birthdayLabel: formatMonthDayLabel(row.birthday),
     }))
     .filter((row) => row.daysUntilBirthday !== null && (row.daysUntilBirthday as number) <= HOME_BIRTHDAY_SOON_DAYS)
     .sort((a, b) => {
@@ -103,15 +95,8 @@ function pickUpcomingBirthdayStreamers(rows: StreamerRow[]): HomeShowcaseStreame
       image_url: row.image_url,
       platform: row.platform,
       birthday: row.birthday,
-      birthdayLabel: row.birthdayLabel,
       daysUntilBirthday: row.daysUntilBirthday,
     }));
-}
-
-function pickRandomRow(rows: StreamerRow[]): StreamerRow | null {
-  if (rows.length === 0) return null;
-  const randomIndex = Math.floor(Math.random() * rows.length);
-  return rows[randomIndex] || null;
 }
 
 function toHomeShowcaseStreamer(row: StreamerRow): HomeShowcaseStreamer {
@@ -122,28 +107,37 @@ function toHomeShowcaseStreamer(row: StreamerRow): HomeShowcaseStreamer {
     image_url: row.image_url,
     platform: row.platform,
     birthday: row.birthday,
-    birthdayLabel: formatMonthDayLabel(row.birthday),
     daysUntilBirthday: getDaysUntilBirthday(row.birthday),
   };
 }
 
+async function fetchRandomStreamerByPlatform(platform: "soop" | "chzzk"): Promise<StreamerRow | null> {
+  const { count, error: countError } = await supabase
+    .from("streamers")
+    .select("id", { count: "exact", head: true })
+    .eq("platform", platform);
+
+  if (countError) throw countError;
+  if (!count || count <= 0) return null;
+
+  // 홈 진입마다 랜덤 추천을 유지하면서 전체 레코드 스캔을 피하기 위해 offset 기반 조회를 사용한다.
+  const randomOffset = Math.floor(Math.random() * count);
+  const { data, error } = await supabase
+    .from("streamers")
+    .select("id,public_id,nickname,image_url,platform,birthday")
+    .eq("platform", platform)
+    .order("id", { ascending: true })
+    .range(randomOffset, randomOffset);
+
+  if (error) throw error;
+  return ((data || [])[0] as StreamerRow | undefined) || null;
+}
+
 async function fetchRecommendedStreamers(): Promise<HomeShowcaseStreamer[]> {
-  const [soopResult, chzzkResult] = await Promise.all([
-    supabase
-      .from("streamers")
-      .select("id,public_id,nickname,image_url,platform,birthday")
-      .eq("platform", "soop"),
-    supabase
-      .from("streamers")
-      .select("id,public_id,nickname,image_url,platform,birthday")
-      .eq("platform", "chzzk"),
+  const [soopRandom, chzzkRandom] = await Promise.all([
+    fetchRandomStreamerByPlatform("soop"),
+    fetchRandomStreamerByPlatform("chzzk"),
   ]);
-
-  if (soopResult.error) throw soopResult.error;
-  if (chzzkResult.error) throw chzzkResult.error;
-
-  const soopRandom = pickRandomRow((soopResult.data || []) as StreamerRow[]);
-  const chzzkRandom = pickRandomRow((chzzkResult.data || []) as StreamerRow[]);
 
   const recommendedRows = [soopRandom, chzzkRandom].filter(
     (row): row is StreamerRow => Boolean(row)
