@@ -29,6 +29,24 @@ export function getStatusLabel(status: string) {
   return status;
 }
 
+/** approved 상태에서 모집 시작일 이전이면 "모집대기중", 이후면 "모집중" 반환 */
+export function getRecruitmentStatusLabel(
+  status: string,
+  recruitmentStartAt: string | null,
+  nowTimestamp: number
+): string {
+  if (status === "approved" && recruitmentStartAt) {
+    const startDate = new Date(recruitmentStartAt);
+    startDate.setHours(0, 0, 0, 0);
+    const today = new Date(nowTimestamp);
+    today.setHours(0, 0, 0, 0);
+    if (today.getTime() < startDate.getTime()) {
+      return "모집대기중";
+    }
+  }
+  return getStatusLabel(status);
+}
+
 export function getStatusClassName(status: string) {
   if (status === "pending") return "border-gray-200 bg-gray-100 text-gray-600";
   if (status === "approved") return "border-green-200 bg-green-50 text-green-700";

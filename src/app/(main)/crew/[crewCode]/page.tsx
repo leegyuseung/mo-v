@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import CrewDetailScreen from "@/components/screens/crew/crew-detail-screen";
-import { SITE_TITLE } from "@/lib/seo";
 import { createClient } from "@/utils/supabase/server";
 
 type CrewDetailPageProps = {
@@ -25,9 +24,7 @@ export async function generateMetadata({
   const crewName = crew?.name || "소속";
 
   return {
-    title: {
-      absolute: `${SITE_TITLE} | ${crewName}`,
-    },
+    title: crewName,
     description: `${crewName}의 정보를 한눈에 확인하세요.`,
     alternates: {
       canonical: `/crew/${crewCode}`,

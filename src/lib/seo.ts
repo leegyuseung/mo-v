@@ -41,9 +41,11 @@ export const SITE_KEYWORDS = [
   "하데스"
 ] as const;
 
+export const SITE_TITLE_SUFFIX = "mo-v(모두의 버츄얼)";
+
 export function buildPageTitle(title?: string) {
   if (!title) return SITE_TITLE;
-  return `${title} | ${SITE_NAME}`;
+  return `${title} | ${SITE_TITLE_SUFFIX}`;
 }
 
 export function buildDefaultMetadata(): Metadata {
@@ -51,7 +53,7 @@ export function buildDefaultMetadata(): Metadata {
     metadataBase: new URL(SITE_URL),
     title: {
       default: SITE_TITLE,
-      template: `%s | ${SITE_NAME}`,
+      template: `%s | ${SITE_TITLE_SUFFIX}`,
     },
     description: SITE_DESCRIPTION,
     keywords: [...SITE_KEYWORDS],

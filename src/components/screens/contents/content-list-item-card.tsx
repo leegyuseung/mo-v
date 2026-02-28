@@ -7,8 +7,8 @@ import type { ContentListItemCardProps } from "@/types/contents-screen-component
 import {
   formatDateRange,
   getRecruitmentDdayLabel,
+  getRecruitmentStatusLabel,
   getStatusClassName,
-  getStatusLabel,
 } from "@/components/screens/contents/contents-screen-utils";
 
 export default function ContentListItemCard({
@@ -23,7 +23,10 @@ export default function ContentListItemCard({
   const isPending = content.status === "pending";
   const isApproved = content.status === "approved";
   const isEnded = content.status === "ended";
-  const ddayLabel = isApproved
+  const statusLabel = getRecruitmentStatusLabel(content.status, content.recruitment_start_at, nowTimestamp);
+  const isWaitingRecruitment = statusLabel === "모집대기중";
+  const isRecruiting = isApproved && !isWaitingRecruitment;
+  const ddayLabel = isRecruiting
     ? getRecruitmentDdayLabel(content.recruitment_end_at, nowTimestamp)
     : null;
   const visibleContentTypes = content.content_type.slice(0, 8);
@@ -67,14 +70,16 @@ export default function ContentListItemCard({
               {content.participant_composition}
             </span>
             <span
-              className={`inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-semibold md:hidden ${getStatusClassName(
-                content.status
-              )}`}
+              className={`inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-semibold md:hidden ${
+                isWaitingRecruitment
+                  ? "border-gray-200 bg-gray-100 text-gray-600"
+                  : getStatusClassName(content.status)
+              }`}
             >
               {isPending ? <Pause className="h-3 w-3" /> : null}
-              {isApproved ? <Loader className="h-3 w-3 animate-spin" /> : null}
+              {isApproved ? <Loader className={`h-3 w-3 ${isRecruiting ? "animate-spin" : ""}`} /> : null}
               {isEnded ? <X className="h-3 w-3" /> : null}
-              {getStatusLabel(content.status)}
+              {statusLabel}
               {ddayLabel ? (
                 <span className="ml-0.5 text-[10px] font-bold text-rose-600">
                   {ddayLabel}
@@ -148,14 +153,16 @@ export default function ContentListItemCard({
 
       <div className="hidden items-center justify-between gap-2 md:flex md:flex-col md:items-end md:justify-center">
         <span
-          className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${getStatusClassName(
-            content.status
-          )}`}
+          className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${
+            isWaitingRecruitment
+              ? "border-gray-200 bg-gray-100 text-gray-600"
+              : getStatusClassName(content.status)
+          }`}
         >
           {isPending ? <Pause className="h-3.5 w-3.5" /> : null}
-          {isApproved ? <Loader className="h-3.5 w-3.5 animate-spin" /> : null}
+          {isApproved ? <Loader className={`h-3.5 w-3.5 ${isRecruiting ? "animate-spin" : ""}`} /> : null}
           {isEnded ? <X className="h-3.5 w-3.5" /> : null}
-          {getStatusLabel(content.status)}
+          {statusLabel}
           {ddayLabel ? (
             <span className="ml-0.5 text-xs font-bold text-green-700">
               {ddayLabel}

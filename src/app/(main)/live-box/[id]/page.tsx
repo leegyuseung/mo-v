@@ -6,7 +6,7 @@ import {
   fetchPublicLiveBoxByIdOnServer,
 } from "@/api/live-box-server";
 import LiveBoxDetailScreen from "@/components/screens/live-box/live-box-detail-screen";
-import { SITE_DESCRIPTION, SITE_TITLE } from "@/lib/seo";
+import { SITE_DESCRIPTION } from "@/lib/seo";
 import type { LiveStreamer } from "@/types/live";
 import type { LiveBox, LiveBoxParticipantProfile } from "@/types/live-box";
 
@@ -23,10 +23,7 @@ export async function generateMetadata({
   const parsedId = Number(id);
 
   if (!Number.isFinite(parsedId) || parsedId <= 0) {
-    return {
-      title: { absolute: SITE_TITLE },
-      description: SITE_DESCRIPTION,
-    };
+    return { description: SITE_DESCRIPTION };
   }
 
   try {
@@ -35,19 +32,14 @@ export async function generateMetadata({
     const liveBoxDescription = liveBox?.description?.trim();
 
     return {
-      title: {
-        absolute: liveBoxTitle ? `${SITE_TITLE} | ${liveBoxTitle}` : SITE_TITLE,
-      },
+      title: liveBoxTitle || undefined,
       description: liveBoxDescription || SITE_DESCRIPTION,
       alternates: {
         canonical: `/live-box/${parsedId}`,
       },
     };
   } catch {
-    return {
-      title: { absolute: SITE_TITLE },
-      description: SITE_DESCRIPTION,
-    };
+    return { description: SITE_DESCRIPTION };
   }
 }
 

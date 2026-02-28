@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import VlistDetailScreen from "@/components/screens/vlist/vlist-detail-screen";
-import { SITE_TITLE } from "@/lib/seo";
 import { createClient } from "@/utils/supabase/server";
 
 type VlistDetailPageProps = {
@@ -24,9 +23,7 @@ export async function generateMetadata({
   const streamerName = streamer?.nickname || "버츄얼";
 
   return {
-    title: {
-      absolute: `${SITE_TITLE} | ${streamerName}`,
-    },
+    title: streamerName,
     description: `${streamerName}의 정보를 한눈에 확인하세요.`,
     alternates: {
       canonical: `/vlist/${publicId}`,

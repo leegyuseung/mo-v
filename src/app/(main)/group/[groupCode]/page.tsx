@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import GroupDetailScreen from "@/components/screens/group/group-detail-screen";
-import { SITE_TITLE } from "@/lib/seo";
 import { createClient } from "@/utils/supabase/server";
 
 type GroupDetailPageProps = {
@@ -25,9 +24,7 @@ export async function generateMetadata({
   const groupName = group?.name || "그룹";
 
   return {
-    title: {
-      absolute: `${SITE_TITLE} | ${groupName}`,
-    },
+    title: groupName,
     description: `${groupName}의 정보를 한눈에 확인하세요.`,
     alternates: {
       canonical: `/group/${groupCode}`,

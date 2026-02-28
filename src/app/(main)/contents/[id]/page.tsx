@@ -5,7 +5,7 @@ import {
   fetchPublicContentByIdOnServer,
 } from "@/api/contents-server";
 import ContentsDetailScreen from "@/components/screens/contents/contents-detail-screen";
-import { SITE_DESCRIPTION, SITE_TITLE } from "@/lib/seo";
+import { SITE_DESCRIPTION } from "@/lib/seo";
 
 type ContentsDetailPageProps = {
   params: Promise<{
@@ -24,35 +24,24 @@ export async function generateMetadata({
   const parsedId = Number(id);
 
   if (!Number.isFinite(parsedId) || parsedId <= 0) {
-    return {
-      title: { absolute: SITE_TITLE },
-      description: SITE_DESCRIPTION,
-    };
+    return { description: SITE_DESCRIPTION };
   }
 
   try {
     const content = await fetchPublicContentByIdOnServer(parsedId);
     if (!content || content.status === "pending") {
-      return {
-        title: { absolute: SITE_TITLE },
-        description: SITE_DESCRIPTION,
-      };
+      return { description: SITE_DESCRIPTION };
     }
 
     return {
-      title: {
-        absolute: `${SITE_TITLE} | ${content.title}`,
-      },
+      title: content.title,
       description: content.description || SITE_DESCRIPTION,
       alternates: {
         canonical: `/contents/${parsedId}`,
       },
     };
   } catch {
-    return {
-      title: { absolute: SITE_TITLE },
-      description: SITE_DESCRIPTION,
-    };
+    return { description: SITE_DESCRIPTION };
   }
 }
 
