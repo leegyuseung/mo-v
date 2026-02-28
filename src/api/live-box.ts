@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/client";
 import type { LiveBox, LiveBoxParticipantProfile } from "@/types/live-box";
+import { withEffectiveLiveBoxStatus } from "@/utils/live-box-status";
 
 const supabase = createClient();
 
@@ -11,7 +12,7 @@ export async function fetchPublicLiveBoxes(): Promise<LiveBox[]> {
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return data || [];
+  return (data || []).map((liveBox) => withEffectiveLiveBoxStatus(liveBox));
 }
 
 /** 공개 라이브박스 단건을 조회한다. */
@@ -23,7 +24,7 @@ export async function fetchPublicLiveBoxById(liveBoxId: number): Promise<LiveBox
     .maybeSingle();
 
   if (error) throw error;
-  return data;
+  return data ? withEffectiveLiveBoxStatus(data) : null;
 }
 
 /** 라이브박스 참여자 ID 매핑용 스트리머 최소 정보를 조회한다. */
