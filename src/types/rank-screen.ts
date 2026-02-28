@@ -1,4 +1,5 @@
 import type { HeartRankPeriod, StreamerHeartLeaderboardItem } from "@/types/heart";
+import type { RefObject } from "react";
 
 export type RankFilterOption = {
   key: HeartRankPeriod;
@@ -25,12 +26,10 @@ export type RankListSectionProps = {
   isError: boolean;
   filteredCount: number;
   periodTitle: string;
-  pagedRows: StreamerHeartLeaderboardItem[];
+  visibleRows: StreamerHeartLeaderboardItem[];
   absoluteRankByStreamerId: Map<number, number>;
   groupNameByCode: Map<string, string>;
   crewNameByCode: Map<string, string>;
-  page: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
+  hasMore: boolean;
+  sentinelRef: RefObject<HTMLDivElement | null>;
 };
-

@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import Pagination from "@/components/common/pagination";
 import LiveBoxFilterControls from "@/components/screens/live-box/live-box-filter-controls";
 import LiveBoxListCard from "@/components/screens/live-box/live-box-list-card";
+import { Spinner } from "@/components/ui/spinner";
+import { useInfiniteScrollTrigger } from "@/hooks/use-infinite-scroll-trigger";
 import { useAuthStore } from "@/store/useAuthStore";
 import { getLiveBoxDefaultSortDirection } from "@/utils/live-box-presenter";
 import type {
@@ -104,10 +105,8 @@ export default function LiveBoxScreenClient({
   const totalCount = filteredLiveBoxes.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
-  const pagedLiveBoxes = filteredLiveBoxes.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE
-  );
+  const visibleLiveBoxes = filteredLiveBoxes.slice(0, currentPage * PAGE_SIZE);
+  const hasMore = currentPage < totalPages;
 
   const onParticipantImageError = useCallback((platformId: string) => {
     setBrokenParticipantImageById((prev) => {
@@ -140,6 +139,18 @@ export default function LiveBoxScreenClient({
     [sortKey]
   );
 
+  const onLoadMore = useCallback(() => {
+    if (!hasMore) return;
+    setPage((prev) => Math.min(prev + 1, totalPages));
+  }, [hasMore, totalPages]);
+
+  const sentinelRef = useInfiniteScrollTrigger({
+    enabled: !hasLiveBoxesError,
+    hasMore,
+    isLoading: false,
+    onLoadMore,
+  });
+
   return (
     <div className="mx-auto max-w-7xl p-4 md:p-6">
       <LiveBoxFilterControls
@@ -164,7 +175,7 @@ export default function LiveBoxScreenClient({
       ) : (
         <>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {pagedLiveBoxes.map((box) => (
+            {visibleLiveBoxes.map((box) => (
               <LiveBoxListCard
                 key={box.id}
                 box={box}
@@ -175,8 +186,10 @@ export default function LiveBoxScreenClient({
             ))}
           </div>
 
-          {totalCount > PAGE_SIZE ? (
-            <Pagination page={currentPage} totalPages={totalPages} onPageChange={setPage} />
+          {hasMore ? (
+            <div ref={sentinelRef} className="mt-4 flex h-10 items-center justify-center">
+              <Spinner className="h-5 w-5 border-2" />
+            </div>
           ) : null}
         </>
       )}

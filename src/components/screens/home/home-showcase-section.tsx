@@ -1,5 +1,8 @@
+"use client";
+
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { PartyPopper, ThumbsUp } from "lucide-react";
+import { ChevronLeft, ChevronRight, PartyPopper, ThumbsUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { generateArray } from "@/utils/array";
 import { ShowcaseStreamerList, getDdayLabel } from "@/components/screens/home/home-section-helpers";
@@ -11,7 +14,19 @@ export default function HomeShowcaseSection({
   isShowcaseError,
   liveStatusById,
 }: HomeShowcaseSectionProps) {
+  const BIRTHDAY_PAGE_SIZE = 2;
+  const [birthdayPage, setBirthdayPage] = useState(0);
   const upcomingBirthdayCount = showcaseData?.upcomingBirthdays.length || 0;
+  const birthdayTotalPages = Math.max(
+    1,
+    Math.ceil(upcomingBirthdayCount / BIRTHDAY_PAGE_SIZE)
+  );
+  const currentBirthdayPage = Math.min(birthdayPage, birthdayTotalPages - 1);
+  const birthdayItems = useMemo(() => {
+    const allBirthdays = showcaseData?.upcomingBirthdays || [];
+    const start = currentBirthdayPage * BIRTHDAY_PAGE_SIZE;
+    return allBirthdays.slice(start, start + BIRTHDAY_PAGE_SIZE);
+  }, [currentBirthdayPage, showcaseData?.upcomingBirthdays]);
 
   return (
     <section className="p-4 md:p-6">
@@ -22,7 +37,33 @@ export default function HomeShowcaseSection({
               <PartyPopper className="h-4 w-4 text-pink-500" />
               생일
             </h3>
-            <span className="text-[11px] text-gray-400">{upcomingBirthdayCount}명</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-gray-400">{upcomingBirthdayCount}명</span>
+              {birthdayTotalPages > 1 ? (
+                <>
+                  <button
+                    type="button"
+                    aria-label="생일 목록 이전"
+                    onClick={() => setBirthdayPage((prev) => Math.max(0, prev - 1))}
+                    disabled={currentBirthdayPage === 0}
+                    className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="생일 목록 다음"
+                    onClick={() =>
+                      setBirthdayPage((prev) => Math.min(birthdayTotalPages - 1, prev + 1))
+                    }
+                    disabled={currentBirthdayPage >= birthdayTotalPages - 1}
+                    className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </>
+              ) : null}
+            </div>
           </div>
           {isShowcaseLoading ? (
             <div className="flex-1 space-y-2">
@@ -40,10 +81,9 @@ export default function HomeShowcaseSection({
             <p className="py-6 text-center text-xs text-gray-400">데이터를 불러오지 못했습니다.</p>
           ) : (
             <ShowcaseStreamerList
-              streamers={showcaseData?.upcomingBirthdays || []}
+              streamers={birthdayItems}
               emptyText="D-3 이내 생일 버츄얼이 없습니다."
               showBirthdayMeta
-              enableScrollWhenMany
               liveStatusById={liveStatusById}
             />
           )}

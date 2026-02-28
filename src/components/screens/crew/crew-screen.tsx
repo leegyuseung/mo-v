@@ -2,15 +2,15 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Star, UsersRound, UserRound } from "lucide-react";
-import Pagination from "@/components/common/pagination";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import SearchInput from "@/components/common/search-input";
 import { useCrewCards } from "@/hooks/queries/crews/use-crew-cards";
+import { useInfiniteScrollTrigger } from "@/hooks/use-infinite-scroll-trigger";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useStarredCrewIds } from "@/hooks/queries/star/use-starred-crew-ids";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -65,16 +65,6 @@ export default function CrewScreen({ initialStarredCrewIds = [] }: CrewScreenPro
     });
   }, [data, keyword, sortBy, sortOrder]);
   const totalCount = crews.length;
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-  const from = (page - 1) * pageSize;
-  const to = from + pageSize;
-  const pagedCrews = crews.slice(from, to);
-
-  useEffect(() => {
-    if (page > totalPages) {
-      setPage(totalPages);
-    }
-  }, [page, totalPages]);
 
   /** 정렬 기준 변경 핸들러 */
   const onChangeSort = (nextSortBy: "name" | "star") => {
@@ -88,6 +78,21 @@ export default function CrewScreen({ initialStarredCrewIds = [] }: CrewScreenPro
     setPage(1);
   };
 
+  const visibleCrews = useMemo(() => {
+    return crews.slice(0, page * pageSize);
+  }, [crews, page, pageSize]);
+  const hasMore = visibleCrews.length < crews.length;
+
+  const onLoadMore = useCallback(() => {
+    if (!hasMore) return;
+    setPage((prev) => prev + 1);
+  }, [hasMore]);
+
+  const sentinelRef = useInfiniteScrollTrigger({
+    hasMore,
+    isLoading: isLoading || isFetching,
+    onLoadMore,
+  });
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
@@ -164,7 +169,7 @@ export default function CrewScreen({ initialStarredCrewIds = [] }: CrewScreenPro
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {pagedCrews.map((crew, index) => {
+          {visibleCrews.map((crew, index) => {
             const visibleMembers = crew.members.slice(0, 13);
             const remainCount = Math.max(0, crew.member_count - visibleMembers.length);
 
@@ -266,12 +271,10 @@ export default function CrewScreen({ initialStarredCrewIds = [] }: CrewScreenPro
         </div>
       )}
 
-      {!isLoading ? (
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          onPageChange={setPage}
-        />
+      {hasMore && !isLoading ? (
+        <div ref={sentinelRef} className="mt-3 flex h-10 items-center justify-center">
+          <Spinner className="h-5 w-5 border-2" />
+        </div>
       ) : null}
 
       {isFetching && !isLoading ? (

@@ -1,10 +1,11 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useHeartLeaderboard } from "@/hooks/queries/heart/use-heart-leaderboard";
 import { useIdolGroupCodeNames } from "@/hooks/queries/groups/use-idol-group-code-names";
 import { useCrewCodeNames } from "@/hooks/queries/crews/use-crew-code-names";
+import { useInfiniteScrollTrigger } from "@/hooks/use-infinite-scroll-trigger";
 import RankFilterBar from "@/components/screens/rank/rank-filter-bar";
 import RankListSection from "@/components/screens/rank/rank-list-section";
 import {
@@ -20,9 +21,9 @@ import type { HeartRankPeriod } from "@/types/heart";
 export default function RankScreen() {
   const searchParams = useSearchParams();
   const periodFromQuery = toHeartRankPeriod(searchParams.get("period"));
-  const [period, setPeriod] = useState<HeartRankPeriod>(periodFromQuery);
+  const [period, setPeriod] = useState<HeartRankPeriod>(() => periodFromQuery);
   const [keyword, setKeyword] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [visibleCount, setVisibleCount] = useState(RANK_PAGE_SIZE);
 
   const { data, isLoading, isError } = useHeartLeaderboard(period, RANK_FETCH_LIMIT);
   const { data: idolGroups } = useIdolGroupCodeNames();
@@ -62,31 +63,20 @@ export default function RankScreen() {
     );
   }, [rankRows, keyword, groupNameByCode, crewNameByCode]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredRows.length / RANK_PAGE_SIZE));
-  const safePage = Math.min(currentPage, totalPages);
+  const visibleRows = useMemo(() => {
+    return filteredRows.slice(0, visibleCount);
+  }, [filteredRows, visibleCount]);
+  const hasMore = visibleRows.length < filteredRows.length;
 
-  const pagedRows = useMemo(() => {
-    const start = (safePage - 1) * RANK_PAGE_SIZE;
-    return filteredRows.slice(start, start + RANK_PAGE_SIZE);
-  }, [filteredRows, safePage]);
-
-  useEffect(() => {
-    if (currentPage !== safePage) {
-      setCurrentPage(safePage);
-    }
-  }, [currentPage, safePage]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [period]);
-
-  useEffect(() => {
-    setPeriod(periodFromQuery);
-  }, [periodFromQuery]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [keyword]);
+  const onLoadMore = () => {
+    if (!hasMore) return;
+    setVisibleCount((prev) => Math.min(prev + RANK_PAGE_SIZE, filteredRows.length));
+  };
+  const sentinelRef = useInfiniteScrollTrigger({
+    hasMore,
+    isLoading,
+    onLoadMore,
+  });
 
   return (
     <div className="mx-auto max-w-5xl p-4 md:p-6">
@@ -94,8 +84,14 @@ export default function RankScreen() {
         period={period}
         keyword={keyword}
         filters={RANK_FILTERS}
-        onChangePeriod={setPeriod}
-        onChangeKeyword={setKeyword}
+        onChangePeriod={(nextPeriod) => {
+          setPeriod(nextPeriod);
+          setVisibleCount(RANK_PAGE_SIZE);
+        }}
+        onChangeKeyword={(nextKeyword) => {
+          setKeyword(nextKeyword);
+          setVisibleCount(RANK_PAGE_SIZE);
+        }}
       />
 
       <RankListSection
@@ -103,15 +99,13 @@ export default function RankScreen() {
         isError={isError}
         filteredCount={filteredRows.length}
         periodTitle={getPeriodTitle(period)}
-        pagedRows={pagedRows}
+        visibleRows={visibleRows}
         absoluteRankByStreamerId={absoluteRankByStreamerId}
         groupNameByCode={groupNameByCode}
         crewNameByCode={crewNameByCode}
-        page={safePage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
+        hasMore={hasMore}
+        sentinelRef={sentinelRef}
       />
     </div>
   );
 }
-

@@ -1,13 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import Pagination from "@/components/common/pagination";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import SearchInput from "@/components/common/search-input";
-import { useStreamers } from "@/hooks/queries/streamers/use-streamers";
 import { useStreamerGenres } from "@/hooks/queries/streamers/use-streamer-genres";
 import { useIdolGroupCodeNames } from "@/hooks/queries/groups/use-idol-group-code-names";
 import { useCrewCodeNames } from "@/hooks/queries/crews/use-crew-code-names";
@@ -29,13 +28,14 @@ import { getPlatformActiveClass, getPlatformInactiveClass } from "@/utils/platfo
 import PlatformBadge from "@/components/common/platform-badge";
 import StreamerCardSkeleton from "@/components/common/streamer-card-skeleton";
 import { generateArray } from "@/utils/array";
+import { useInfiniteScrollTrigger } from "@/hooks/use-infinite-scroll-trigger";
+import { fetchStreamers } from "@/api/streamers";
 
 type VlistScreenProps = {
   initialStarredStreamerIds?: number[];
 };
 
 export default function VlistScreen({ initialStarredStreamerIds = [] }: VlistScreenProps) {
-  const [page, setPage] = useState(1);
   const [platform, setPlatform] = useState<StreamerPlatform>("all");
   const [genre, setGenre] = useState("all");
   const [sortBy, setSortBy] = useState<StreamerSortBy>("name");
@@ -45,14 +45,44 @@ export default function VlistScreen({ initialStarredStreamerIds = [] }: VlistScr
   const isMobile = useIsMobile();
   const pageSize = isMobile ? 14 : STREAMER_PAGE_SIZE;
 
-  const { data, isLoading, isFetching } = useStreamers({
-    page,
-    pageSize,
-    platform,
-    genre,
-    sortBy,
-    sortOrder,
-    keyword,
+  const queryParams = useMemo(
+    () => ({
+      pageSize,
+      platform,
+      genre,
+      sortBy,
+      sortOrder,
+      keyword,
+    }),
+    [genre, keyword, pageSize, platform, sortBy, sortOrder]
+  );
+
+  const {
+    data,
+    isLoading,
+    isFetching,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["streamers-infinite", queryParams],
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) =>
+      fetchStreamers({
+        page: pageParam,
+        pageSize: queryParams.pageSize,
+        platform: queryParams.platform,
+        genre: queryParams.genre,
+        sortBy: queryParams.sortBy,
+        sortOrder: queryParams.sortOrder,
+        keyword: queryParams.keyword,
+      }),
+    getNextPageParam: (lastPage, allPages) => {
+      const loadedCount = allPages.reduce((sum, pageData) => sum + pageData.data.length, 0);
+      const total = lastPage.count || 0;
+      if (loadedCount >= total) return undefined;
+      return allPages.length + 1;
+    },
   });
   const { data: genres = [] } = useStreamerGenres();
   const { data: idolGroups } = useIdolGroupCodeNames();
@@ -66,9 +96,16 @@ export default function VlistScreen({ initialStarredStreamerIds = [] }: VlistScr
     [starredStreamerIdList]
   );
 
-  const streamers = data?.data || [];
-  const totalCount = data?.count || 0;
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const totalCount = data?.pages[0]?.count || 0;
+  const loadedStreamers = useMemo(() => {
+    if (!data?.pages) return [];
+
+    const rows = data.pages.flatMap((pageData) => pageData.data || []);
+    const deduped = new Map<number, (typeof rows)[number]>();
+    rows.forEach((item) => deduped.set(item.id, item));
+    return Array.from(deduped.values());
+  }, [data]);
+  const hasMore = Boolean(hasNextPage);
   const groupNameByCode = useMemo(() => {
     const map = new Map<string, string>();
     (idolGroups || []).forEach((group) => {
@@ -88,12 +125,10 @@ export default function VlistScreen({ initialStarredStreamerIds = [] }: VlistScr
 
   const onChangePlatform = (next: StreamerPlatform) => {
     setPlatform(next);
-    setPage(1);
   };
 
   const onChangeGenre = (nextGenre: string) => {
     setGenre(nextGenre);
-    setPage(1);
   };
 
   const onChangeSort = (nextSortBy: StreamerSortBy) => {
@@ -103,13 +138,22 @@ export default function VlistScreen({ initialStarredStreamerIds = [] }: VlistScr
       setSortBy(nextSortBy);
       setSortOrder(nextSortBy === "heart" || nextSortBy === "star" ? "desc" : "asc");
     }
-    setPage(1);
   };
 
   const onChangeKeyword = (value: string) => {
     setKeyword(value);
-    setPage(1);
   };
+
+  const onLoadMore = useCallback(() => {
+    if (isLoading || isFetchingNextPage || !hasMore) return;
+    void fetchNextPage();
+  }, [fetchNextPage, hasMore, isFetchingNextPage, isLoading]);
+
+  const sentinelRef = useInfiniteScrollTrigger({
+    hasMore,
+    isLoading: isLoading || isFetchingNextPage,
+    onLoadMore,
+  });
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
@@ -198,19 +242,19 @@ export default function VlistScreen({ initialStarredStreamerIds = [] }: VlistScr
         {isLoading ? "로딩중..." : `총 ${totalCount.toLocaleString()}명의 버츄얼`}
       </div>
 
-      {isLoading ? (
+      {isLoading && loadedStreamers.length === 0 ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {generateArray(pageSize).map((_, index) => (
             <StreamerCardSkeleton key={`vlist-skeleton-${index}`} />
           ))}
         </div>
-      ) : streamers.length === 0 ? (
+      ) : loadedStreamers.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 text-center text-gray-400">
           버츄얼 정보가 없습니다.
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {streamers.map((streamer, index) => (
+          {loadedStreamers.map((streamer, index) => (
             <Link
               key={streamer.id}
               href={`/vlist/${streamer.public_id ?? streamer.id}`}
@@ -271,13 +315,11 @@ export default function VlistScreen({ initialStarredStreamerIds = [] }: VlistScr
         </div>
       )}
 
-      {!isLoading && (
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          onPageChange={setPage}
-        />
-      )}
+      {hasMore && !isLoading ? (
+        <div ref={sentinelRef} className="mt-3 flex h-10 items-center justify-center">
+          <Spinner className="h-5 w-5 border-2" />
+        </div>
+      ) : null}
 
       {isFetching && !isLoading && (
         <div className="mt-3 flex justify-center">

@@ -81,9 +81,6 @@ export function ShowcaseStreamerList({
               {showBirthdayMeta ? (
                 <p className="inline-flex items-center gap-1.5 text-[11px] text-gray-500">
                   <span>생일: {streamer.birthday || "-"}</span>
-                  <span className="font-semibold text-gray-700">
-                    {getDdayLabel(streamer.daysUntilBirthday)}
-                  </span>
                 </p>
               ) : showLiveMeta ? (
                 <p
@@ -95,6 +92,11 @@ export function ShowcaseStreamerList({
                 </p>
               ) : null}
             </div>
+            {showBirthdayMeta ? (
+              <span className="absolute right-2 top-2 inline-flex shrink-0 items-center rounded-full px-1 text-[11px] font-semibold text-gray-700">
+                {getDdayLabel(streamer.daysUntilBirthday)}
+              </span>
+            ) : null}
             {showBirthdayMeta ? (
               <span
                 className={`absolute right-2 bottom-2 inline-flex shrink-0 items-center gap-1 rounded-full px-1 text-[11px] font-semibold ${isLive ? "text-red-600" : "text-gray-500"

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Star, UsersRound, UserRound } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
@@ -10,9 +10,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import SearchInput from "@/components/common/search-input";
 import { useIdolGroupCards } from "@/hooks/queries/groups/use-idol-group-cards";
+import { useInfiniteScrollTrigger } from "@/hooks/use-infinite-scroll-trigger";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useStarredGroupIds } from "@/hooks/queries/star/use-starred-group-ids";
 import { useBrokenImages } from "@/hooks/use-broken-images";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type GroupScreenProps = {
   initialStarredGroupIds?: number[];
@@ -21,6 +23,9 @@ type GroupScreenProps = {
 export default function GroupScreen({ initialStarredGroupIds = [] }: GroupScreenProps) {
   const router = useRouter();
   const { user } = useAuthStore();
+  const isMobile = useIsMobile();
+  const pageSize = isMobile ? 12 : 16;
+  const [page, setPage] = useState(1);
   const [keyword, setKeyword] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "star">("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -65,11 +70,29 @@ export default function GroupScreen({ initialStarredGroupIds = [] }: GroupScreen
   const onChangeSort = (nextSortBy: "name" | "star") => {
     if (sortBy === nextSortBy) {
       setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+      setPage(1);
       return;
     }
     setSortBy(nextSortBy);
     setSortOrder(nextSortBy === "star" ? "desc" : "asc");
+    setPage(1);
   };
+
+  const visibleGroups = useMemo(() => {
+    return groups.slice(0, page * pageSize);
+  }, [groups, page, pageSize]);
+  const hasMore = visibleGroups.length < groups.length;
+
+  const onLoadMore = useCallback(() => {
+    if (!hasMore) return;
+    setPage((prev) => prev + 1);
+  }, [hasMore]);
+
+  const sentinelRef = useInfiniteScrollTrigger({
+    hasMore,
+    isLoading: isLoading || isFetching,
+    onLoadMore,
+  });
 
 
   return (
@@ -101,7 +124,10 @@ export default function GroupScreen({ initialStarredGroupIds = [] }: GroupScreen
 
           <SearchInput
             value={keyword}
-            onChange={setKeyword}
+            onChange={(value) => {
+              setKeyword(value);
+              setPage(1);
+            }}
             placeholder="그룹명 또는 멤버명을 입력해 주세요"
             containerClassName="w-full md:w-96"
             inputClassName="h-9 border-gray-200 bg-white"
@@ -118,7 +144,7 @@ export default function GroupScreen({ initialStarredGroupIds = [] }: GroupScreen
       {/* ─── 그룹 카드 그리드 ─── */}
       {isLoading ? (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {Array.from({ length: 12 }).map((_, index) => (
+          {Array.from({ length: pageSize }).map((_, index) => (
             <div
               key={`group-skeleton-${index}`}
               className="h-[164px] rounded-xl border border-gray-100 bg-white p-3 shadow-sm"
@@ -144,7 +170,7 @@ export default function GroupScreen({ initialStarredGroupIds = [] }: GroupScreen
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {groups.map((group, index) => {
+          {visibleGroups.map((group, index) => {
             const visibleMembers = group.members.slice(0, 13);
             const remainCount = Math.max(0, group.member_count - visibleMembers.length);
 
@@ -245,6 +271,12 @@ export default function GroupScreen({ initialStarredGroupIds = [] }: GroupScreen
           })}
         </div>
       )}
+
+      {hasMore && !isLoading ? (
+        <div ref={sentinelRef} className="mt-3 flex h-10 items-center justify-center">
+          <Spinner className="h-5 w-5 border-2" />
+        </div>
+      ) : null}
 
       {isFetching && !isLoading ? (
         <div className="mt-3 flex justify-center">

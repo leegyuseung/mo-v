@@ -179,8 +179,7 @@ export function useContentsScreenList({
   const totalPages = Math.max(1, Math.ceil(filteredContents.length / ITEMS_PER_PAGE));
   const safePage = Math.min(page, totalPages);
   const paginatedContents = useMemo(() => {
-    const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
-    return filteredContents.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    return filteredContents.slice(0, safePage * ITEMS_PER_PAGE);
   }, [filteredContents, safePage]);
 
   const onToggleContentType = (type: string) => {

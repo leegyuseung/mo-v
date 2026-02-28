@@ -2,12 +2,13 @@
 
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import Pagination from "@/components/common/pagination";
 import ContentListItemCard from "@/components/screens/contents/content-list-item-card";
 import ContentsScreenFilterPanel from "@/components/screens/contents/contents-screen-filter-panel";
 import { useContentsFavorites } from "@/hooks/contents/use-contents-favorites";
 import { useContentsScreenList } from "@/hooks/contents/use-contents-screen-list";
+import { useInfiniteScrollTrigger } from "@/hooks/use-infinite-scroll-trigger";
 import { useAuthStore } from "@/store/useAuthStore";
+import { Spinner } from "@/components/ui/spinner";
 import type { ContentsScreenProps } from "@/types/contents-screen";
 
 /** 콘텐츠 목록 화면 */
@@ -63,6 +64,17 @@ export default function ContentsScreen({
     initialContents,
     nowTimestamp,
     favoriteCountByContentId,
+  });
+
+  const hasMore = safePage < totalPages;
+  const onLoadMore = () => {
+    if (!hasMore) return;
+    setPage((prev) => Math.min(prev + 1, totalPages));
+  };
+  const sentinelRef = useInfiniteScrollTrigger({
+    hasMore,
+    isLoading: false,
+    onLoadMore,
   });
 
   return (
@@ -140,7 +152,11 @@ export default function ContentsScreen({
               );
             })}
           </div>
-          <Pagination page={safePage} totalPages={totalPages} onPageChange={setPage} />
+          {hasMore ? (
+            <div ref={sentinelRef} className="mt-4 flex h-10 items-center justify-center">
+              <Spinner className="h-5 w-5 border-2" />
+            </div>
+          ) : null}
         </>
       )}
     </div>

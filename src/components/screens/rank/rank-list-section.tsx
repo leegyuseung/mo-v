@@ -1,5 +1,5 @@
-import Pagination from "@/components/common/pagination";
 import RankRow from "@/components/screens/rank/rank-row";
+import { Spinner } from "@/components/ui/spinner";
 import type { RankListSectionProps } from "@/types/rank-screen";
 
 export default function RankListSection({
@@ -7,13 +7,12 @@ export default function RankListSection({
   isError,
   filteredCount,
   periodTitle,
-  pagedRows,
+  visibleRows,
   absoluteRankByStreamerId,
   groupNameByCode,
   crewNameByCode,
-  page,
-  totalPages,
-  onPageChange,
+  hasMore,
+  sentinelRef,
 }: RankListSectionProps) {
   return (
     <>
@@ -41,7 +40,7 @@ export default function RankListSection({
       ) : (
         <>
           <div className="space-y-2">
-            {pagedRows.map((item) => {
+            {visibleRows.map((item) => {
               const rankNumber = absoluteRankByStreamerId.get(item.streamer_id) ?? 0;
               return (
                 <RankRow
@@ -54,10 +53,13 @@ export default function RankListSection({
               );
             })}
           </div>
-          <Pagination page={page} totalPages={totalPages} onPageChange={onPageChange} />
+          {hasMore ? (
+            <div ref={sentinelRef} className="mt-4 flex h-10 items-center justify-center">
+              <Spinner className="h-5 w-5 border-2" />
+            </div>
+          ) : null}
         </>
       )}
     </>
   );
 }
-
