@@ -10,6 +10,7 @@ import {
   UsersRound,
   Building2,
   Boxes,
+  Clapperboard,
   Clock,
   Pencil,
   Siren,
@@ -82,7 +83,14 @@ export default function DashboardScreen() {
 
   /** 등록 자산 카드의 비율 계산 기준 */
   const entityBase = stats
-    ? Math.max(stats.totalStreamers, stats.totalGroups, stats.totalCrews, stats.totalLiveBoxes, 1)
+    ? Math.max(
+      stats.totalStreamers,
+      stats.totalGroups,
+      stats.totalCrews,
+      stats.totalLiveBoxes,
+      stats.totalContents,
+      1
+    )
     : 1;
   /** 등록 자산 카드 데이터 (버츄얼 · 그룹 · 소속 수) */
   const entityCards = stats
@@ -127,6 +135,16 @@ export default function DashboardScreen() {
         ratioBase: entityBase,
         unit: "개",
       },
+      {
+        title: "등록된 콘텐츠",
+        value: stats.totalContents,
+        icon: Clapperboard,
+        color: "from-indigo-500 to-violet-600",
+        bgLight: "bg-indigo-50",
+        textColor: "text-indigo-600",
+        ratioBase: entityBase,
+        unit: "개",
+      },
     ]
     : [];
 
@@ -137,6 +155,7 @@ export default function DashboardScreen() {
       stats.pendingInfoEditRequests,
       stats.pendingReportRequests,
       stats.pendingLiveBoxRequests,
+      stats.pendingContentRequests,
       1
     )
     : 1;
@@ -154,7 +173,7 @@ export default function DashboardScreen() {
         unit: "건",
       },
       {
-        title: "정보 수정 요청",
+        title: "정보 수정 요청(버츄얼+그룹/크루/콘텐츠)",
         value: stats.pendingInfoEditRequests,
         icon: Pencil,
         color: "from-orange-500 to-orange-600",
@@ -180,6 +199,16 @@ export default function DashboardScreen() {
         color: "from-cyan-500 to-cyan-600",
         bgLight: "bg-cyan-50",
         textColor: "text-cyan-600",
+        ratioBase: pendingBase,
+        unit: "건",
+      },
+      {
+        title: "콘텐츠 등록 요청 대기",
+        value: stats.pendingContentRequests,
+        icon: Clapperboard,
+        color: "from-indigo-500 to-violet-600",
+        bgLight: "bg-indigo-50",
+        textColor: "text-indigo-600",
         ratioBase: pendingBase,
         unit: "건",
       },
@@ -238,16 +267,16 @@ export default function DashboardScreen() {
       <section>
         <SectionTitle
           title="등록 자산"
-          description="서비스에 등록된 버츄얼, 그룹, 소속, 박스 수입니다."
+          description="서비스에 등록된 버츄얼, 그룹, 소속, 박스, 콘텐츠 수입니다."
         />
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-            {[...Array(4)].map((_, index) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5">
+            {[...Array(5)].map((_, index) => (
               <StatCardSkeleton key={`entity-card-skeleton-${index}`} />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5">
             {entityCards.map((card) => (
               <StatCard
                 key={card.title}
@@ -269,16 +298,16 @@ export default function DashboardScreen() {
       <section>
         <SectionTitle
           title="요청 대기"
-          description="관리자 처리 대상인 등록 대기, 정보 수정 요청, 신고 요청, 박스 등록 요청 수입니다."
+          description="관리자 처리 대상인 등록 대기, 정보 수정 요청, 신고 요청, 박스/콘텐츠 등록 요청 수입니다."
         />
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-            {[...Array(4)].map((_, index) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5">
+            {[...Array(5)].map((_, index) => (
               <StatCardSkeleton key={`pending-card-skeleton-${index}`} />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5">
             {pendingCards.map((card) => (
               <StatCard
                 key={card.title}

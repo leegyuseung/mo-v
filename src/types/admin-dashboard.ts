@@ -18,9 +18,11 @@ export type DashboardStats = {
   totalGroups: number;
   totalCrews: number;
   totalLiveBoxes: number;
+  totalContents: number;
   pendingStreamerRequests: number;
   pendingInfoEditRequests: number;
   pendingReportRequests: number;
   pendingLiveBoxRequests: number;
+  pendingContentRequests: number;
   signupTrend: DashboardSignupTrendPoint[];
 };

@@ -76,10 +76,13 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
         { count: totalGroups },
         { count: totalCrews },
         { count: totalLiveBoxes },
+        { count: totalContents },
         { count: pendingStreamerRequests },
-        { count: pendingInfoEditRequests },
+        { count: pendingStreamerInfoEditRequests },
+        { count: pendingEntityInfoEditRequests },
         { count: pendingReportRequests },
         { count: pendingLiveBoxRequests },
+        { count: pendingContentRequests },
         { data: signupRows, error: signupRowsError },
     ] = await Promise.all([
         supabase.from("profiles").select("*", { count: "exact", head: true }),
@@ -87,6 +90,10 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
         supabase.from("idol_groups").select("*", { count: "exact", head: true }),
         supabase.from("crews").select("*", { count: "exact", head: true }),
         supabase.from("live_box").select("*", { count: "exact", head: true }),
+        supabase
+            .from("contents")
+            .select("*", { count: "exact", head: true })
+            .in("status", ["approved", "ended"]),
         supabase
             .from("streamer_registration_requests")
             .select("*", { count: "exact", head: true })
@@ -96,11 +103,19 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
             .select("*", { count: "exact", head: true })
             .eq("status", "pending"),
         supabase
+            .from("entity_info_edit_requests")
+            .select("*", { count: "exact", head: true })
+            .eq("status", "pending"),
+        supabase
             .from("entity_report_requests")
             .select("*", { count: "exact", head: true })
             .eq("status", "pending"),
         supabase
             .from("live_box_requests")
+            .select("*", { count: "exact", head: true })
+            .eq("status", "pending"),
+        supabase
+            .from("contents")
             .select("*", { count: "exact", head: true })
             .eq("status", "pending"),
         supabase
@@ -144,10 +159,13 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
         totalGroups: totalGroups || 0,
         totalCrews: totalCrews || 0,
         totalLiveBoxes: totalLiveBoxes || 0,
+        totalContents: totalContents || 0,
         pendingStreamerRequests: pendingStreamerRequests || 0,
-        pendingInfoEditRequests: pendingInfoEditRequests || 0,
+        pendingInfoEditRequests:
+            (pendingStreamerInfoEditRequests || 0) + (pendingEntityInfoEditRequests || 0),
         pendingReportRequests: pendingReportRequests || 0,
         pendingLiveBoxRequests: pendingLiveBoxRequests || 0,
+        pendingContentRequests: pendingContentRequests || 0,
         signupTrend,
     };
 }
