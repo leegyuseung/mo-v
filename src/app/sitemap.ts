@@ -66,6 +66,36 @@ function staticEntries(now: Date): MetadataRoute.Sitemap {
       changeFrequency: "daily",
       priority: 0.65,
     },
+    {
+      url: withBaseUrl("/legal"),
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.4,
+    },
+    {
+      url: withBaseUrl("/legal/terms"),
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.35,
+    },
+    {
+      url: withBaseUrl("/legal/privacy"),
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.35,
+    },
+    {
+      url: withBaseUrl("/legal/third-party"),
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.35,
+    },
+    {
+      url: withBaseUrl("/legal/marketing"),
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.3,
+    },
   ];
 }
 
