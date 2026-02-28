@@ -4,6 +4,7 @@ import ContentsDetailInfoSection from "@/components/screens/contents/contents-de
 import ContentsDetailSummarySection from "@/components/screens/contents/contents-detail-summary-section";
 import type { ContentDetailScreenProps, ContentStatus } from "@/types/content";
 import type { ContentDetailItem } from "@/types/contents-detail";
+import { toSeoulDayIndex } from "@/utils/seoul-time";
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 const NEW_BADGE_WINDOW_IN_MS = 2 * DAY_IN_MS;
@@ -24,18 +25,13 @@ export default function ContentsDetailScreen({
   const createdAt = new Date(content.created_at).getTime();
   const isNew = Number.isFinite(createdAt) && nowTimestamp - createdAt <= NEW_BADGE_WINDOW_IN_MS;
 
-  const todayStart = new Date(nowTimestamp);
-  todayStart.setHours(0, 0, 0, 0);
-
-  const deadlineDate = content.recruitment_end_at ? new Date(content.recruitment_end_at) : null;
-  if (deadlineDate) {
-    deadlineDate.setHours(0, 0, 0, 0);
-  }
-
-  const deadlineAt = deadlineDate ? deadlineDate.getTime() : null;
+  const todayDayIndex = toSeoulDayIndex(nowTimestamp);
+  const deadlineDayIndex = content.recruitment_end_at
+    ? toSeoulDayIndex(content.recruitment_end_at)
+    : null;
   const dayDiff =
-    deadlineAt && Number.isFinite(deadlineAt)
-      ? Math.floor((deadlineAt - todayStart.getTime()) / DAY_IN_MS)
+    deadlineDayIndex !== null && todayDayIndex !== null
+      ? deadlineDayIndex - todayDayIndex
       : null;
   const isClosingSoon = dayDiff !== null && dayDiff >= 0 && dayDiff <= 3;
 

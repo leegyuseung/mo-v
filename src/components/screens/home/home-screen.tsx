@@ -62,8 +62,6 @@ import { useStarredStreamerIds } from "@/hooks/queries/star/use-starred-streamer
 import { useHomeShowcaseData } from "@/hooks/queries/home/use-home-showcase-data";
 import type { HomeRankCard } from "@/types/home-screen";
 
-const HOME_LIVE_BOX_COUNT = 3;
-
 export default function HomeScreen() {
   const { user } = useAuthStore();
   const {
@@ -87,8 +85,7 @@ export default function HomeScreen() {
   const topLiveBoxes = useMemo(() => {
     return liveBoxData
       .filter((box) => box.status === "진행중")
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      .slice(0, HOME_LIVE_BOX_COUNT);
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }, [liveBoxData]);
 
   const { data: liveData, isLoading: isLiveLoading } = useLiveStreamers();

@@ -14,6 +14,7 @@ import {
   normalizeLiveBoxStatus,
   parseLiveBoxCategoryInput,
 } from "@/utils/admin-live-box";
+import { toSeoulBoundaryIso } from "@/utils/seoul-time";
 
 type UseAdminLiveBoxFormStateParams = {
   boxes: LiveBoxWithCreatorProfile[] | undefined;
@@ -151,12 +152,25 @@ export function useAdminLiveBoxFormState({
       return;
     }
 
+    const startsAtIso = startsAt ? toSeoulBoundaryIso(startsAt, "start") : null;
+    const endsAtIso = endsAt ? toSeoulBoundaryIso(endsAt, "end") : null;
+
+    if (startsAt && !startsAtIso) {
+      toast.error("시작일시 형식이 올바르지 않습니다.");
+      return;
+    }
+
+    if (endsAt && !endsAtIso) {
+      toast.error("종료일시 형식이 올바르지 않습니다.");
+      return;
+    }
+
     const payload: LiveBoxFormSubmitPayload = {
       title: title.trim(),
       category: categories,
       participant_streamer_ids: selectedParticipantIds,
-      starts_at: startsAt ? new Date(`${startsAt}T00:00:00`).toISOString() : null,
-      ends_at: endsAt ? new Date(`${endsAt}T23:59:59`).toISOString() : null,
+      starts_at: startsAtIso,
+      ends_at: endsAtIso,
       description: description.trim() || null,
       status,
     };

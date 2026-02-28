@@ -1,16 +1,13 @@
 import type { Content } from "@/types/content";
 import type { ContentSortKey, SortDirection } from "@/types/contents-screen";
+import { formatSeoulDate, toSeoulDayIndex } from "@/utils/seoul-time";
 
 export const DAY_IN_MS = 24 * 60 * 60 * 1000;
 export const NEW_BADGE_WINDOW_IN_MS = 2 * DAY_IN_MS;
 export const ITEMS_PER_PAGE = 10;
 
 export function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
+  return formatSeoulDate(value, "미입력");
 }
 
 export function formatDateRange(start: string | null, end: string | null) {
@@ -36,11 +33,14 @@ export function getRecruitmentStatusLabel(
   nowTimestamp: number
 ): string {
   if (status === "approved" && recruitmentStartAt) {
-    const startDate = new Date(recruitmentStartAt);
-    startDate.setHours(0, 0, 0, 0);
-    const today = new Date(nowTimestamp);
-    today.setHours(0, 0, 0, 0);
-    if (today.getTime() < startDate.getTime()) {
+    const startDayIndex = toSeoulDayIndex(recruitmentStartAt);
+    const todayDayIndex = toSeoulDayIndex(nowTimestamp);
+
+    if (
+      startDayIndex !== null &&
+      todayDayIndex !== null &&
+      todayDayIndex < startDayIndex
+    ) {
       return "모집대기중";
     }
   }
@@ -63,13 +63,12 @@ export function getRecruitmentDdayLabel(
   nowTimestamp: number
 ): string | null {
   if (!recruitmentEndAt) return null;
-  const endDate = new Date(recruitmentEndAt);
-  endDate.setHours(0, 0, 0, 0);
-  const today = new Date(nowTimestamp);
-  today.setHours(0, 0, 0, 0);
-  const diffDays = Math.ceil(
-    (endDate.getTime() - today.getTime()) / DAY_IN_MS
-  );
+
+  const endDayIndex = toSeoulDayIndex(recruitmentEndAt);
+  const todayDayIndex = toSeoulDayIndex(nowTimestamp);
+  if (endDayIndex === null || todayDayIndex === null) return null;
+
+  const diffDays = endDayIndex - todayDayIndex;
   if (diffDays < 0) return null;
   if (diffDays === 0) return "D-day";
   return `D-${diffDays}`;

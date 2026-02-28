@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from "react";
 import {
-  DAY_IN_MS,
   getDefaultSortDirection,
   ITEMS_PER_PAGE,
   NEW_BADGE_WINDOW_IN_MS,
   resolveDeadline,
 } from "@/components/screens/contents/contents-screen-utils";
+import { toSeoulDayIndex } from "@/utils/seoul-time";
 import type {
   BadgeFilter,
   ContentSortKey,
@@ -41,22 +41,19 @@ export function useContentsScreenList({
 
   const contents = useMemo<EnrichedContent[]>(() => {
     const now = nowTimestamp;
-    const todayStart = new Date(now);
-    todayStart.setHours(0, 0, 0, 0);
+    const todayDayIndex = toSeoulDayIndex(now);
 
     return [...initialContents]
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       .map((content) => {
         const createdAt = new Date(content.created_at).getTime();
         const deadlineValue = resolveDeadline(content);
-        const deadlineDate = deadlineValue ? new Date(deadlineValue) : null;
-        if (deadlineDate) deadlineDate.setHours(0, 0, 0, 0);
-        const deadlineAt = deadlineDate ? deadlineDate.getTime() : null;
+        const deadlineDayIndex = deadlineValue ? toSeoulDayIndex(deadlineValue) : null;
 
         const isNew = Number.isFinite(createdAt) && now - createdAt <= NEW_BADGE_WINDOW_IN_MS;
         const dayDiff =
-          deadlineAt && Number.isFinite(deadlineAt)
-            ? Math.floor((deadlineAt - todayStart.getTime()) / DAY_IN_MS)
+          deadlineDayIndex !== null && todayDayIndex !== null
+            ? deadlineDayIndex - todayDayIndex
             : null;
         const isClosingSoon = dayDiff !== null && dayDiff >= 0 && dayDiff <= 3;
 
@@ -70,17 +67,16 @@ export function useContentsScreenList({
 
   const filteredContents = useMemo(() => {
     const keyword = searchKeyword.trim().toLowerCase();
-    const today = new Date(nowTimestamp);
-    today.setHours(0, 0, 0, 0);
+    const todayDayIndex = toSeoulDayIndex(nowTimestamp);
 
     const getApprovedRecruitmentRank = (content: Content) => {
       if (content.status !== "approved" || !content.recruitment_start_at) {
         return 0;
       }
 
-      const recruitmentStartDate = new Date(content.recruitment_start_at);
-      recruitmentStartDate.setHours(0, 0, 0, 0);
-      return today.getTime() < recruitmentStartDate.getTime() ? 1 : 0;
+      const recruitmentStartDayIndex = toSeoulDayIndex(content.recruitment_start_at);
+      if (todayDayIndex === null || recruitmentStartDayIndex === null) return 0;
+      return todayDayIndex < recruitmentStartDayIndex ? 1 : 0;
     };
 
     return contents

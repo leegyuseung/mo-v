@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/client";
 import type { HomeShowcaseContent, HomeShowcaseData, HomeShowcaseStreamer } from "@/types/home";
+import { toSeoulDayIndex } from "@/utils/seoul-time";
 
 /** 클라이언트 환경에서만 초기화되는 Supabase 인스턴스. 서버에서 모듈이 import되어도 즉시 초기화되지 않는다 */
 let _defaultClient: ReturnType<typeof createClient> | null = null;
@@ -12,6 +13,7 @@ function getDefaultClient() {
 const HOME_BIRTHDAY_SOON_DAYS = 3;
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 const NEW_BADGE_WINDOW_IN_MS = 2 * DAY_IN_MS;
+const SEOUL_TZ = "Asia/Seoul";
 
 type StreamerRow = {
   id: number;
@@ -21,6 +23,29 @@ type StreamerRow = {
   platform: string | null;
   birthday: string | null;
 };
+
+function getSeoulDatePart(parts: Intl.DateTimeFormatPart[], type: Intl.DateTimeFormatPartTypes) {
+  return Number(parts.find((part) => part.type === type)?.value || "0");
+}
+
+/**
+ * KST(Asia/Seoul) 기준 오늘 연/월/일을 반환한다.
+ * 왜: 서버가 UTC에서 실행되더라도 홈 D-day 계산은 한국 날짜 기준으로 맞춰야 하기 때문.
+ */
+function getSeoulTodayParts() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: SEOUL_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+
+  const year = getSeoulDatePart(parts, "year");
+  const month = getSeoulDatePart(parts, "month");
+  const day = getSeoulDatePart(parts, "day");
+
+  return { year, month, day };
+}
 
 function isValidMonthDay(month: number, day: number) {
   return Number.isFinite(month) && Number.isFinite(day) && month >= 1 && month <= 12 && day >= 1 && day <= 31;
@@ -70,16 +95,16 @@ function getDaysUntilBirthday(birthday: string | null): number | null {
   const monthDay = parseMonthDay(birthday);
   if (!monthDay) return null;
 
-  const now = new Date();
-  const currentYear = now.getUTCFullYear();
-  const todayUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const today = getSeoulTodayParts();
+  const currentYear = today.year;
+  const todayUtc = Date.UTC(today.year, today.month - 1, today.day);
 
   let targetUtc = Date.UTC(currentYear, monthDay.month - 1, monthDay.day);
   if (targetUtc < todayUtc) {
     targetUtc = Date.UTC(currentYear + 1, monthDay.month - 1, monthDay.day);
   }
 
-  return Math.floor((targetUtc - todayUtc) / (24 * 60 * 60 * 1000));
+  return Math.floor((targetUtc - todayUtc) / DAY_IN_MS);
 }
 
 function pickUpcomingBirthdayStreamers(rows: StreamerRow[]): HomeShowcaseStreamer[] {
@@ -153,8 +178,7 @@ async function fetchRecommendedStreamers(sb: SupabaseClient): Promise<HomeShowca
 
 async function fetchContentTitles(sb: SupabaseClient): Promise<HomeShowcaseContent[]> {
   const now = Date.now();
-  const todayStart = new Date(now);
-  todayStart.setHours(0, 0, 0, 0);
+  const todayDayIndex = toSeoulDayIndex(now);
 
   const { data, error } = await sb
     .from("contents")
@@ -166,23 +190,23 @@ async function fetchContentTitles(sb: SupabaseClient): Promise<HomeShowcaseConte
 
   const enriched = (data || [])
     .map((row) => {
-      const recruitmentStartDate = row.recruitment_start_at
-        ? new Date(row.recruitment_start_at)
+      const recruitmentStartDayIndex = row.recruitment_start_at
+        ? toSeoulDayIndex(row.recruitment_start_at)
         : null;
-      if (recruitmentStartDate) recruitmentStartDate.setHours(0, 0, 0, 0);
 
       const isWaitingRecruitment =
-        recruitmentStartDate !== null &&
-        Number.isFinite(recruitmentStartDate.getTime()) &&
-        todayStart.getTime() < recruitmentStartDate.getTime();
+        recruitmentStartDayIndex !== null &&
+        todayDayIndex !== null &&
+        todayDayIndex < recruitmentStartDayIndex;
 
-    const createdAt = new Date(row.created_at).getTime();
-    const deadlineDate = row.recruitment_end_at ? new Date(row.recruitment_end_at) : null;
-    if (deadlineDate) deadlineDate.setHours(0, 0, 0, 0);
-    const dayDiff =
-      deadlineDate && Number.isFinite(deadlineDate.getTime())
-        ? Math.floor((deadlineDate.getTime() - todayStart.getTime()) / DAY_IN_MS)
+      const createdAt = new Date(row.created_at).getTime();
+      const deadlineDayIndex = row.recruitment_end_at
+        ? toSeoulDayIndex(row.recruitment_end_at)
         : null;
+      const dayDiff =
+        deadlineDayIndex !== null && todayDayIndex !== null
+          ? deadlineDayIndex - todayDayIndex
+          : null;
 
       return {
         ...row,

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { UserRound } from "lucide-react";
 import type { ShowcaseStreamerListProps } from "@/types/home-screen";
+import { formatSeoulDate } from "@/utils/seoul-time";
 
 export function getStatusBadgeClass(status: string) {
   if (status === "진행중") return "bg-green-50 text-green-700 border-green-200";
@@ -11,11 +12,7 @@ export function getStatusBadgeClass(status: string) {
 
 export function formatEndsAt(value: string | null) {
   if (!value) return "미설정";
-  return new Date(value).toLocaleString("ko-KR", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
+  return formatSeoulDate(value, "미설정");
 }
 
 export function getStreamerRingClass(platform: string | null) {

@@ -1,13 +1,10 @@
 import type { ScheduleCalendarProps, ScheduleHoverCardProps } from "@/types/contents-detail";
+import { formatSeoulDate, toSeoulDateParts } from "@/utils/seoul-time";
 
 const WEEK_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
+  return formatSeoulDate(value, "미입력");
 }
 
 function formatDateRange(start: string | null, end: string | null) {
@@ -18,9 +15,9 @@ function formatDateRange(start: string | null, end: string | null) {
 
 function toDateOnly(value: string | null) {
   if (!value) return null;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const parts = toSeoulDateParts(value);
+  if (!parts) return null;
+  return new Date(parts.year, parts.month - 1, parts.day);
 }
 
 function getMonthCells(monthDate: Date) {
