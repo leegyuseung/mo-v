@@ -1,11 +1,12 @@
 "use client";
 
-import { Eye, Heart, Image as ImageIcon, Loader, Pause } from "lucide-react";
+import { Eye, Heart, Image as ImageIcon, Loader, Pause, X } from "lucide-react";
 import Link from "next/link";
 import type { ContentStatus } from "@/types/content";
 import type { ContentListItemCardProps } from "@/types/contents-screen-components";
 import {
   formatDateRange,
+  getRecruitmentDdayLabel,
   getStatusClassName,
   getStatusLabel,
 } from "@/components/screens/contents/contents-screen-utils";
@@ -16,10 +17,15 @@ export default function ContentListItemCard({
   isLiked,
   isFavoriteDisabled,
   canToggleFavorite,
+  nowTimestamp,
   onClickToggleFavorite,
 }: ContentListItemCardProps) {
   const isPending = content.status === "pending";
   const isApproved = content.status === "approved";
+  const isEnded = content.status === "ended";
+  const ddayLabel = isApproved
+    ? getRecruitmentDdayLabel(content.recruitment_end_at, nowTimestamp)
+    : null;
   const visibleContentTypes = content.content_type.slice(0, 8);
   const hiddenContentTypeCount = Math.max(0, content.content_type.length - 8);
 
@@ -67,7 +73,13 @@ export default function ContentListItemCard({
             >
               {isPending ? <Pause className="h-3 w-3" /> : null}
               {isApproved ? <Loader className="h-3 w-3 animate-spin" /> : null}
+              {isEnded ? <X className="h-3 w-3" /> : null}
               {getStatusLabel(content.status)}
+              {ddayLabel ? (
+                <span className="ml-0.5 text-[10px] font-bold text-rose-600">
+                  {ddayLabel}
+                </span>
+              ) : null}
             </span>
           </div>
 
@@ -125,11 +137,9 @@ export default function ContentListItemCard({
           type="button"
           onClick={(event) => onClickToggleFavorite(event, content.id, content.status as ContentStatus)}
           disabled={isFavoriteDisabled}
-          className={`inline-flex items-center gap-1 rounded-full border bg-gray-50 px-2 py-0.5 transition-colors ${
-            isLiked ? "border-red-200 text-red-600" : "border-gray-200 text-gray-500"
-          } ${canToggleFavorite ? "cursor-pointer hover:border-red-300 hover:text-red-600" : ""} ${
-            isFavoriteDisabled ? "opacity-60" : ""
-          }`}
+          className={`inline-flex items-center gap-1 rounded-full border bg-gray-50 px-2 py-0.5 transition-colors ${isLiked ? "border-red-200 text-red-600" : "border-gray-200 text-gray-500"
+            } ${canToggleFavorite ? "cursor-pointer hover:border-red-300 hover:text-red-600" : ""} ${isFavoriteDisabled ? "opacity-60" : ""
+            }`}
         >
           <Heart className={`h-3.5 w-3.5 ${isLiked ? "fill-red-500 text-red-500" : ""}`} />
           {favoriteCount.toLocaleString()}
@@ -144,7 +154,13 @@ export default function ContentListItemCard({
         >
           {isPending ? <Pause className="h-3.5 w-3.5" /> : null}
           {isApproved ? <Loader className="h-3.5 w-3.5 animate-spin" /> : null}
+          {isEnded ? <X className="h-3.5 w-3.5" /> : null}
           {getStatusLabel(content.status)}
+          {ddayLabel ? (
+            <span className="ml-0.5 text-xs font-bold text-green-700">
+              {ddayLabel}
+            </span>
+          ) : null}
         </span>
         <div className="space-y-0.5 text-right text-[11px] text-gray-500">
           <p>모집일정: {formatDateRange(content.recruitment_start_at, content.recruitment_end_at)}</p>
@@ -159,11 +175,9 @@ export default function ContentListItemCard({
             type="button"
             onClick={(event) => onClickToggleFavorite(event, content.id, content.status as ContentStatus)}
             disabled={isFavoriteDisabled}
-            className={`inline-flex items-center gap-1 rounded-full border bg-gray-50 px-2 py-0.5 transition-colors ${
-              isLiked ? "border-red-200 text-red-600" : "border-gray-200 text-gray-500"
-            } ${canToggleFavorite ? "cursor-pointer hover:border-red-300 hover:text-red-600" : ""} ${
-              isFavoriteDisabled ? "opacity-60" : ""
-            }`}
+            className={`inline-flex items-center gap-1 rounded-full border bg-gray-50 px-2 py-0.5 transition-colors ${isLiked ? "border-red-200 text-red-600" : "border-gray-200 text-gray-500"
+              } ${canToggleFavorite ? "cursor-pointer hover:border-red-300 hover:text-red-600" : ""} ${isFavoriteDisabled ? "opacity-60" : ""
+              }`}
           >
             <Heart className={`h-3.5 w-3.5 ${isLiked ? "fill-red-500 text-red-500" : ""}`} />
             {favoriteCount.toLocaleString()}

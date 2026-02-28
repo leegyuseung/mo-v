@@ -32,6 +32,7 @@ export type ContentListItemCardProps = {
   isLiked: boolean;
   isFavoriteDisabled: boolean;
   canToggleFavorite: boolean;
+  nowTimestamp: number;
   onClickToggleFavorite: (
     event: MouseEvent<HTMLButtonElement>,
     contentId: number,

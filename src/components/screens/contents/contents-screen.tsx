@@ -133,6 +133,7 @@ export default function ContentsScreen({
                     isLiked={isLiked}
                     isFavoriteDisabled={isFavoriteDisabled}
                     canToggleFavorite={canToggleFavorite}
+                    nowTimestamp={nowTimestamp}
                     onClickToggleFavorite={onClickToggleFavorite}
                   />
                 </div>
