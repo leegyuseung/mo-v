@@ -70,6 +70,18 @@ export function useContentsScreenList({
 
   const filteredContents = useMemo(() => {
     const keyword = searchKeyword.trim().toLowerCase();
+    const today = new Date(nowTimestamp);
+    today.setHours(0, 0, 0, 0);
+
+    const getApprovedRecruitmentRank = (content: Content) => {
+      if (content.status !== "approved" || !content.recruitment_start_at) {
+        return 0;
+      }
+
+      const recruitmentStartDate = new Date(content.recruitment_start_at);
+      recruitmentStartDate.setHours(0, 0, 0, 0);
+      return today.getTime() < recruitmentStartDate.getTime() ? 1 : 0;
+    };
 
     return contents
       .filter((content) => {
@@ -111,6 +123,12 @@ export function useContentsScreenList({
         return true;
       })
       .sort((a, b) => {
+        const approvedRecruitmentRankDiff =
+          getApprovedRecruitmentRank(a) - getApprovedRecruitmentRank(b);
+        if (approvedRecruitmentRankDiff !== 0) {
+          return approvedRecruitmentRankDiff;
+        }
+
         if (sortKey === "title") {
           const diff = a.title.localeCompare(b.title, "ko");
           if (diff !== 0) return sortDirection === "asc" ? diff : -diff;
@@ -159,6 +177,7 @@ export function useContentsScreenList({
     sortDirection,
     sortKey,
     statusFilter,
+    nowTimestamp,
   ]);
 
   const totalPages = Math.max(1, Math.ceil(filteredContents.length / ITEMS_PER_PAGE));

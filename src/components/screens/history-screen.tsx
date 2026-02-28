@@ -1,11 +1,13 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useHeartPointHistory } from "@/hooks/queries/heart/use-heart-point-history";
 import { Heart, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import type { HeartPointHistory } from "@/types/profile";
+import Pagination from "@/components/common/pagination";
 
 // 히스토리 타입별 라벨
 const typeLabels: Record<string, string> = {
@@ -16,6 +18,7 @@ const typeLabels: Record<string, string> = {
     purchase: "구매",
     etc: "기타",
 };
+const HISTORY_PAGE_SIZE = 15;
 
 function formatDate(dateStr: string) {
     const date = new Date(dateStr);
@@ -30,6 +33,7 @@ function formatDate(dateStr: string) {
 export default function HistoryScreen() {
     const router = useRouter();
     const { user, heartPoints, isLoading: isAuthLoading, isInitialized } = useAuthStore();
+    const [currentPage, setCurrentPage] = useState(1);
 
     // 로그인 안 되어있으면 로그인 페이지로 이동
     useEffect(() => {
@@ -41,6 +45,18 @@ export default function HistoryScreen() {
     const { data: historyData, isLoading } = useHeartPointHistory(user?.id);
 
     const history = historyData?.data || [];
+    const totalPages = Math.max(1, Math.ceil(history.length / HISTORY_PAGE_SIZE));
+    const safePage = Math.min(currentPage, totalPages);
+    const pagedHistory = useMemo(() => {
+        const start = (safePage - 1) * HISTORY_PAGE_SIZE;
+        return history.slice(start, start + HISTORY_PAGE_SIZE);
+    }, [history, safePage]);
+
+    useEffect(() => {
+        if (currentPage !== safePage) {
+            setCurrentPage(safePage);
+        }
+    }, [currentPage, safePage]);
 
     // 로딩 중이거나 비로그인 상태 (리다이렉트 대기)
     if (!isInitialized || isAuthLoading || !user) {
@@ -85,44 +101,47 @@ export default function HistoryScreen() {
                         포인트 내역이 없습니다.
                     </div>
                 ) : (
-                    <div className="space-y-2">
-                        {history.map((item: HeartPointHistory) => (
-                            <div
-                                key={item.id}
-                                className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 hover:border-gray-200 transition-colors"
-                            >
-                                <div className="flex items-center gap-3">
-                                    {item.amount >= 0 ? (
-                                        <ArrowUpCircle className="w-5 h-5 text-blue-500 shrink-0" />
-                                    ) : (
-                                        <ArrowDownCircle className="w-5 h-5 text-red-500 shrink-0" />
-                                    )}
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-900">
-                                            {item.description ||
-                                                (item.type && typeLabels[item.type]) ||
-                                                item.type || "기타"}
+                    <>
+                        <div className="space-y-2">
+                            {pagedHistory.map((item: HeartPointHistory) => (
+                                <div
+                                    key={item.id}
+                                    className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 hover:border-gray-200 transition-colors"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        {item.amount >= 0 ? (
+                                            <ArrowUpCircle className="w-5 h-5 text-blue-500 shrink-0" />
+                                        ) : (
+                                            <ArrowDownCircle className="w-5 h-5 text-red-500 shrink-0" />
+                                        )}
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-900">
+                                                {item.description ||
+                                                    (item.type && typeLabels[item.type]) ||
+                                                    item.type || "기타"}
+                                            </p>
+                                            <p className="text-xs text-gray-400">
+                                                {formatDate(item.created_at)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p
+                                            className={`text-sm font-bold ${item.amount >= 0 ? "text-blue-600" : "text-red-500"
+                                                }`}
+                                        >
+                                            {item.amount >= 0 ? "+" : ""}
+                                            {item.amount.toLocaleString()} 하트
                                         </p>
                                         <p className="text-xs text-gray-400">
-                                            {formatDate(item.created_at)}
+                                            잔액 {item.after_point.toLocaleString()} 하트
                                         </p>
                                     </div>
                                 </div>
-                                <div className="text-right">
-                                    <p
-                                        className={`text-sm font-bold ${item.amount >= 0 ? "text-blue-600" : "text-red-500"
-                                            }`}
-                                    >
-                                        {item.amount >= 0 ? "+" : ""}
-                                        {item.amount.toLocaleString()} 하트
-                                    </p>
-                                    <p className="text-xs text-gray-400">
-                                        잔액 {item.after_point.toLocaleString()} 하트
-                                    </p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                        <Pagination page={safePage} totalPages={totalPages} onPageChange={setCurrentPage} />
+                    </>
                 )}
             </div>
         </div>

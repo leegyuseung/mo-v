@@ -50,7 +50,7 @@ export default function HomeLiveBoxSection({
               <Link
                 key={box.id}
                 href={`/live-box/${box.id}`}
-                className="group block rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-gray-400 hover:bg-gray-50/40 hover:shadow-[0_14px_28px_-14px_rgba(0,0,0,0.45)]"
+                className="group block rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-gray-300 hover:bg-gray-50/40 hover:shadow-[0_14px_28px_-14px_rgba(0,0,0,0.45)]"
               >
                 <div className="mb-2 flex items-start justify-between gap-2">
                   <h4 className="text-sm font-semibold text-gray-900 line-clamp-1">{box.title}</h4>

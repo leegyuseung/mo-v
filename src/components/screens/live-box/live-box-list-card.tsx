@@ -31,7 +31,7 @@ export default function LiveBoxListCard({
   return (
     <Link
       href={`/live-box/${box.id}`}
-      className="group block cursor-pointer rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-gray-400 hover:bg-gray-50/40 hover:shadow-[0_14px_28px_-14px_rgba(0,0,0,0.45)]"
+      className="group block cursor-pointer rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-gray-300 hover:bg-gray-50/40 hover:shadow-[0_14px_28px_-14px_rgba(0,0,0,0.45)]"
     >
       <div className="mb-3 flex items-start justify-between gap-2">
         <h2 className="text-base font-semibold text-gray-900 transition-colors group-hover:text-black">

@@ -152,13 +152,24 @@ async function fetchContentTitles(): Promise<HomeShowcaseContent[]> {
 
   const { data, error } = await supabase
     .from("contents")
-    .select("id,title,participant_composition,created_at,recruitment_end_at")
+    .select("id,title,participant_composition,created_at,recruitment_start_at,recruitment_end_at")
     .eq("status", "approved")
     .order("created_at", { ascending: false });
 
   if (error) throw error;
 
-  const enriched = (data || []).map((row) => {
+  const enriched = (data || [])
+    .map((row) => {
+      const recruitmentStartDate = row.recruitment_start_at
+        ? new Date(row.recruitment_start_at)
+        : null;
+      if (recruitmentStartDate) recruitmentStartDate.setHours(0, 0, 0, 0);
+
+      const isWaitingRecruitment =
+        recruitmentStartDate !== null &&
+        Number.isFinite(recruitmentStartDate.getTime()) &&
+        todayStart.getTime() < recruitmentStartDate.getTime();
+
     const createdAt = new Date(row.created_at).getTime();
     const deadlineDate = row.recruitment_end_at ? new Date(row.recruitment_end_at) : null;
     if (deadlineDate) deadlineDate.setHours(0, 0, 0, 0);
@@ -167,12 +178,14 @@ async function fetchContentTitles(): Promise<HomeShowcaseContent[]> {
         ? Math.floor((deadlineDate.getTime() - todayStart.getTime()) / DAY_IN_MS)
         : null;
 
-    return {
-      ...row,
-      createdAt,
-      dayDiff,
-    };
-  });
+      return {
+        ...row,
+        createdAt,
+        dayDiff,
+        isWaitingRecruitment,
+      };
+    })
+    .filter((row) => !row.isWaitingRecruitment);
 
   return enriched
     .sort((a, b) => {
