@@ -83,6 +83,7 @@ export default function ContentsDetailScreen({
           <ContentsDetailSummarySection
             title={content.title}
             status={content.status as ContentStatus}
+            nowTimestamp={nowTimestamp}
             participantComposition={content.participant_composition}
             recruitmentStartAt={content.recruitment_start_at}
             recruitmentEndAt={content.recruitment_end_at}

@@ -5,8 +5,8 @@ import Pagination from "@/components/common/pagination";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import SearchInput from "@/components/common/search-input";
 import { useStreamers } from "@/hooks/queries/streamers/use-streamers";
 import { useStreamerGenres } from "@/hooks/queries/streamers/use-streamer-genres";
 import { useIdolGroupCodeNames } from "@/hooks/queries/groups/use-idol-group-code-names";
@@ -16,7 +16,7 @@ import type {
   StreamerSortBy,
   StreamerSortOrder,
 } from "@/types/streamer";
-import { Search, Star, UserRound } from "lucide-react";
+import { Star, UserRound } from "lucide-react";
 import {
   STREAMER_PAGE_SIZE,
   STREAMER_PLATFORM_OPTIONS,
@@ -135,15 +135,13 @@ export default function VlistScreen({ initialStarredStreamerIds = [] }: VlistScr
           </div>
 
           <div className="flex w-full gap-2 md:w-auto">
-            <div className="relative w-full md:w-80">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <Input
-                value={keyword}
-                onChange={(e) => onChangeKeyword(e.target.value)}
-                placeholder="버츄얼 명을 입력해 주세요"
-                className="h-9 border-gray-200 bg-white pl-9"
-              />
-            </div>
+            <SearchInput
+              value={keyword}
+              onChange={onChangeKeyword}
+              placeholder="버츄얼 명을 입력해 주세요"
+              containerClassName="w-full md:w-80"
+              inputClassName="h-9 border-gray-200 bg-white"
+            />
             <StreamerRequestTriggerButton
               className="h-9"
             />

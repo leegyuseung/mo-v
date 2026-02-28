@@ -8,8 +8,8 @@ import { Star, UsersRound, UserRound } from "lucide-react";
 import Pagination from "@/components/common/pagination";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import SearchInput from "@/components/common/search-input";
 import { useCrewCards } from "@/hooks/queries/crews/use-crew-cards";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useStarredCrewIds } from "@/hooks/queries/star/use-starred-crew-ids";
@@ -116,14 +116,15 @@ export default function CrewScreen({ initialStarredCrewIds = [] }: CrewScreenPro
             </Button>
           </div>
 
-          <Input
+          <SearchInput
             value={keyword}
-            onChange={(e) => {
-              setKeyword(e.target.value);
+            onChange={(value) => {
+              setKeyword(value);
               setPage(1);
             }}
             placeholder="소속명 또는 멤버명을 입력해 주세요"
-            className="h-9 border-gray-200 bg-white md:w-96"
+            containerClassName="w-full md:w-96"
+            inputClassName="h-9 border-gray-200 bg-white"
           />
         </div>
       </div>

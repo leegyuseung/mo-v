@@ -7,8 +7,8 @@ import { useRouter } from "next/navigation";
 import { Star, UsersRound, UserRound } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import SearchInput from "@/components/common/search-input";
 import { useIdolGroupCards } from "@/hooks/queries/groups/use-idol-group-cards";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useStarredGroupIds } from "@/hooks/queries/star/use-starred-group-ids";
@@ -99,11 +99,12 @@ export default function GroupScreen({ initialStarredGroupIds = [] }: GroupScreen
             </Button>
           </div>
 
-          <Input
+          <SearchInput
             value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
+            onChange={setKeyword}
             placeholder="그룹명 또는 멤버명을 입력해 주세요"
-            className="h-9 border-gray-200 bg-white md:w-96"
+            containerClassName="w-full md:w-96"
+            inputClassName="h-9 border-gray-200 bg-white"
           />
         </div>
       </div>

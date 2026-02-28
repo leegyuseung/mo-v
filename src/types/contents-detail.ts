@@ -60,6 +60,7 @@ export type ContentDetailItem = {
 export type ContentsDetailSummarySectionProps = {
   title: string;
   status: ContentStatus;
+  nowTimestamp: number;
   participantComposition: string;
   recruitmentStartAt: string | null;
   recruitmentEndAt: string | null;

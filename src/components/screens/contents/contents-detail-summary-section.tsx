@@ -3,27 +3,15 @@ import ContentsEarlyEndButton from "@/components/screens/contents/contents-early
 import ContentsDetailScheduleHoverCard from "@/components/screens/contents/contents-detail-schedule-hover-card";
 import type { ContentStatus } from "@/types/content";
 import type { ContentsDetailSummarySectionProps } from "@/types/contents-detail";
+import {
+  getRecruitmentDdayLabel,
+  getRecruitmentStatusLabel,
+  getStatusClassName,
+} from "@/components/screens/contents/contents-screen-utils";
 
-function getStatusLabel(status: ContentStatus) {
-  if (status === "pending") return "대기중";
-  if (status === "approved") return "모집중";
-  if (status === "ended") return "마감";
-  if (status === "rejected") return "거절";
-  if (status === "cancelled") return "취소";
-  if (status === "deleted") return "삭제";
-  return status;
-}
-
-function getStatusClassName(status: ContentStatus) {
-  if (status === "pending") return "border-gray-200 bg-gray-100 text-gray-600";
-  if (status === "approved") return "border-green-200 bg-green-50 text-green-700";
-  if (status === "ended") return "border-red-200 bg-red-50 text-red-700";
-  return "border-gray-200 bg-gray-100 text-gray-600";
-}
-
-function getStatusIcon(status: ContentStatus) {
+function getStatusIcon(status: ContentStatus, isRecruiting: boolean) {
   if (status === "pending") return <Pause className="h-3.5 w-3.5" />;
-  if (status === "approved") return <Loader className="h-3.5 w-3.5 animate-spin" />;
+  if (status === "approved") return <Loader className={`h-3.5 w-3.5 ${isRecruiting ? "animate-spin" : ""}`} />;
   if (status === "ended") return <X className="h-3.5 w-3.5" />;
   return null;
 }
@@ -31,6 +19,7 @@ function getStatusIcon(status: ContentStatus) {
 export default function ContentsDetailSummarySection({
   title,
   status,
+  nowTimestamp,
   participantComposition,
   recruitmentStartAt,
   recruitmentEndAt,
@@ -44,6 +33,11 @@ export default function ContentsDetailSummarySection({
   isClosingSoon,
 }: ContentsDetailSummarySectionProps) {
   const isEnded = status === "ended";
+  const isApproved = status === "approved";
+  const statusLabel = getRecruitmentStatusLabel(status, recruitmentStartAt, nowTimestamp);
+  const isWaitingRecruitment = statusLabel === "모집대기중";
+  const isRecruiting = isApproved && !isWaitingRecruitment;
+  const ddayLabel = isRecruiting ? getRecruitmentDdayLabel(recruitmentEndAt, nowTimestamp) : null;
   const visibleContentTypes = contentTypes.slice(0, 10);
   const hiddenContentTypeCount = Math.max(0, contentTypes.length - 10);
 
@@ -64,12 +58,17 @@ export default function ContentsDetailSummarySection({
           {participantComposition}
         </span>
         <span
-          className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${getStatusClassName(
-            status
-          )}`}
+          className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${
+            isWaitingRecruitment
+              ? "border-gray-200 bg-gray-100 text-gray-600"
+              : getStatusClassName(status)
+          }`}
         >
-          {getStatusIcon(status)}
-          {getStatusLabel(status)}
+          {getStatusIcon(status, isRecruiting)}
+          {statusLabel}
+          {ddayLabel ? (
+            <span className="ml-0.5 text-xs font-bold text-green-700">{ddayLabel}</span>
+          ) : null}
         </span>
       </div>
 

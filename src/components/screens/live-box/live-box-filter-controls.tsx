@@ -1,7 +1,6 @@
-import { Search } from "lucide-react";
 import LiveBoxRequestTriggerButton from "@/components/screens/live-box/live-box-request-trigger-button";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import SearchInput from "@/components/common/search-input";
 import type { LiveBoxFilterControlsProps } from "@/types/live-box-screen";
 
 export default function LiveBoxFilterControls({
@@ -16,15 +15,11 @@ export default function LiveBoxFilterControls({
 }: LiveBoxFilterControlsProps) {
   return (
     <div className="mb-5 rounded-2xl border border-gray-200 bg-white p-4">
-      <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-        <Input
-          value={keyword}
-          onChange={(event) => onKeywordChange(event.target.value)}
-          placeholder="제목, 카테고리, 참가자(닉네임/플랫폼 ID) 검색"
-          className="pl-9"
-        />
-      </div>
+      <SearchInput
+        value={keyword}
+        onChange={onKeywordChange}
+        placeholder="제목, 카테고리, 참가자(닉네임/플랫폼 ID) 검색"
+      />
 
       <div className="mt-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-wrap gap-2">

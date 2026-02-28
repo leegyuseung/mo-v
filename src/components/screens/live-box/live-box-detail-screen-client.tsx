@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ArrowBigLeft, CalendarClock, Tag, Users } from "lucide-react";
 import LiveBoxStatusBadge from "@/components/common/live-box-status-badge";
+import SearchInput from "@/components/common/search-input";
 import LiveBoxParticipantsPanel from "@/components/screens/live-box/live-box-participants-panel";
-import { Input } from "@/components/ui/input";
 import { formatLiveBoxDisplayDate } from "@/utils/live-box-presenter";
 import type {
   LiveBoxDetailLiveLookup,
@@ -123,11 +123,12 @@ export default function LiveBoxDetailScreenClient({
         </div>
 
         <div className="mb-4 flex justify-end">
-          <Input
+          <SearchInput
             value={participantKeyword}
-            onChange={(event) => setParticipantKeyword(event.target.value)}
+            onChange={setParticipantKeyword}
             placeholder="참여자 검색 (닉네임)"
-            className="h-9 w-full md:w-80"
+            containerClassName="w-full md:w-80"
+            inputClassName="h-9"
           />
         </div>
 

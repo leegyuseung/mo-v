@@ -1,7 +1,6 @@
 "use client";
 
-import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import SearchInput from "@/components/common/search-input";
 import { CONTENT_TYPE_OPTIONS, CONTENT_TYPE_OPTIONS2 } from "@/types/content";
 import type {
   ContentStatusFilter,
@@ -38,15 +37,12 @@ export default function ContentsScreenFilterPanel({
   return (
     <div className="mb-5 rounded-2xl border border-gray-200 bg-white p-4">
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <div className="relative w-full md:max-w-md">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-          <Input
-            value={searchKeyword}
-            onChange={(event) => onChangeSearchKeyword(event.target.value)}
-            placeholder="제목, 콘텐츠 설명 검색"
-            className="pl-9"
-          />
-        </div>
+        <SearchInput
+          value={searchKeyword}
+          onChange={onChangeSearchKeyword}
+          placeholder="제목, 콘텐츠 설명 검색"
+          containerClassName="w-full md:max-w-md"
+        />
         <button
           type="button"
           onClick={onClickCreateContent}
