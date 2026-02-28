@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/client";
 import type {
     GiftHeartToStreamerResult,
@@ -6,11 +7,16 @@ import type {
     StreamerHeartLeaderboardItem,
 } from "@/types/heart";
 
-const supabase = createClient();
+/** 클라이언트 환경에서만 초기화되는 Supabase 인스턴스. 서버에서 모듈이 import되어도 즉시 초기화되지 않는다 */
+let _defaultClient: ReturnType<typeof createClient> | null = null;
+function getDefaultClient() {
+  if (!_defaultClient) _defaultClient = createClient();
+  return _defaultClient;
+}
 
 /** 유저의 하트 포인트 잔액을 조회한다 */
 export async function fetchHeartPoints(userId: string) {
-    const { data, error } = await supabase
+    const { data, error } = await getDefaultClient()
         .from("heart_points")
         .select("*")
         .eq("id", userId)
@@ -28,7 +34,7 @@ export async function addHeartPoints(
     description?: string
 ) {
     // 현재 포인트 조회 (없으면 null)
-    const { data: current } = await supabase
+    const { data: current } = await getDefaultClient()
         .from("heart_points")
         .select("point")
         .eq("id", userId)
@@ -38,7 +44,7 @@ export async function addHeartPoints(
     const newPoints = currentPoints + points;
 
     // upsert: 행이 없으면 생성, 있으면 업데이트
-    const { data, error } = await supabase
+    const { data, error } = await getDefaultClient()
         .from("heart_points")
         .upsert({
             id: userId,
@@ -51,7 +57,7 @@ export async function addHeartPoints(
     if (error) throw error;
 
     // 히스토리 기록
-    await supabase.from("heart_point_history").insert({
+    await getDefaultClient().from("heart_point_history").insert({
         user_id: userId,
         amount: points,
         type,
@@ -68,7 +74,7 @@ export async function fetchHeartPointHistory(
     limit: number = 20,
     offset: number = 0
 ) {
-    const { data, error, count } = await supabase
+    const { data, error, count } = await getDefaultClient()
         .from("heart_point_history")
         .select("*", { count: "exact" })
         .eq("user_id", userId)
@@ -90,7 +96,7 @@ export async function giftHeartToStreamer(
         throw new Error("선물 하트 수량은 1 이상이어야 합니다.");
     }
 
-    const { data, error } = await supabase.rpc("gift_heart_to_streamer", {
+    const { data, error } = await getDefaultClient().rpc("gift_heart_to_streamer", {
         p_from_user_id: fromUserId,
         p_to_streamer_id: toStreamerId,
         p_amount: amount,
@@ -115,7 +121,7 @@ export async function fetchStreamerHeartRank(
     limit: number = 20,
     offset: number = 0
 ) {
-    const { data, error, count } = await supabase
+    const { data, error, count } = await getDefaultClient()
         .from("streamer_heart_rank")
         .select("*", { count: "exact" })
         .order("rank", { ascending: true })
@@ -125,11 +131,13 @@ export async function fetchStreamerHeartRank(
     return { data: data || [], count: count || 0 };
 }
 
-/** 기간별(전체/주간/월간) 하트 리더보드 상위 N명을 조회한다. 이미지/그룹/소속 정보를 함께 반환한다 */
+/** 기간별(전체/주간/월간) 하트 리더보드 상위 N명을 조회한다. 서버에서 호출 시 Supabase 클라이언트를 주입할 수 있다 */
 export async function fetchStreamerHeartLeaderboard(
     period: HeartRankPeriod,
-    limit: number = 5
+    limit: number = 5,
+    client?: SupabaseClient
 ): Promise<StreamerHeartLeaderboardItem[]> {
+    const supabase = client || getDefaultClient();
     const source =
         period === "weekly"
             ? "streamer_heart_rank_weekly"
@@ -196,7 +204,7 @@ export async function fetchStreamerTopDonors(
                 ? "streamer_top_donors_monthly"
                 : "streamer_top_donors";
 
-    const { data, error, count } = await supabase
+    const { data, error, count } = await getDefaultClient()
         .from(source as "streamer_top_donors")
         .select("*", { count: "exact" })
         .eq("streamer_id", streamerId)
@@ -211,7 +219,7 @@ export async function fetchStreamerTopDonors(
 export async function fetchStreamerReceivedHeartTotal(
     streamerId: number
 ): Promise<number> {
-    const { data, error } = await supabase
+    const { data, error } = await getDefaultClient()
         .from("streamer_hearts")
         .select("total_received")
         .eq("streamer_id", streamerId)

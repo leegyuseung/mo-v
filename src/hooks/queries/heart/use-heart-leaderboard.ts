@@ -11,5 +11,9 @@ export function useHeartLeaderboard(period: HeartRankPeriod, limit: number = 5) 
     return useQuery({
         queryKey: ["heart-rank-leaderboard", period, limit],
         queryFn: () => fetchStreamerHeartLeaderboard(period, limit),
+        staleTime: 20 * 1000,
+        gcTime: 5 * 60 * 1000,
+        refetchOnReconnect: true,
+        refetchOnWindowFocus: true,
     });
 }

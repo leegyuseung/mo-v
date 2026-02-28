@@ -1,7 +1,13 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/client";
 import type { HomeShowcaseContent, HomeShowcaseData, HomeShowcaseStreamer } from "@/types/home";
 
-const supabase = createClient();
+/** 클라이언트 환경에서만 초기화되는 Supabase 인스턴스. 서버에서 모듈이 import되어도 즉시 초기화되지 않는다 */
+let _defaultClient: ReturnType<typeof createClient> | null = null;
+function getDefaultClient() {
+  if (!_defaultClient) _defaultClient = createClient();
+  return _defaultClient;
+}
 
 const HOME_BIRTHDAY_SOON_DAYS = 3;
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
@@ -111,8 +117,8 @@ function toHomeShowcaseStreamer(row: StreamerRow): HomeShowcaseStreamer {
   };
 }
 
-async function fetchRandomStreamerByPlatform(platform: "soop" | "chzzk"): Promise<StreamerRow | null> {
-  const { count, error: countError } = await supabase
+async function fetchRandomStreamerByPlatform(platform: "soop" | "chzzk", sb: SupabaseClient): Promise<StreamerRow | null> {
+  const { count, error: countError } = await sb
     .from("streamers")
     .select("id", { count: "exact", head: true })
     .eq("platform", platform);
@@ -122,7 +128,7 @@ async function fetchRandomStreamerByPlatform(platform: "soop" | "chzzk"): Promis
 
   // 홈 진입마다 랜덤 추천을 유지하면서 전체 레코드 스캔을 피하기 위해 offset 기반 조회를 사용한다.
   const randomOffset = Math.floor(Math.random() * count);
-  const { data, error } = await supabase
+  const { data, error } = await sb
     .from("streamers")
     .select("id,public_id,nickname,image_url,platform,birthday")
     .eq("platform", platform)
@@ -133,10 +139,10 @@ async function fetchRandomStreamerByPlatform(platform: "soop" | "chzzk"): Promis
   return ((data || [])[0] as StreamerRow | undefined) || null;
 }
 
-async function fetchRecommendedStreamers(): Promise<HomeShowcaseStreamer[]> {
+async function fetchRecommendedStreamers(sb: SupabaseClient): Promise<HomeShowcaseStreamer[]> {
   const [soopRandom, chzzkRandom] = await Promise.all([
-    fetchRandomStreamerByPlatform("soop"),
-    fetchRandomStreamerByPlatform("chzzk"),
+    fetchRandomStreamerByPlatform("soop", sb),
+    fetchRandomStreamerByPlatform("chzzk", sb),
   ]);
 
   const recommendedRows = [soopRandom, chzzkRandom].filter(
@@ -145,12 +151,12 @@ async function fetchRecommendedStreamers(): Promise<HomeShowcaseStreamer[]> {
   return recommendedRows.map(toHomeShowcaseStreamer);
 }
 
-async function fetchContentTitles(): Promise<HomeShowcaseContent[]> {
+async function fetchContentTitles(sb: SupabaseClient): Promise<HomeShowcaseContent[]> {
   const now = Date.now();
   const todayStart = new Date(now);
   todayStart.setHours(0, 0, 0, 0);
 
-  const { data, error } = await supabase
+  const { data, error } = await sb
     .from("contents")
     .select("id,title,participant_composition,created_at,recruitment_start_at,recruitment_end_at")
     .eq("status", "approved")
@@ -204,8 +210,10 @@ async function fetchContentTitles(): Promise<HomeShowcaseContent[]> {
     })) as HomeShowcaseContent[];
 }
 
-export async function fetchHomeShowcaseData(): Promise<HomeShowcaseData> {
-  const { data: streamerRows, error: streamerError } = await supabase
+/** 홈 쇼케이스 데이터를 조회한다. 서버에서 호출 시 Supabase 클라이언트를 주입할 수 있다 */
+export async function fetchHomeShowcaseData(client?: SupabaseClient): Promise<HomeShowcaseData> {
+  const sb = client || getDefaultClient();
+  const { data: streamerRows, error: streamerError } = await sb
     .from("streamers")
     .select("id,public_id,nickname,image_url,platform,birthday")
     .not("birthday", "is", null);
@@ -214,8 +222,8 @@ export async function fetchHomeShowcaseData(): Promise<HomeShowcaseData> {
 
   const upcomingBirthdays = pickUpcomingBirthdayStreamers((streamerRows || []) as StreamerRow[]);
   const [recommendedStreamers, contentTitles] = await Promise.all([
-    fetchRecommendedStreamers(),
-    fetchContentTitles(),
+    fetchRecommendedStreamers(sb),
+    fetchContentTitles(sb),
   ]);
 
   return {
