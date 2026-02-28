@@ -206,8 +206,14 @@ export async function updateUser(
     return data;
 }
 
-/** 유저를 삭제한다 */
+/** 유저를 삭제한다 (서버 API를 통해 참조 데이터 정리 + Auth 삭제) */
 export async function deleteUser(userId: string) {
-    const { error } = await supabase.from("profiles").delete().eq("id", userId);
-    if (error) throw error;
+    const response = await fetch(`/api/admin/users/${userId}`, {
+        method: "DELETE",
+    });
+
+    if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.message || "회원 삭제에 실패했습니다.");
+    }
 }
