@@ -19,6 +19,12 @@ const typeLabels: Record<string, string> = {
     etc: "기타",
 };
 const HISTORY_PAGE_SIZE = 15;
+const HISTORY_FILTER_OPTIONS = [
+    { value: "all", label: "전체" },
+    { value: "plus", label: "+" },
+    { value: "minus", label: "-" },
+] as const;
+type HistoryFilter = (typeof HISTORY_FILTER_OPTIONS)[number]["value"];
 
 function formatDate(dateStr: string) {
     const date = new Date(dateStr);
@@ -34,6 +40,7 @@ export default function HistoryScreen() {
     const router = useRouter();
     const { user, heartPoints, isLoading: isAuthLoading, isInitialized } = useAuthStore();
     const [currentPage, setCurrentPage] = useState(1);
+    const [filter, setFilter] = useState<HistoryFilter>("all");
 
     // 로그인 안 되어있으면 로그인 페이지로 이동
     useEffect(() => {
@@ -45,18 +52,27 @@ export default function HistoryScreen() {
     const { data: historyData, isLoading } = useHeartPointHistory(user?.id);
 
     const history = historyData?.data || [];
-    const totalPages = Math.max(1, Math.ceil(history.length / HISTORY_PAGE_SIZE));
+    const filteredHistory = useMemo(() => {
+        if (filter === "plus") return history.filter((item) => item.amount > 0);
+        if (filter === "minus") return history.filter((item) => item.amount < 0);
+        return history;
+    }, [history, filter]);
+    const totalPages = Math.max(1, Math.ceil(filteredHistory.length / HISTORY_PAGE_SIZE));
     const safePage = Math.min(currentPage, totalPages);
     const pagedHistory = useMemo(() => {
         const start = (safePage - 1) * HISTORY_PAGE_SIZE;
-        return history.slice(start, start + HISTORY_PAGE_SIZE);
-    }, [history, safePage]);
+        return filteredHistory.slice(start, start + HISTORY_PAGE_SIZE);
+    }, [filteredHistory, safePage]);
 
     useEffect(() => {
         if (currentPage !== safePage) {
             setCurrentPage(safePage);
         }
     }, [currentPage, safePage]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filter]);
 
     // 로딩 중이거나 비로그인 상태 (리다이렉트 대기)
     if (!isInitialized || isAuthLoading || !user) {
@@ -83,9 +99,29 @@ export default function HistoryScreen() {
 
             {/* 히스토리 목록 */}
             <div>
-                <h2 className="text-sm font-semibold text-gray-500 mb-3">
-                    포인트 내역
-                </h2>
+                <div className="mb-3 flex items-center justify-between gap-2">
+                    <h2 className="text-sm font-semibold text-gray-500">
+                        포인트 내역
+                    </h2>
+                    <div className="inline-flex items-center rounded-lg border border-gray-200 bg-white p-1">
+                        {HISTORY_FILTER_OPTIONS.map((option) => {
+                            const isActive = filter === option.value;
+                            return (
+                                <button
+                                    key={option.value}
+                                    type="button"
+                                    onClick={() => setFilter(option.value)}
+                                    className={`cursor-pointer rounded-md px-3 py-1 text-xs font-semibold transition-colors ${isActive
+                                            ? "bg-gray-900 text-white"
+                                            : "text-gray-600 hover:bg-gray-100"
+                                        }`}
+                                >
+                                    {option.label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
 
                 {isLoading ? (
                     <div className="space-y-3">
@@ -96,7 +132,7 @@ export default function HistoryScreen() {
                             />
                         ))}
                     </div>
-                ) : history.length === 0 ? (
+                ) : filteredHistory.length === 0 ? (
                     <div className="text-center py-12 text-gray-400 text-sm">
                         포인트 내역이 없습니다.
                     </div>

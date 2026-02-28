@@ -18,4 +18,6 @@ export type StreamerHeartLeaderboardItem = {
     total_received: number;
     image_url: string | null;
     public_id: string | null;
+    group_name: string[] | null;
+    crew_name: string[] | null;
 };

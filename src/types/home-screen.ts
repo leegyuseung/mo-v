@@ -1,10 +1,10 @@
 import type { HomeShowcaseData, HomeShowcaseStreamer } from "@/types/home";
-import type { StreamerHeartLeaderboardItem } from "@/types/heart";
+import type { HeartRankPeriod, StreamerHeartLeaderboardItem } from "@/types/heart";
 import type { LiveBox } from "@/types/live-box";
 import type { LiveStatusByStreamerId, LiveStreamer } from "@/types/live";
 
 export type HomeRankCard = {
-  key: string;
+  key: HeartRankPeriod;
   title: string;
   data: StreamerHeartLeaderboardItem[];
   isLoading: boolean;

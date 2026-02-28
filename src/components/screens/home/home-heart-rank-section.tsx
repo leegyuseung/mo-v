@@ -21,6 +21,12 @@ export default function HomeHeartRankSection({ rankCards }: HomeHeartRankSection
           >
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-gray-800">{card.title}</h3>
+              <Link
+                href={`/rank?period=${card.key}`}
+                className="text-xs font-medium text-gray-500 hover:text-gray-700"
+              >
+                전체
+              </Link>
             </div>
 
             {card.isLoading ? (

@@ -125,7 +125,7 @@ export async function fetchStreamerHeartRank(
     return { data: data || [], count: count || 0 };
 }
 
-/** 기간별(전체/주간/월간) 하트 리더보드 상위 N명을 조회한다. 이미지 URL을 함께 반환한다 */
+/** 기간별(전체/주간/월간) 하트 리더보드 상위 N명을 조회한다. 이미지/그룹/소속 정보를 함께 반환한다 */
 export async function fetchStreamerHeartLeaderboard(
     period: HeartRankPeriod,
     limit: number = 5
@@ -155,7 +155,7 @@ export async function fetchStreamerHeartLeaderboard(
 
     const { data: streamerRows, error: streamerError } = await supabase
         .from("streamers")
-        .select("id,image_url,public_id")
+        .select("id,image_url,public_id,group_name,crew_name")
         .in("id", streamerIds);
 
     if (streamerError) throw streamerError;
@@ -175,6 +175,8 @@ export async function fetchStreamerHeartLeaderboard(
                 total_received: row.total_received ?? 0,
                 image_url: streamer?.image_url ?? null,
                 public_id: streamer?.public_id ?? null,
+                group_name: streamer?.group_name ?? null,
+                crew_name: streamer?.crew_name ?? null,
             };
         })
         .filter((item): item is StreamerHeartLeaderboardItem => item !== null);

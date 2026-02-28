@@ -59,20 +59,20 @@ export default function HomeScreen() {
   const rankCards: HomeRankCard[] = [
     {
       key: "all",
-      title: "총 하트 TOP 5",
+      title: "전체 하트 Top5",
       data: allRank,
       isLoading: isAllRankLoading,
     },
     {
       key: "monthly",
-      title: "이번달 하트 TOP 5",
+      title: "월간 하트 Top5",
       data: monthlyRank,
       isLoading: isMonthlyRankLoading,
       isError: isMonthlyRankError,
     },
     {
       key: "weekly",
-      title: "이번주 하트 TOP 5",
+      title: "주간 하트 Top5",
       data: weeklyRank,
       isLoading: isWeeklyRankLoading,
       isError: isWeeklyRankError,

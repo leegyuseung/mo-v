@@ -37,7 +37,7 @@ const menuItems = [
   { title: "버츄얼", url: "/vlist", icon: Gem },
   { title: "그룹", url: "/group", icon: MicVocal },
   { title: "소속", url: "/crew", icon: UsersRound },
-  { title: "순위", icon: Trophy },
+  { title: "순위", url: "/rank", icon: Trophy },
   { title: "홍보", icon: Megaphone },
   { title: "콘텐츠", url: "/contents", icon: Clapperboard },
 ] satisfies MenuItem[];

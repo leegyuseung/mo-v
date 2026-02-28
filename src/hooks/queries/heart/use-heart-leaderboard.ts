@@ -9,7 +9,7 @@ import type { HeartRankPeriod } from "@/types/heart";
  */
 export function useHeartLeaderboard(period: HeartRankPeriod, limit: number = 5) {
     return useQuery({
-        queryKey: ["home-heart-rank", period],
+        queryKey: ["heart-rank-leaderboard", period, limit],
         queryFn: () => fetchStreamerHeartLeaderboard(period, limit),
     });
 }
