@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import type { ContentsWriteImagePanelProps } from "@/types/contents-write-components";
 
@@ -29,13 +28,10 @@ export default function ContentsWriteImagePanel({
         }`}
       >
         {posterFilePreview ? (
-          <Image
+          <img
             src={posterFilePreview}
             alt="포스터 미리보기"
-            fill
-            unoptimized
-            sizes="(max-width: 1024px) 100vw, 320px"
-            className="object-contain"
+            className="h-full w-full object-contain"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-xs text-gray-400">

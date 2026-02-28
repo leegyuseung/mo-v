@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Image as ImageIcon } from "lucide-react";
 import ContentsDetailActionBar from "@/components/screens/contents/contents-detail-action-bar";
 import ContentsDetailInfoSection from "@/components/screens/contents/contents-detail-info-section";
@@ -63,11 +64,13 @@ export default function ContentsDetailScreen({
         <div className="grid grid-cols-1 gap-5 md:grid-cols-[540px_minmax(0,1fr)] md:items-stretch">
           <div className="relative flex min-h-[270px] self-stretch items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 md:h-[530px]">
             {content.image_url ? (
-              <img
+              <Image
                 src={content.image_url}
                 alt={`${content.title} 이미지`}
-                className="h-full w-full object-contain p-3"
-                loading="lazy"
+                fill
+                sizes="(max-width: 768px) 100vw, 540px"
+                priority
+                className="object-contain p-3"
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-gray-400">

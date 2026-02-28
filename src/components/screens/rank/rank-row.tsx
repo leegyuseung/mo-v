@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Heart, Trophy, UserRound } from "lucide-react";
 import PlatformBadge from "@/components/common/platform-badge";
@@ -32,13 +31,11 @@ export default function RankRow({ item, rankNumber, groupNameByCode, crewNameByC
 
       <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full border border-gray-200 bg-gray-100">
         {item.image_url ? (
-          <Image
+          <img
             src={item.image_url}
             alt={item.nickname || "streamer"}
-            fill
-            sizes="48px"
             loading="lazy"
-            className="object-cover"
+            className="h-full w-full object-cover"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">

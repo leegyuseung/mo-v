@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { CalendarClock, Tag, UserRound, Users } from "lucide-react";
 import LiveBoxStatusBadge from "@/components/common/live-box-status-badge";
@@ -77,13 +76,11 @@ export default function LiveBoxListCard({
                     className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-gray-100"
                   >
                     {participant.imageUrl && !isBroken ? (
-                      <Image
+                      <img
                         src={participant.imageUrl}
                         alt={participant.nickname || participant.platformId}
-                        fill
-                        sizes="32px"
-                        className="object-cover"
-                        unoptimized
+                        loading="lazy"
+                        className="h-full w-full object-cover"
                         onError={() => onParticipantImageError(participant.platformId)}
                       />
                     ) : (

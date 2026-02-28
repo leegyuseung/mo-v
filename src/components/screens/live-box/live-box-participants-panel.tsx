@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ExternalLink, UserRound } from "lucide-react";
 import { toSafeExternalHttpUrl } from "@/utils/safe-url";
@@ -34,13 +33,11 @@ export default function LiveBoxParticipantsPanel({
                     className={`relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border bg-gray-100 ${participantBorderClass}`}
                   >
                     {participant?.imageUrl ? (
-                      <Image
+                      <img
                         src={participant.imageUrl}
                         alt={participant.nickname || platformId}
-                        fill
-                        sizes="32px"
-                        className="object-cover"
-                        unoptimized
+                        loading="lazy"
+                        className="h-full w-full object-cover"
                       />
                     ) : (
                       <UserRound className="h-4 w-4 text-gray-500" />

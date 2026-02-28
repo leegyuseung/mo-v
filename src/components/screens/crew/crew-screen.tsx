@@ -236,14 +236,12 @@ export default function CrewScreen({ initialStarredCrewIds = [] }: CrewScreenPro
                     >
                       <div className="relative h-8 w-8 overflow-hidden rounded-full border border-gray-200 bg-white transition group-hover/member:scale-[1.03]">
                         {member.image_url && !memberImages.isBroken(member.id) ? (
-                          <Image
+                          <img
                             src={member.image_url}
                             alt={member.nickname || "streamer"}
-                            fill
-                            sizes="32px"
                             loading="lazy"
                             onError={() => memberImages.markBroken(member.id)}
-                            className="object-contain"
+                            className="h-full w-full object-contain"
                           />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center">

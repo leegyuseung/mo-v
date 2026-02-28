@@ -102,7 +102,7 @@ export default function StreamerProfileCard({
                 className={`inline-flex h-10 w-10 items-center justify-center rounded-full border ${toneButtonClass}`}
                 aria-label="플랫폼 이동"
               >
-                <Image src={platformIconSrc} alt="platform" width={18} height={18} />
+                <img src={platformIconSrc} alt="platform" width={18} height={18} />
               </a>
             ) : null}
             {streamer.fancafe_url ? (
@@ -113,7 +113,7 @@ export default function StreamerProfileCard({
                 className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-green-200 bg-green-50 hover:bg-green-100"
                 aria-label="카페 이동"
               >
-                <Image src="/icons/cafe.svg" alt="cafe" width={18} height={18} />
+                <img src="/icons/cafe.svg" alt="cafe" width={18} height={18} />
               </a>
             ) : null}
             {streamer.youtube_url ? (
@@ -124,7 +124,7 @@ export default function StreamerProfileCard({
                 className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-200 bg-red-50 hover:bg-red-100"
                 aria-label="유튜브 이동"
               >
-                <Image src="/icons/youtube.svg" alt="youtube" width={18} height={18} />
+                <img src="/icons/youtube.svg" alt="youtube" width={18} height={18} />
               </a>
             ) : null}
           </div>

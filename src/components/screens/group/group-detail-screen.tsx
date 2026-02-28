@@ -207,7 +207,7 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white hover:border-green-300 hover:bg-green-50"
                   aria-label="카페 이동"
                 >
-                  <Image src="/icons/cafe.svg" alt="cafe" width={18} height={18} />
+                  <img src="/icons/cafe.svg" alt="cafe" width={18} height={18} />
                 </a>
               ) : null}
               {group.youtube_url ? (
@@ -218,7 +218,7 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white hover:border-red-300 hover:bg-red-50"
                   aria-label="유튜브 이동"
                 >
-                  <Image src="/icons/youtube.svg" alt="youtube" width={18} height={18} />
+                  <img src="/icons/youtube.svg" alt="youtube" width={18} height={18} />
                 </a>
               ) : null}
             </div>
@@ -251,13 +251,11 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
                 >
                   <div className="relative h-10 w-10 overflow-hidden rounded-full border border-gray-200 bg-white">
                     {member.image_url ? (
-                      <Image
+                      <img
                         src={member.image_url}
                         alt={member.nickname || "streamer"}
-                        fill
-                        sizes="40px"
                         loading="lazy"
-                        className="object-contain"
+                        className="h-full w-full object-contain"
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center">

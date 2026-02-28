@@ -100,6 +100,7 @@ export default function AppHeader() {
             alt=""
             height={72}
             width={72}
+            sizes="72px"
             priority
             className="cursor-pointer"
           />
