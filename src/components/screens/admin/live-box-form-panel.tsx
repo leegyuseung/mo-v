@@ -3,31 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { LiveBoxStatus } from "@/types/live-box";
-import type { LiveBoxParticipantCandidate } from "@/types/admin-live-box";
-
-type LiveBoxFormPanelProps = {
-  editingLiveBoxId: number | null;
-  title: string;
-  categoryInput: string;
-  participantSearch: string;
-  selectedParticipants: LiveBoxParticipantCandidate[];
-  filteredParticipants: LiveBoxParticipantCandidate[];
-  endsAt: string;
-  description: string;
-  status: LiveBoxStatus;
-  statusOptions: LiveBoxStatus[];
-  isSubmitting: boolean;
-  onTitleChange: (value: string) => void;
-  onCategoryInputChange: (value: string) => void;
-  onParticipantSearchChange: (value: string) => void;
-  onAddParticipant: (platformId: string) => void;
-  onRemoveParticipant: (platformId: string) => void;
-  onEndsAtChange: (value: string) => void;
-  onDescriptionChange: (value: string) => void;
-  onStatusChange: (value: LiveBoxStatus) => void;
-  onCancel: () => void;
-  onSubmit: () => void;
-};
+import type { LiveBoxFormPanelProps } from "@/types/admin-live-box-form";
 
 /**
  * 라이브박스 생성/수정 폼 프레젠테이션 컴포넌트.
@@ -40,6 +16,7 @@ export default function LiveBoxFormPanel({
   participantSearch,
   selectedParticipants,
   filteredParticipants,
+  startsAt,
   endsAt,
   description,
   status,
@@ -50,6 +27,7 @@ export default function LiveBoxFormPanel({
   onParticipantSearchChange,
   onAddParticipant,
   onRemoveParticipant,
+  onStartsAtChange,
   onEndsAtChange,
   onDescriptionChange,
   onStatusChange,
@@ -142,6 +120,14 @@ export default function LiveBoxFormPanel({
           </div>
         </div>
 
+        <div className="space-y-1.5">
+          <p className="text-xs text-gray-500">시작일시</p>
+          <Input
+            type="date"
+            value={startsAt}
+            onChange={(event) => onStartsAtChange(event.target.value)}
+          />
+        </div>
         <div className="space-y-1.5">
           <p className="text-xs text-gray-500">마감일시</p>
           <Input type="date" value={endsAt} onChange={(event) => onEndsAtChange(event.target.value)} />

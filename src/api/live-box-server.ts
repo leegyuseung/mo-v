@@ -4,12 +4,21 @@ import type { LiveStreamer } from "@/types/live";
 import type { LiveBox, LiveBoxParticipantProfile } from "@/types/live-box";
 import { withEffectiveLiveBoxStatus } from "@/utils/live-box-status";
 
-async function tryCloseExpiredLiveBoxes(supabase: ReturnType<typeof createClient>) {
-  // pg_cron 미설정 환경에서도 조회 시점에 만료 박스 종료 처리를 시도한다.
+async function trySyncLiveBoxStatuses(supabase: ReturnType<typeof createClient>) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  // pg_cron 미설정 환경에서도 조회 시점에 상태 동기화를 시도한다.
   try {
-    await supabase.rpc("close_expired_live_box");
+    await supabase.rpc("sync_live_box_statuses");
   } catch {
-    // 함수 미존재/권한 문제 등은 조회 자체를 막지 않는다.
+    try {
+      await supabase.rpc("close_expired_live_box");
+    } catch {
+      // 함수 미존재/권한 문제 등은 조회 자체를 막지 않는다.
+    }
   }
 }
 
@@ -43,7 +52,7 @@ export async function fetchPublicLiveBoxesOnServer(): Promise<LiveBox[]> {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
-  await tryCloseExpiredLiveBoxes(supabase);
+  await trySyncLiveBoxStatuses(supabase);
 
   const { data, error } = await supabase
     .from("live_box")
@@ -59,7 +68,7 @@ export async function fetchPublicLiveBoxByIdOnServer(liveBoxId: number): Promise
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
-  await tryCloseExpiredLiveBoxes(supabase);
+  await trySyncLiveBoxStatuses(supabase);
 
   const { data, error } = await supabase
     .from("live_box")

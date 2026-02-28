@@ -11,6 +11,7 @@ export type LiveBoxFormSubmitPayload = {
   title: string;
   category: string[];
   participant_streamer_ids: string[];
+  starts_at: string | null;
   ends_at: string | null;
   description: string | null;
   status: LiveBoxStatus;

@@ -8,30 +8,39 @@ function toTimestamp(value: string | null): number | null {
 
 export function getEffectiveLiveBoxStatus(
   status: string,
+  startsAt: string | null,
   endsAt: string | null,
   nowTimestamp = Date.now()
 ): string {
+  const endsAtTimestamp = toTimestamp(endsAt);
+  if (endsAtTimestamp !== null && endsAtTimestamp <= nowTimestamp) {
+    return "종료";
+  }
+
   if (status === "종료") {
     return status;
   }
 
-  const endsAtTimestamp = toTimestamp(endsAt);
-  if (endsAtTimestamp === null) {
-    return status;
+  const startsAtTimestamp = toTimestamp(startsAt);
+  if (startsAtTimestamp !== null && startsAtTimestamp <= nowTimestamp) {
+    return "진행중";
   }
 
-  if (endsAtTimestamp <= nowTimestamp) {
-    return "종료";
-  }
-
-  return status;
+  return "대기";
 }
 
-export function withEffectiveLiveBoxStatus<T extends Pick<LiveBox, "status" | "ends_at">>(
+export function withEffectiveLiveBoxStatus<
+  T extends Pick<LiveBox, "status" | "starts_at" | "ends_at">,
+>(
   liveBox: T,
   nowTimestamp = Date.now()
 ): T {
-  const nextStatus = getEffectiveLiveBoxStatus(liveBox.status, liveBox.ends_at, nowTimestamp);
+  const nextStatus = getEffectiveLiveBoxStatus(
+    liveBox.status,
+    liveBox.starts_at,
+    liveBox.ends_at,
+    nowTimestamp
+  );
   if (nextStatus === liveBox.status) {
     return liveBox;
   }

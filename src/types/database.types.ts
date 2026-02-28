@@ -309,6 +309,7 @@ export type Database = {
           ends_at: string | null
           id: number
           participant_streamer_ids: string[]
+          starts_at: string | null
           status: string
           title: string
         }
@@ -320,6 +321,7 @@ export type Database = {
           ends_at?: string | null
           id?: never
           participant_streamer_ids?: string[]
+          starts_at?: string | null
           status?: string
           title: string
         }
@@ -331,6 +333,7 @@ export type Database = {
           ends_at?: string | null
           id?: never
           participant_streamer_ids?: string[]
+          starts_at?: string | null
           status?: string
           title?: string
         }
