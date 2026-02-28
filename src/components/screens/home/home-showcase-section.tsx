@@ -9,13 +9,14 @@ export default function HomeShowcaseSection({
   showcaseData,
   isShowcaseLoading,
   isShowcaseError,
+  liveStatusById,
 }: HomeShowcaseSectionProps) {
   const upcomingBirthdayCount = showcaseData?.upcomingBirthdays.length || 0;
 
   return (
     <section className="p-4 md:p-6">
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
-        <div className="rounded-2xl border border-gray-100 bg-white p-4 xl:col-span-1">
+        <div className="flex flex-col rounded-2xl border border-gray-100 bg-white p-4 xl:col-span-1">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-800">
               <PartyPopper className="h-4 w-4 text-pink-500" />
@@ -24,7 +25,7 @@ export default function HomeShowcaseSection({
             <span className="text-[11px] text-gray-400">{upcomingBirthdayCount}명</span>
           </div>
           {isShowcaseLoading ? (
-            <div className="space-y-2">
+            <div className="flex-1 space-y-2">
               {generateArray(2).map((_, index) => (
                 <div key={`home-showcase-birthday-skeleton-${index}`} className="flex items-center gap-3 rounded-xl border border-gray-100 p-2">
                   <Skeleton className="h-11 w-11 rounded-full" />
@@ -43,11 +44,12 @@ export default function HomeShowcaseSection({
               emptyText="D-3 이내 생일 버츄얼이 없습니다."
               showBirthdayMeta
               enableScrollWhenMany
+              liveStatusById={liveStatusById}
             />
           )}
         </div>
 
-        <div className="rounded-2xl border border-gray-100 bg-white p-4 xl:col-span-1">
+        <div className="flex flex-col rounded-2xl border border-gray-100 bg-white p-4 xl:col-span-1">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-800">
               <ThumbsUp className="h-4 w-4 text-blue-500" />
@@ -55,7 +57,7 @@ export default function HomeShowcaseSection({
             </h3>
           </div>
           {isShowcaseLoading ? (
-            <div className="space-y-2">
+            <div className="flex-1 space-y-2">
               {generateArray(2).map((_, index) => (
                 <div key={`home-showcase-recommend-skeleton-${index}`} className="flex items-center gap-3 rounded-xl border border-gray-100 p-2">
                   <Skeleton className="h-11 w-11 rounded-full" />
@@ -72,6 +74,9 @@ export default function HomeShowcaseSection({
             <ShowcaseStreamerList
               streamers={showcaseData?.recommendedStreamers || []}
               emptyText="추천 버츄얼이 없습니다."
+              showLiveMeta
+              enableScrollWhenMany
+              liveStatusById={liveStatusById}
             />
           )}
         </div>

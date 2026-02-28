@@ -1,7 +1,7 @@
 import type { HomeShowcaseData, HomeShowcaseStreamer } from "@/types/home";
 import type { StreamerHeartLeaderboardItem } from "@/types/heart";
 import type { LiveBox } from "@/types/live-box";
-import type { LiveStreamer } from "@/types/live";
+import type { LiveStatusByStreamerId, LiveStreamer } from "@/types/live";
 
 export type HomeRankCard = {
   key: string;
@@ -19,6 +19,7 @@ export type HomeShowcaseSectionProps = {
   showcaseData: HomeShowcaseData | undefined;
   isShowcaseLoading: boolean;
   isShowcaseError: boolean;
+  liveStatusById: LiveStatusByStreamerId;
 };
 
 export type HomeLiveStarSectionProps = {
@@ -40,4 +41,6 @@ export type ShowcaseStreamerListProps = {
   emptyText: string;
   showBirthdayMeta?: boolean;
   enableScrollWhenMany?: boolean;
+  showLiveMeta?: boolean;
+  liveStatusById?: LiveStatusByStreamerId;
 };

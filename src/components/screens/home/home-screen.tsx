@@ -6,6 +6,7 @@ import HomeLiveBoxSection from "@/components/screens/home/home-live-box-section"
 import HomeLiveStarSection from "@/components/screens/home/home-live-star-section";
 import HomeShowcaseSection from "@/components/screens/home/home-showcase-section";
 import { useLiveStreamers } from "@/hooks/queries/live/use-live-streamers";
+import { useLiveStreamerStatuses } from "@/hooks/queries/live/use-live-streamer-statuses";
 import { useLiveBoxes } from "@/hooks/queries/live-box/use-live-boxes";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useHeartLeaderboard } from "@/hooks/queries/heart/use-heart-leaderboard";
@@ -22,6 +23,15 @@ export default function HomeScreen() {
     isLoading: isShowcaseLoading,
     isError: isShowcaseError,
   } = useHomeShowcaseData();
+  const showcaseStreamerIds = useMemo(
+    () =>
+      [
+        ...(showcaseData?.upcomingBirthdays || []).map((streamer) => streamer.id),
+        ...(showcaseData?.recommendedStreamers || []).map((streamer) => streamer.id),
+      ],
+    [showcaseData?.upcomingBirthdays, showcaseData?.recommendedStreamers]
+  );
+  const { data: liveStatusById = {} } = useLiveStreamerStatuses(showcaseStreamerIds);
 
   const { data: liveBoxData = [], isLoading: isLiveBoxLoading, isError: isLiveBoxError } =
     useLiveBoxes();
@@ -103,6 +113,7 @@ export default function HomeScreen() {
         showcaseData={showcaseData}
         isShowcaseLoading={isShowcaseLoading}
         isShowcaseError={isShowcaseError}
+        liveStatusById={liveStatusById}
       />
 
       <HomeLiveStarSection
