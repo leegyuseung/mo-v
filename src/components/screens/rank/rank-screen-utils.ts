@@ -3,6 +3,7 @@ import type { RankFilterOption } from "@/types/rank-screen";
 
 export const RANK_FILTERS: RankFilterOption[] = [
   { key: "all", label: "전체" },
+  { key: "yearly", label: "연간" },
   { key: "monthly", label: "월간" },
   { key: "weekly", label: "주간" },
 ];
@@ -11,11 +12,14 @@ export const RANK_PAGE_SIZE = 20;
 export const RANK_FETCH_LIMIT = 1000;
 
 export function toHeartRankPeriod(value: string | null): HeartRankPeriod {
-  if (value === "monthly" || value === "weekly" || value === "all") return value;
+  if (value === "yearly" || value === "monthly" || value === "weekly" || value === "all") {
+    return value;
+  }
   return "all";
 }
 
 export function getPeriodTitle(period: HeartRankPeriod): string {
+  if (period === "yearly") return "연간";
   if (period === "monthly") return "월간";
   if (period === "weekly") return "주간";
   return "전체";
@@ -51,4 +55,3 @@ export function isMatchedRankKeyword(
   });
   return crewMatched;
 }
-

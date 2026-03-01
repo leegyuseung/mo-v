@@ -34,6 +34,7 @@ export default function ProfileRequestsScreen({ embedded = false }: ProfileReque
     registrationCount,
     infoEditCount,
     reportCount,
+    errorReportCount,
     liveBoxCount,
     totalCount,
   } = useProfileRequestsList(data, ITEMS_PER_PAGE);
@@ -130,6 +131,7 @@ export default function ProfileRequestsScreen({ embedded = false }: ProfileReque
         registrationCount={registrationCount}
         infoEditCount={infoEditCount}
         reportCount={reportCount}
+        errorReportCount={errorReportCount}
         liveBoxCount={liveBoxCount}
         onFilterChange={handleFilterChange}
       />

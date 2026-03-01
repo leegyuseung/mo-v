@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { creditHeartPointsAtomic } from "@/utils/credit-heart-points";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
@@ -22,35 +23,6 @@ function getKstDateString() {
 
 function randomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-async function creditGiftPoint(admin: any, userId: string, amount: number) {
-  const { data: current } = await admin
-    .from("heart_points")
-    .select("point")
-    .eq("id", userId)
-    .maybeSingle();
-
-  const currentPoint = current?.point || 0;
-  const afterPoint = currentPoint + amount;
-
-  const { error: upsertError } = await admin.from("heart_points").upsert({
-    id: userId,
-    point: afterPoint,
-    updated_at: new Date().toISOString(),
-  });
-  if (upsertError) throw upsertError;
-
-  const { error: historyError } = await admin.from("heart_point_history").insert({
-    user_id: userId,
-    amount,
-    type: "daily_gift_box",
-    description: "일일 선물 이벤트",
-    after_point: afterPoint,
-  });
-  if (historyError) throw historyError;
-
-  return afterPoint;
 }
 
 export async function POST() {
@@ -85,18 +57,19 @@ export async function POST() {
   const today = getKstDateString();
 
   try {
-    let { data: claimRow, error: findError } = await (admin as any)
+    const { data: initialClaimRow, error: findError } = await admin
       .from("daily_gift_box_claims")
       .select("id,amount,credited_at")
       .eq("user_id", user.id)
       .eq("claim_date", today)
       .maybeSingle();
+    let claimRow = initialClaimRow;
 
     if (findError && findError.code !== "42P01") throw findError;
 
     if (!claimRow) {
       const amount = randomInt(MIN_GIFT_POINT, MAX_GIFT_POINT);
-      const { data: inserted, error: insertError } = await (admin as any)
+      const { data: inserted, error: insertError } = await admin
         .from("daily_gift_box_claims")
         .insert({
           user_id: user.id,
@@ -108,7 +81,7 @@ export async function POST() {
 
       if (insertError) {
         if (insertError.code === "23505") {
-          const { data: retryRow, error: retryError } = await (admin as any)
+          const { data: retryRow, error: retryError } = await admin
             .from("daily_gift_box_claims")
             .select("id,amount,credited_at")
             .eq("user_id", user.id)
@@ -131,10 +104,11 @@ export async function POST() {
     let afterPoint: number | null = null;
 
     if (!claimRow.credited_at) {
+      const creditedAt = new Date().toISOString();
       // 선점 시도: credited_at이 null일 때만 업데이트 수행
-      const { data: updated, error: markError } = await (admin as any)
+      const { data: updated, error: markError } = await admin
         .from("daily_gift_box_claims")
-        .update({ credited_at: new Date().toISOString() })
+        .update({ credited_at: creditedAt })
         .eq("id", claimRow.id)
         .is("credited_at", null)
         .select("id")
@@ -144,11 +118,26 @@ export async function POST() {
 
       if (updated) {
         // 선점 성공 (= 내가 최초 처리자) -> 포인트 지급!
-        afterPoint = await creditGiftPoint(admin, user.id, claimRow.amount);
+        try {
+          afterPoint = await creditHeartPointsAtomic(admin, {
+            userId: user.id,
+            amount: claimRow.amount,
+            type: "daily_gift_box",
+            description: "일일 선물 이벤트",
+          });
+        } catch (creditError) {
+          // 지급 실패 시 재시도를 허용하기 위해 선점 마킹을 되돌린다.
+          await admin
+            .from("daily_gift_box_claims")
+            .update({ credited_at: null })
+            .eq("id", claimRow.id)
+            .eq("credited_at", creditedAt);
+          throw creditError;
+        }
       } else {
         // 선점 실패 (이미 다른 스레드가 먼저 업데이트 했거나 완료 됨) 
         // -> 현재 포인트만 조회해서 반환
-        const { data: heartPointRow } = await (admin as any)
+        const { data: heartPointRow } = await admin
           .from("heart_points")
           .select("point")
           .eq("id", user.id)
@@ -156,7 +145,7 @@ export async function POST() {
         afterPoint = heartPointRow?.point ?? 0;
       }
     } else {
-      const { data: heartPointRow } = await (admin as any)
+      const { data: heartPointRow } = await admin
         .from("heart_points")
         .select("point")
         .eq("id", user.id)

@@ -5,7 +5,7 @@ import type {
 
 /** 서버에서 내려오는 문자열 상태를 화면 공통 상태 타입으로 정규화한다. */
 export function normalizeProfileRequestStatus(status: string): ProfileRequestStatus {
-  if (status === "approved") return "approved";
+  if (status === "approved" || status === "resolved") return "approved";
   if (status === "rejected") return "rejected";
   if (status === "cancelled") return "cancelled";
   return "pending";
@@ -38,8 +38,8 @@ export function getInfoEditTargetLabel(targetType: string) {
 }
 
 export function getReportTargetLabel(request: MyEntityReportRequest) {
-  if (request.target_type === "group") return "신고 요청 (그룹)";
-  if (request.target_type === "crew") return "신고 요청 (소속)";
-  if (request.target_type === "contents") return "신고 요청 (콘텐츠)";
-  return "신고 요청 (버츄얼)";
+  if (request.target_type === "group") return "정보 신고 요청 (그룹)";
+  if (request.target_type === "crew") return "정보 신고 요청 (소속)";
+  if (request.target_type === "contents") return "정보 신고 요청 (콘텐츠)";
+  return "정보 신고 요청 (버츄얼)";
 }

@@ -1,46 +1,18 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useHeartPointHistory } from "@/hooks/queries/heart/use-heart-point-history";
-import { Heart, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
+import { Heart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import type { HeartPointHistory } from "@/types/profile";
 import Pagination from "@/components/common/pagination";
-
-// 히스토리 타입별 라벨
-const typeLabels: Record<string, string> = {
-    profile_first_edit: "첫 프로필 수정 보너스",
-    signup_bonus: "가입 보너스",
-    gift_sent: "선물 전송",
-    gift_received: "선물 수령",
-    purchase: "구매",
-    etc: "기타",
-};
-const HISTORY_PAGE_SIZE = 15;
-const HISTORY_FILTER_OPTIONS = [
-    { value: "all", label: "전체" },
-    { value: "plus", label: "+" },
-    { value: "minus", label: "-" },
-] as const;
-type HistoryFilter = (typeof HISTORY_FILTER_OPTIONS)[number]["value"];
-
-function formatDate(dateStr: string) {
-    const date = new Date(dateStr);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    return `${year}.${month}.${day} ${hours}:${minutes}`;
-}
+import HistoryFilterBar from "@/components/screens/history/history-filter-bar";
+import HistoryList from "@/components/screens/history/history-list";
+import { useHistoryScreenState } from "@/hooks/history/use-history-screen-state";
 
 export default function HistoryScreen() {
     const router = useRouter();
     const { user, heartPoints, isLoading: isAuthLoading, isInitialized } = useAuthStore();
-    const [currentPage, setCurrentPage] = useState(1);
-    const [filter, setFilter] = useState<HistoryFilter>("all");
 
     // 로그인 안 되어있으면 로그인 페이지로 이동
     useEffect(() => {
@@ -50,29 +22,23 @@ export default function HistoryScreen() {
     }, [user, isAuthLoading, isInitialized, router]);
 
     const { data: historyData, isLoading } = useHeartPointHistory(user?.id);
-
-    const history = historyData?.data || [];
-    const filteredHistory = useMemo(() => {
-        if (filter === "plus") return history.filter((item) => item.amount > 0);
-        if (filter === "minus") return history.filter((item) => item.amount < 0);
-        return history;
-    }, [history, filter]);
-    const totalPages = Math.max(1, Math.ceil(filteredHistory.length / HISTORY_PAGE_SIZE));
-    const safePage = Math.min(currentPage, totalPages);
-    const pagedHistory = useMemo(() => {
-        const start = (safePage - 1) * HISTORY_PAGE_SIZE;
-        return filteredHistory.slice(start, start + HISTORY_PAGE_SIZE);
-    }, [filteredHistory, safePage]);
-
-    useEffect(() => {
-        if (currentPage !== safePage) {
-            setCurrentPage(safePage);
-        }
-    }, [currentPage, safePage]);
-
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [filter]);
+    const {
+        filter,
+        typeFilter,
+        startDateFilter,
+        endDateFilter,
+        historyTypeOptions,
+        filteredHistory,
+        pagedHistory,
+        totalPages,
+        safePage,
+        setFilterAndResetPage,
+        setTypeFilterAndResetPage,
+        setStartDateFilterAndResetPage,
+        setEndDateFilterAndResetPage,
+        resetDateFilter,
+        onPageChange,
+    } = useHistoryScreenState(historyData?.data);
 
     // 로딩 중이거나 비로그인 상태 (리다이렉트 대기)
     if (!isInitialized || isAuthLoading || !user) {
@@ -99,86 +65,32 @@ export default function HistoryScreen() {
 
             {/* 히스토리 목록 */}
             <div>
-                <div className="mb-3 flex items-center justify-between gap-2">
-                    <h2 className="text-sm font-semibold text-gray-500">
-                        포인트 내역
-                    </h2>
-                    <div className="inline-flex items-center rounded-lg border border-gray-200 bg-white p-1">
-                        {HISTORY_FILTER_OPTIONS.map((option) => {
-                            const isActive = filter === option.value;
-                            return (
-                                <button
-                                    key={option.value}
-                                    type="button"
-                                    onClick={() => setFilter(option.value)}
-                                    className={`cursor-pointer rounded-md px-3 py-1 text-xs font-semibold transition-colors ${isActive
-                                            ? "bg-gray-900 text-white"
-                                            : "text-gray-600 hover:bg-gray-100"
-                                        }`}
-                                >
-                                    {option.label}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
+                <HistoryFilterBar
+                    filter={filter}
+                    typeFilter={typeFilter}
+                    typeOptions={historyTypeOptions}
+                    startDateFilter={startDateFilter}
+                    endDateFilter={endDateFilter}
+                    onChangeFilter={setFilterAndResetPage}
+                    onChangeTypeFilter={setTypeFilterAndResetPage}
+                    onChangeStartDateFilter={setStartDateFilterAndResetPage}
+                    onChangeEndDateFilter={setEndDateFilterAndResetPage}
+                    onResetDateFilter={resetDateFilter}
+                />
 
-                {isLoading ? (
-                    <div className="space-y-3">
-                        {[...Array(5)].map((_, i) => (
-                            <div
-                                key={i}
-                                className="h-16 bg-gray-100 animate-pulse rounded-xl"
-                            />
-                        ))}
-                    </div>
-                ) : filteredHistory.length === 0 ? (
-                    <div className="text-center py-12 text-gray-400 text-sm">
-                        포인트 내역이 없습니다.
-                    </div>
-                ) : (
-                    <>
-                        <div className="space-y-2">
-                            {pagedHistory.map((item: HeartPointHistory) => (
-                                <div
-                                    key={item.id}
-                                    className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 hover:border-gray-200 transition-colors"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        {item.amount >= 0 ? (
-                                            <ArrowUpCircle className="w-5 h-5 text-blue-500 shrink-0" />
-                                        ) : (
-                                            <ArrowDownCircle className="w-5 h-5 text-red-500 shrink-0" />
-                                        )}
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-900">
-                                                {item.description ||
-                                                    (item.type && typeLabels[item.type]) ||
-                                                    item.type || "기타"}
-                                            </p>
-                                            <p className="text-xs text-gray-400">
-                                                {formatDate(item.created_at)}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <p
-                                            className={`text-sm font-bold ${item.amount >= 0 ? "text-blue-600" : "text-red-500"
-                                                }`}
-                                        >
-                                            {item.amount >= 0 ? "+" : ""}
-                                            {item.amount.toLocaleString()} 하트
-                                        </p>
-                                        <p className="text-xs text-gray-400">
-                                            잔액 {item.after_point.toLocaleString()} 하트
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <Pagination page={safePage} totalPages={totalPages} onPageChange={setCurrentPage} />
-                    </>
-                )}
+                <HistoryList
+                    isLoading={isLoading}
+                    filteredCount={filteredHistory.length}
+                    pagedHistory={pagedHistory}
+                />
+
+                {!isLoading && filteredHistory.length > 0 ? (
+                    <Pagination
+                        page={safePage}
+                        totalPages={totalPages}
+                        onPageChange={onPageChange}
+                    />
+                ) : null}
             </div>
         </div>
     );

@@ -7,6 +7,7 @@ type ProfileRequestsFilterButtonsProps = {
   registrationCount: number;
   infoEditCount: number;
   reportCount: number;
+  errorReportCount: number;
   liveBoxCount: number;
   onFilterChange: (nextFilter: RequestFilter) => void;
 };
@@ -18,6 +19,7 @@ export default function ProfileRequestsFilterButtons({
   registrationCount,
   infoEditCount,
   reportCount,
+  errorReportCount,
   liveBoxCount,
   onFilterChange,
 }: ProfileRequestsFilterButtonsProps) {
@@ -53,7 +55,15 @@ export default function ProfileRequestsFilterButtons({
         variant={filter === "report" ? "default" : "outline"}
         className={`cursor-pointer rounded-xl ${filter === "report" ? "bg-gray-900 hover:bg-gray-800 text-white" : ""}`}
       >
-        신고 요청 {reportCount}
+        정보 신고 요청 {reportCount}
+      </Button>
+      <Button
+        type="button"
+        onClick={() => onFilterChange("error-report")}
+        variant={filter === "error-report" ? "default" : "outline"}
+        className={`cursor-pointer rounded-xl ${filter === "error-report" ? "bg-gray-900 hover:bg-gray-800 text-white" : ""}`}
+      >
+        오류 신고 요청 {errorReportCount}
       </Button>
       <Button
         type="button"

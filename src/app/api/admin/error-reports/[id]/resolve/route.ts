@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
-import { ADMIN_REVIEW_REWARD_POINT } from "@/lib/constant";
+import { ADMIN_ERROR_REPORT_REWARD_POINT } from "@/lib/constant";
 import { creditAdminRewardPoint } from "@/utils/admin-reward";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -26,28 +26,20 @@ export async function POST(
   }
 
   let action: ResolveAction;
-  let reviewNote = "";
   try {
-    const body = (await request.json()) as {
-      action?: ResolveAction;
-      reviewNote?: string;
-    };
+    const body = (await request.json()) as { action?: ResolveAction };
     action =
       body.action === "approve"
         ? "approve"
         : body.action === "reject"
           ? "reject"
           : ("" as ResolveAction);
-    reviewNote = typeof body.reviewNote === "string" ? body.reviewNote.trim() : "";
   } catch {
     return NextResponse.json({ message: "잘못된 요청 본문입니다." }, { status: 400 });
   }
 
   if (action !== "approve" && action !== "reject") {
     return NextResponse.json({ message: "잘못된 처리 방식입니다." }, { status: 400 });
-  }
-  if (action === "reject" && !reviewNote) {
-    return NextResponse.json({ message: "거절 사유를 입력해 주세요." }, { status: 400 });
   }
 
   const cookieStore = await cookies();
@@ -90,24 +82,36 @@ export async function POST(
   const admin = createAdminClient(supabaseUrl, serviceRoleKey);
 
   try {
-    const nextStatus = action === "approve" ? "approved" : "rejected";
-
+    const nextStatus = action === "approve" ? "resolved" : "rejected";
+    const reviewedAt = new Date().toISOString();
     const { data: resolvedRow, error: updateError } = await admin
-      .from("streamer_info_edit_requests")
+      .from("error_reports")
       .update({
         status: nextStatus,
-        review_note: action === "reject" ? reviewNote : null,
-        reviewed_at: new Date().toISOString(),
         reviewed_by: user.id,
+        reviewed_at: reviewedAt,
       })
       .eq("id", requestId)
       .eq("status", "pending")
-      .select("id,requester_id")
+      .select("id,reporter_id")
       .maybeSingle();
-    if (updateError) throw updateError;
+
+    if (updateError) {
+      if (updateError.code === "23514") {
+        return NextResponse.json(
+          {
+            message:
+              "error_reports.status 제약에 resolved 상태가 없습니다.",
+          },
+          { status: 400 }
+        );
+      }
+      throw updateError;
+    }
+
     if (!resolvedRow) {
       const { data: existingRow, error: existingError } = await admin
-        .from("streamer_info_edit_requests")
+        .from("error_reports")
         .select("id")
         .eq("id", requestId)
         .maybeSingle();
@@ -121,12 +125,12 @@ export async function POST(
       return NextResponse.json({ message: "이미 처리된 요청입니다." }, { status: 409 });
     }
 
-    if (action === "approve") {
+    if (action === "approve" && resolvedRow.reporter_id) {
       await creditAdminRewardPoint(
         admin,
-        resolvedRow.requester_id,
-        ADMIN_REVIEW_REWARD_POINT,
-        "정보수정요청"
+        resolvedRow.reporter_id,
+        ADMIN_ERROR_REPORT_REWARD_POINT,
+        "홈페이지 오류 신고 확인"
       );
     }
 
@@ -134,12 +138,15 @@ export async function POST(
       success: true,
       action,
       status: nextStatus,
-      rewarded: action === "approve",
-      rewardPoint: action === "approve" ? ADMIN_REVIEW_REWARD_POINT : 0,
+      rewarded: action === "approve" && Boolean(resolvedRow.reporter_id),
+      rewardPoint:
+        action === "approve" && resolvedRow.reporter_id
+          ? ADMIN_ERROR_REPORT_REWARD_POINT
+          : 0,
     });
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "요청 처리에 실패했습니다.";
+      error instanceof Error ? error.message : "오류 신고 처리에 실패했습니다.";
     return NextResponse.json({ message }, { status: 500 });
   }
 }

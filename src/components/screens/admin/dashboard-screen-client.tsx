@@ -14,6 +14,7 @@ import {
   Clock,
   Pencil,
   Siren,
+  Bug,
 } from "lucide-react";
 import { StatCard, StatCardSkeleton } from "@/components/screens/admin/stat-card";
 import SignupTrendChart, {
@@ -154,6 +155,7 @@ export default function DashboardScreen() {
       stats.pendingStreamerRequests,
       stats.pendingInfoEditRequests,
       stats.pendingReportRequests,
+      stats.pendingHomepageErrorReports,
       stats.pendingLiveBoxRequests,
       stats.pendingContentRequests,
       1
@@ -189,6 +191,16 @@ export default function DashboardScreen() {
         color: "from-rose-500 to-rose-600",
         bgLight: "bg-rose-50",
         textColor: "text-rose-600",
+        ratioBase: pendingBase,
+        unit: "건",
+      },
+      {
+        title: "홈페이지 오류 신고",
+        value: stats.pendingHomepageErrorReports,
+        icon: Bug,
+        color: "from-amber-500 to-amber-600",
+        bgLight: "bg-amber-50",
+        textColor: "text-amber-600",
         ratioBase: pendingBase,
         unit: "건",
       },
@@ -270,13 +282,13 @@ export default function DashboardScreen() {
           description="서비스에 등록된 버츄얼, 그룹, 소속, 박스, 콘텐츠 수입니다."
         />
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
             {[...Array(5)].map((_, index) => (
               <StatCardSkeleton key={`entity-card-skeleton-${index}`} />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
             {entityCards.map((card) => (
               <StatCard
                 key={card.title}
@@ -298,16 +310,16 @@ export default function DashboardScreen() {
       <section>
         <SectionTitle
           title="요청 대기"
-          description="관리자 처리 대상인 등록 대기, 정보 수정 요청, 신고 요청, 박스/콘텐츠 등록 요청 수입니다."
+          description="관리자 처리 대상인 등록 대기, 정보 수정 요청, 정보 신고/오류 신고, 박스/콘텐츠 등록 요청 수입니다."
         />
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5">
-            {[...Array(5)].map((_, index) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+            {[...Array(6)].map((_, index) => (
               <StatCardSkeleton key={`pending-card-skeleton-${index}`} />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
             {pendingCards.map((card) => (
               <StatCard
                 key={card.title}

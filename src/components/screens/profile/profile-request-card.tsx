@@ -1,4 +1,4 @@
-import { Boxes, CirclePlus, FilePenLine, Siren } from "lucide-react";
+import { Boxes, Bug, CirclePlus, FilePenLine, Siren } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { CombinedRequest } from "@/types/profile";
 import {
@@ -42,7 +42,10 @@ export default function ProfileRequestCard({
   onCancelRequest,
   isCancelling = false,
 }: ProfileRequestCardProps) {
-  const canCancel = request.status === "pending" && Boolean(onCancelRequest);
+  const canCancel =
+    request.status === "pending" &&
+    request.kind !== "error-report" &&
+    Boolean(onCancelRequest);
   const handleCancel = () => {
     onCancelRequest?.(request);
   };
@@ -193,6 +196,40 @@ export default function ProfileRequestCard({
             </Button>
           </div>
         ) : null}
+        {request.review_note ? (
+          <p className="mt-2 rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">
+            거절 사유: {request.review_note}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (request.kind === "error-report") {
+    return (
+      <div className="rounded-xl border border-gray-100 bg-white p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="mb-1 flex items-center gap-2">
+              <Bug className="h-4 w-4 text-amber-500" />
+              <span className="text-sm font-medium text-gray-800">오류 신고 요청</span>
+            </div>
+            <p className="truncate text-sm font-medium text-gray-800">{request.title}</p>
+          </div>
+          <span
+            className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${getProfileRequestStatusClass(request.status)}`}
+          >
+            {getProfileRequestStatusLabel(request.status)}
+          </span>
+        </div>
+
+        <p className="mt-2 whitespace-pre-wrap break-words rounded-md bg-gray-50 px-3 py-2 text-sm text-gray-700">
+          {request.detail}
+        </p>
+        <div className="mt-2 text-xs text-gray-500">
+          요청일시: {formatProfileRequestDateTime(request.created_at)} | 처리일시:{" "}
+          {formatProfileRequestDateTime(request.reviewed_at)}
+        </div>
         {request.review_note ? (
           <p className="mt-2 rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">
             거절 사유: {request.review_note}

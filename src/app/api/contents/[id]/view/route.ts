@@ -7,6 +7,13 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+function isMissingRpcFunctionError(error: unknown, functionName: string) {
+  if (!error || typeof error !== "object") return false;
+  const code = "code" in error ? String(error.code) : "";
+  const message = "message" in error ? String(error.message) : "";
+  return code === "42883" || message.includes(functionName);
+}
+
 export async function POST(
   _request: Request,
   context: { params: Promise<{ id: string }> }
@@ -68,6 +75,22 @@ export async function POST(
     return NextResponse.json({ incremented: false });
   }
 
+  const functionName = "increment_content_view_count";
+  const { data: rpcData, error: rpcError } = await admin.rpc(functionName, {
+    p_content_id: contentId,
+  });
+
+  if (!rpcError) {
+    const row = Array.isArray(rpcData) ? rpcData[0] : rpcData;
+    const viewCount = Number(row?.view_count ?? 0);
+    return NextResponse.json({ incremented: true, view_count: viewCount });
+  }
+
+  if (!isMissingRpcFunctionError(rpcError, functionName)) {
+    return NextResponse.json({ message: "조회수 업데이트에 실패했습니다." }, { status: 500 });
+  }
+
+  // RPC 미적용 환경 fallback (원자 증가는 SQL 적용 후 보장됨)
   const nextViewCount = (content.view_count || 0) + 1;
   const { error: updateError } = await admin
     .from("contents")

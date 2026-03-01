@@ -20,7 +20,7 @@ export default function AdminRequestActionButtons({
   disabled = false,
 }: AdminRequestActionButtonsProps) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-nowrap items-center gap-2">
       <Button
         type="button"
         size="sm"

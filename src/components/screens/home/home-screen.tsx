@@ -89,7 +89,16 @@ export default function HomeScreen() {
   }, [liveBoxData]);
 
   const { data: liveData, isLoading: isLiveLoading } = useLiveStreamers();
-  const { data: allRank = [], isLoading: isAllRankLoading } = useHeartLeaderboard("all", 5);
+  const {
+    data: allRank = [],
+    isLoading: isAllRankLoading,
+    isError: isAllRankError,
+  } = useHeartLeaderboard("all", 5);
+  const {
+    data: yearlyRank = [],
+    isLoading: isYearlyRankLoading,
+    isError: isYearlyRankError,
+  } = useHeartLeaderboard("yearly", 5);
   const {
     data: monthlyRank = [],
     isLoading: isMonthlyRankLoading,
@@ -107,6 +116,14 @@ export default function HomeScreen() {
       title: "전체 하트 Top5",
       data: allRank,
       isLoading: isAllRankLoading,
+      isError: isAllRankError,
+    },
+    {
+      key: "yearly",
+      title: "연간 하트 Top5",
+      data: yearlyRank,
+      isLoading: isYearlyRankLoading,
+      isError: isYearlyRankError,
     },
     {
       key: "monthly",

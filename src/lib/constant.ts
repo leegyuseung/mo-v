@@ -3,6 +3,7 @@ import type { StreamerPlatform, StreamerSortOrder } from "@/types/streamer";
 export const STREAMER_PAGE_SIZE = 15;
 
 export const ADMIN_REVIEW_REWARD_POINT = 50;
+export const ADMIN_ERROR_REPORT_REWARD_POINT = 100;
 
 export const STREAMER_PLATFORM_OPTIONS: { label: string; value: StreamerPlatform }[] = [
   { label: "전체", value: "all" },

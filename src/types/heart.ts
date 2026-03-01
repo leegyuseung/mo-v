@@ -7,8 +7,8 @@ export type GiftHeartToStreamerResult = {
 /** 후원 랭킹 기간 필터 (전체 / 주간 / 월간) */
 export type DonorPeriod = "all" | "weekly" | "monthly";
 
-/** 하트 랭킹 기간 필터 (전체 / 주간 / 월간) */
-export type HeartRankPeriod = "all" | "weekly" | "monthly";
+/** 하트 랭킹 기간 필터 (전체 / 연간 / 월간 / 주간) */
+export type HeartRankPeriod = "all" | "yearly" | "weekly" | "monthly";
 
 /** 하트 랭킹 리더보드 항목 */
 export type StreamerHeartLeaderboardItem = {

@@ -90,27 +90,9 @@ export async function POST(
   const admin = createAdminClient(supabaseUrl, serviceRoleKey);
 
   try {
-    const { data: targetRow, error: targetError } = await admin
-      .from("entity_report_requests")
-      .select("id,reporter_id,status")
-      .eq("id", requestId)
-      .maybeSingle();
-
-    if (targetError) throw targetError;
-    if (!targetRow) {
-      return NextResponse.json({ message: "이미 처리되었거나 존재하지 않는 요청입니다." }, { status: 404 });
-    }
-    if (targetRow.status !== "pending") {
-      return NextResponse.json({ message: "이미 처리된 요청입니다." }, { status: 409 });
-    }
-
-    if (action === "approve") {
-      await creditAdminRewardPoint(admin, targetRow.reporter_id, ADMIN_REVIEW_REWARD_POINT, "신고 확인");
-    }
-
     const nextStatus = action === "approve" ? "approved" : "rejected";
 
-    const { error: updateError } = await admin
+    const { data: resolvedRow, error: updateError } = await admin
       .from("entity_report_requests")
       .update({
         status: nextStatus,
@@ -119,8 +101,34 @@ export async function POST(
         reviewed_by: user.id,
       })
       .eq("id", requestId)
-      .eq("status", "pending");
+      .eq("status", "pending")
+      .select("id,reporter_id")
+      .maybeSingle();
     if (updateError) throw updateError;
+    if (!resolvedRow) {
+      const { data: existingRow, error: existingError } = await admin
+        .from("entity_report_requests")
+        .select("id")
+        .eq("id", requestId)
+        .maybeSingle();
+      if (existingError) throw existingError;
+      if (!existingRow) {
+        return NextResponse.json(
+          { message: "이미 처리되었거나 존재하지 않는 요청입니다." },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json({ message: "이미 처리된 요청입니다." }, { status: 409 });
+    }
+
+    if (action === "approve") {
+      await creditAdminRewardPoint(
+        admin,
+        resolvedRow.reporter_id,
+        ADMIN_REVIEW_REWARD_POINT,
+        "신고 확인"
+      );
+    }
 
     return NextResponse.json({
       success: true,

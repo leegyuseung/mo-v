@@ -14,6 +14,94 @@ function getDefaultClient() {
   return _defaultClient;
 }
 
+function getSeoulCurrentYearRange() {
+    const now = new Date();
+    const currentYear = Number(
+        new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Asia/Seoul",
+            year: "numeric",
+        }).format(now)
+    );
+    const startIso = new Date(`${currentYear}-01-01T00:00:00+09:00`).toISOString();
+    const endIso = new Date(`${currentYear + 1}-01-01T00:00:00+09:00`).toISOString();
+    return { startIso, endIso };
+}
+
+async function fetchYearlyHeartLeaderboardFromHistory(
+    supabase: SupabaseClient,
+    limit: number
+): Promise<StreamerHeartLeaderboardItem[]> {
+    const { startIso, endIso } = getSeoulCurrentYearRange();
+
+    const { data: historyRows, error: historyError } = await supabase
+        .from("streamer_heart_history")
+        .select("to_streamer_id,amount")
+        .gte("created_at", startIso)
+        .lt("created_at", endIso);
+
+    if (historyError) throw historyError;
+    if (!historyRows || historyRows.length === 0) return [];
+
+    const totalByStreamerId = new Map<number, number>();
+    historyRows.forEach((row) => {
+        const streamerId = row.to_streamer_id;
+        const amount = Number(row.amount || 0);
+        if (!Number.isFinite(streamerId) || streamerId <= 0) return;
+        totalByStreamerId.set(streamerId, (totalByStreamerId.get(streamerId) || 0) + amount);
+    });
+
+    const sortedTotals = Array.from(totalByStreamerId.entries())
+        .map(([streamerId, totalReceived]) => ({ streamerId, totalReceived }))
+        .filter((item) => item.totalReceived > 0)
+        .sort((a, b) => b.totalReceived - a.totalReceived)
+        .slice(0, limit);
+
+    if (sortedTotals.length === 0) return [];
+
+    const topStreamerIds = sortedTotals.map((item) => item.streamerId);
+    const { data: streamerRows, error: streamerError } = await supabase
+        .from("streamers")
+        .select("id,nickname,platform,image_url,public_id,group_name,crew_name")
+        .in("id", topStreamerIds);
+
+    if (streamerError) throw streamerError;
+
+    const streamerById = new Map((streamerRows || []).map((streamer) => [streamer.id, streamer]));
+
+    return sortedTotals
+        .map((item) => {
+            const streamer = streamerById.get(item.streamerId);
+            if (!streamer) return null;
+            return {
+                streamer_id: item.streamerId,
+                nickname: streamer.nickname,
+                platform: streamer.platform,
+                total_received: item.totalReceived,
+                image_url: streamer.image_url,
+                public_id: streamer.public_id,
+                group_name: streamer.group_name,
+                crew_name: streamer.crew_name,
+            };
+        })
+        .filter((item): item is StreamerHeartLeaderboardItem => item !== null);
+}
+
+async function fetchYearlyHeartLeaderboardViaApi(
+    limit: number
+): Promise<StreamerHeartLeaderboardItem[]> {
+    const response = await fetch(`/api/heart/yearly-leaderboard?limit=${limit}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+        throw new Error("연간 하트 랭킹 조회에 실패했습니다.");
+    }
+
+    const data = (await response.json()) as StreamerHeartLeaderboardItem[];
+    return data || [];
+}
+
 /** 유저의 하트 포인트 잔액을 조회한다 */
 export async function fetchHeartPoints(userId: string) {
     const { data, error } = await getDefaultClient()
@@ -131,13 +219,23 @@ export async function fetchStreamerHeartRank(
     return { data: data || [], count: count || 0 };
 }
 
-/** 기간별(전체/주간/월간) 하트 리더보드 상위 N명을 조회한다. 서버에서 호출 시 Supabase 클라이언트를 주입할 수 있다 */
+/** 기간별(전체/연간/주간/월간) 하트 리더보드 상위 N명을 조회한다. 서버에서 호출 시 Supabase 클라이언트를 주입할 수 있다 */
 export async function fetchStreamerHeartLeaderboard(
     period: HeartRankPeriod,
     limit: number = 5,
     client?: SupabaseClient
 ): Promise<StreamerHeartLeaderboardItem[]> {
+    if (period === "yearly") {
+        if (!client) {
+            return fetchYearlyHeartLeaderboardViaApi(limit);
+        }
+    }
+
     const supabase = client || getDefaultClient();
+    if (period === "yearly") {
+        return fetchYearlyHeartLeaderboardFromHistory(supabase, limit);
+    }
+
     const source =
         period === "weekly"
             ? "streamer_heart_rank_weekly"

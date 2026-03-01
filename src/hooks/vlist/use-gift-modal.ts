@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -13,10 +13,12 @@ import type { Streamer } from "@/types/streamer";
  * vlist-detail-screen에서 선물 관련 상태 5개 + 핸들러를 분리하기 위해 생성.
  */
 export function useGiftModal(streamer: Streamer | null | undefined) {
+  const GIFT_SUBMIT_LOCK_TTL_MS = 10_000;
   const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
   const [giftAmountInput, setGiftAmountInput] = useState("");
   const [isGiftConfirmOpen, setIsGiftConfirmOpen] = useState(false);
   const [isGiftSubmitting, setIsGiftSubmitting] = useState(false);
+  const giftSubmitLockTokenRef = useRef<string | null>(null);
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user, heartPoints, setHeartPoints } = useAuthStore();
@@ -72,6 +74,41 @@ export function useGiftModal(streamer: Streamer | null | undefined) {
       return;
     }
 
+    const canSubmit = (() => {
+      if (!user) return false;
+      const lockKey = `gift-heart-submit-lock:${user.id}`;
+      const now = Date.now();
+      const token = `${now}-${Math.random().toString(36).slice(2)}`;
+
+      try {
+        const raw = window.localStorage.getItem(lockKey);
+        if (raw) {
+          const parsed = JSON.parse(raw) as { token?: string; expiresAt?: number };
+          if (typeof parsed.expiresAt === "number" && parsed.expiresAt > now) {
+            return false;
+          }
+        }
+
+        window.localStorage.setItem(
+          lockKey,
+          JSON.stringify({
+            token,
+            expiresAt: now + GIFT_SUBMIT_LOCK_TTL_MS,
+          })
+        );
+        giftSubmitLockTokenRef.current = token;
+        return true;
+      } catch {
+        // localStorage 접근 실패 환경에서는 기존 서버 검증에 위임한다.
+        return true;
+      }
+    })();
+
+    if (!canSubmit) {
+      toast.info("다른 탭에서 하트 선물을 처리 중입니다. 잠시 후 다시 시도해 주세요.");
+      return;
+    }
+
     setIsGiftSubmitting(true);
     try {
       const targetName = streamer.nickname || "버츄얼";
@@ -99,6 +136,22 @@ export function useGiftModal(streamer: Streamer | null | undefined) {
         error instanceof Error ? error.message : "하트 선물에 실패했습니다.";
       toast.error(message);
     } finally {
+      if (user) {
+        const lockKey = `gift-heart-submit-lock:${user.id}`;
+        try {
+          const raw = window.localStorage.getItem(lockKey);
+          if (raw) {
+            const parsed = JSON.parse(raw) as { token?: string };
+            if (parsed.token && parsed.token === giftSubmitLockTokenRef.current) {
+              window.localStorage.removeItem(lockKey);
+            }
+          }
+        } catch {
+          // noop
+        } finally {
+          giftSubmitLockTokenRef.current = null;
+        }
+      }
       setIsGiftSubmitting(false);
     }
   };

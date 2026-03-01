@@ -10,6 +10,7 @@ import {
     MicVocal,
     UsersRound,
     Siren,
+    Bug,
     Boxes,
     Clapperboard,
 } from "lucide-react";
@@ -36,7 +37,8 @@ const adminMenuItems = [
     { title: "콘텐츠 관리", url: "/admin/contents", icon: Clapperboard },
     { title: "버츄얼 등록 대기", url: "/admin/pending", icon: Clock },
     { title: "정보 수정 요청", url: "/admin/infoeditrq", icon: UserRoundPen },
-    { title: "신고 관리", url: "/admin/reports", icon: Siren },
+    { title: "정보 신고 관리", url: "/admin/reports", icon: Siren },
+    { title: "오류 신고 관리", url: "/admin/error-reports", icon: Bug },
 ];
 
 export default function AdminSideBar() {

@@ -5,6 +5,38 @@ const supabase = createClient();
 
 type MyRequestKind = CombinedRequest["kind"];
 
+async function fetchMyErrorReports(userId: string) {
+  const withReviewNoteResult = await supabase
+    .from("error_reports")
+    .select("id,title,detail,status,review_note,reported_at,reviewed_at")
+    .eq("reporter_id", userId)
+    .order("reported_at", { ascending: false });
+
+  if (!withReviewNoteResult.error) {
+    return withReviewNoteResult.data || [];
+  }
+
+  // 하위 스키마(구버전)에는 review_note 컬럼이 없을 수 있어 fallback 조회를 수행한다.
+  if (withReviewNoteResult.error.code !== "42703") {
+    throw withReviewNoteResult.error;
+  }
+
+  const fallbackResult = await supabase
+    .from("error_reports")
+    .select("id,title,detail,status,reported_at,reviewed_at")
+    .eq("reporter_id", userId)
+    .order("reported_at", { ascending: false });
+
+  if (fallbackResult.error) {
+    throw fallbackResult.error;
+  }
+
+  return (fallbackResult.data || []).map((row) => ({
+    ...row,
+    review_note: null,
+  }));
+}
+
 export async function fetchMyRequestHistory(userId: string): Promise<MyRequestHistory> {
   const [
     streamerRegistrationResult,
@@ -12,6 +44,7 @@ export async function fetchMyRequestHistory(userId: string): Promise<MyRequestHi
     entityInfoEditResult,
     entityReportResult,
     liveBoxRequestResult,
+    errorReportRows,
   ] = await Promise.all([
     supabase
       .from("streamer_registration_requests")
@@ -38,6 +71,7 @@ export async function fetchMyRequestHistory(userId: string): Promise<MyRequestHi
       .select("id,topic,related_site,status,review_note,created_at,reviewed_at")
       .eq("requester_id", userId)
       .order("created_at", { ascending: false }),
+    fetchMyErrorReports(userId),
   ]);
 
   if (streamerRegistrationResult.error) throw streamerRegistrationResult.error;
@@ -77,6 +111,7 @@ export async function fetchMyRequestHistory(userId: string): Promise<MyRequestHi
     infoEditRequests: [...streamerInfoEditRequests, ...entityInfoEditRequests],
     entityReportRequests: entityReportResult.data || [],
     liveBoxRequests: liveBoxRequestResult.data || [],
+    errorReportRequests: errorReportRows || [],
   };
 }
 
@@ -167,16 +202,20 @@ export async function cancelMyRequest({
     return data;
   }
 
-  const { data, error } = await supabase
-    .from("entity_report_requests")
-    .update(payload)
-    .eq("id", requestId)
-    .eq("reporter_id", userId)
-    .eq("status", "pending")
-    .select("id")
-    .maybeSingle();
+  if (requestKind === "report") {
+    const { data, error } = await supabase
+      .from("entity_report_requests")
+      .update(payload)
+      .eq("id", requestId)
+      .eq("reporter_id", userId)
+      .eq("status", "pending")
+      .select("id")
+      .maybeSingle();
 
-  if (error) throw error;
-  if (!data) throw new Error("대기 중인 요청만 취소할 수 있습니다.");
-  return data;
+    if (error) throw error;
+    if (!data) throw new Error("대기 중인 요청만 취소할 수 있습니다.");
+    return data;
+  }
+
+  throw new Error("오류 신고 요청은 취소할 수 없습니다.");
 }

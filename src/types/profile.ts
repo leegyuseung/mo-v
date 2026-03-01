@@ -63,10 +63,17 @@ export type MyRequestHistory = {
   infoEditRequests: MyInfoEditRequest[];
   entityReportRequests: MyEntityReportRequest[];
   liveBoxRequests: MyLiveBoxRequest[];
+  errorReportRequests: MyErrorReportRequest[];
 };
 
 /** 요청 필터 타입 */
-export type RequestFilter = "all" | "registration" | "info-edit" | "report" | "live-box";
+export type RequestFilter =
+  | "all"
+  | "registration"
+  | "info-edit"
+  | "report"
+  | "error-report"
+  | "live-box";
 
 /** 프로필 요청 상태 타입 */
 export type ProfileRequestStatus = "pending" | "approved" | "rejected" | "cancelled";
@@ -117,7 +124,27 @@ export type CombinedRequest =
       review_note: string | null;
       topic: string;
       related_site: string;
+    }
+  | {
+      kind: "error-report";
+      id: number;
+      created_at: string;
+      reviewed_at: string | null;
+      status: ProfileRequestStatus;
+      review_note: string | null;
+      title: string;
+      detail: string;
     };
+
+export type MyErrorReportRequest = {
+  id: number;
+  title: string;
+  detail: string;
+  status: string;
+  review_note: string | null;
+  reported_at: string;
+  reviewed_at: string | null;
+};
 
 export type UpdateProfileInput = {
     userId: string;

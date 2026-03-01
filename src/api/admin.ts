@@ -81,6 +81,7 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
         { count: pendingStreamerInfoEditRequests },
         { count: pendingEntityInfoEditRequests },
         { count: pendingReportRequests },
+        { count: pendingHomepageErrorReports },
         { count: pendingLiveBoxRequests },
         { count: pendingContentRequests },
         { data: signupRows, error: signupRowsError },
@@ -108,6 +109,10 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
             .eq("status", "pending"),
         supabase
             .from("entity_report_requests")
+            .select("*", { count: "exact", head: true })
+            .eq("status", "pending"),
+        supabase
+            .from("error_reports")
             .select("*", { count: "exact", head: true })
             .eq("status", "pending"),
         supabase
@@ -164,6 +169,7 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
         pendingInfoEditRequests:
             (pendingStreamerInfoEditRequests || 0) + (pendingEntityInfoEditRequests || 0),
         pendingReportRequests: pendingReportRequests || 0,
+        pendingHomepageErrorReports: pendingHomepageErrorReports || 0,
         pendingLiveBoxRequests: pendingLiveBoxRequests || 0,
         pendingContentRequests: pendingContentRequests || 0,
         signupTrend,

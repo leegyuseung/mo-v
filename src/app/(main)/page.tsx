@@ -50,6 +50,10 @@ export default async function Home() {
       queryFn: () => fetchStreamerHeartLeaderboard("weekly", 5, supabase),
     }),
     queryClient.prefetchQuery({
+      queryKey: ["heart-rank-leaderboard", "yearly", 5],
+      queryFn: () => fetchStreamerHeartLeaderboard("yearly", 5, supabase),
+    }),
+    queryClient.prefetchQuery({
       queryKey: ["live-box", "list"],
       queryFn: () => fetchPublicLiveBoxes(supabase),
     }),

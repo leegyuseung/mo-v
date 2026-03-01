@@ -17,6 +17,7 @@ type UseProfileRequestsListResult = {
   registrationCount: number;
   infoEditCount: number;
   reportCount: number;
+  errorReportCount: number;
   liveBoxCount: number;
   totalCount: number;
 };
@@ -72,6 +73,17 @@ export function useProfileRequestsList(
       content: request.content,
     }));
 
+    const errorReportRequests: CombinedRequest[] = data.errorReportRequests.map((request) => ({
+      kind: "error-report",
+      id: request.id,
+      created_at: request.reported_at,
+      reviewed_at: request.reviewed_at,
+      status: normalizeProfileRequestStatus(request.status),
+      review_note: request.review_note,
+      title: request.title,
+      detail: request.detail,
+    }));
+
     const liveBoxRequests: CombinedRequest[] = data.liveBoxRequests.map((request) => ({
       kind: "live-box",
       id: request.id,
@@ -83,9 +95,13 @@ export function useProfileRequestsList(
       related_site: request.related_site,
     }));
 
-    return [...registrationRequests, ...infoEditRequests, ...reportRequests, ...liveBoxRequests].sort(
-      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
+    return [
+      ...registrationRequests,
+      ...infoEditRequests,
+      ...reportRequests,
+      ...errorReportRequests,
+      ...liveBoxRequests,
+    ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }, [data]);
 
   const filteredRequests = useMemo(() => {
@@ -97,6 +113,9 @@ export function useProfileRequestsList(
     }
     if (filter === "report") {
       return combinedRequests.filter((request) => request.kind === "report");
+    }
+    if (filter === "error-report") {
+      return combinedRequests.filter((request) => request.kind === "error-report");
     }
     if (filter === "live-box") {
       return combinedRequests.filter((request) => request.kind === "live-box");
@@ -119,8 +138,9 @@ export function useProfileRequestsList(
   const registrationCount = data?.streamerRegistrationRequests.length || 0;
   const infoEditCount = data?.infoEditRequests.length || 0;
   const reportCount = data?.entityReportRequests.length || 0;
+  const errorReportCount = data?.errorReportRequests.length || 0;
   const liveBoxCount = data?.liveBoxRequests.length || 0;
-  const totalCount = registrationCount + infoEditCount + reportCount + liveBoxCount;
+  const totalCount = registrationCount + infoEditCount + reportCount + errorReportCount + liveBoxCount;
 
   return {
     filter,
@@ -133,6 +153,7 @@ export function useProfileRequestsList(
     registrationCount,
     infoEditCount,
     reportCount,
+    errorReportCount,
     liveBoxCount,
     totalCount,
   };

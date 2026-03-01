@@ -7,6 +7,13 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+function isMissingRpcFunctionError(error: unknown, functionName: string) {
+  if (!error || typeof error !== "object") return false;
+  const code = "code" in error ? String(error.code) : "";
+  const message = "message" in error ? String(error.message) : "";
+  return code === "42883" || message.includes(functionName);
+}
+
 export async function POST(
   _request: Request,
   context: { params: Promise<{ id: string }> }
@@ -62,6 +69,7 @@ export async function POST(
 
   if (
     content.status === "pending" ||
+    content.status === "ended" ||
     content.status === "rejected" ||
     content.status === "cancelled" ||
     content.status === "deleted"
@@ -69,6 +77,25 @@ export async function POST(
     return NextResponse.json({ message: "좋아요할 수 없는 콘텐츠입니다." }, { status: 400 });
   }
 
+  const functionName = "toggle_content_favorite";
+  const { data: rpcData, error: rpcError } = await admin.rpc(functionName, {
+    p_content_id: contentId,
+    p_user_id: user.id,
+  });
+
+  if (!rpcError) {
+    const row = Array.isArray(rpcData) ? rpcData[0] : rpcData;
+    return NextResponse.json({
+      liked: Boolean(row?.liked),
+      favorite_count: Number(row?.favorite_count ?? 0),
+    });
+  }
+
+  if (!isMissingRpcFunctionError(rpcError, functionName)) {
+    return NextResponse.json({ message: "좋아요 처리에 실패했습니다." }, { status: 500 });
+  }
+
+  // RPC 미적용 환경 fallback
   const { data: existingFavorite, error: existingFavoriteError } = await admin
     .from("content_favorites")
     .select("content_id")

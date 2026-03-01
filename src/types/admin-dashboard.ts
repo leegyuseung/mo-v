@@ -22,6 +22,7 @@ export type DashboardStats = {
   pendingStreamerRequests: number;
   pendingInfoEditRequests: number;
   pendingReportRequests: number;
+  pendingHomepageErrorReports: number;
   pendingLiveBoxRequests: number;
   pendingContentRequests: number;
   signupTrend: DashboardSignupTrendPoint[];
