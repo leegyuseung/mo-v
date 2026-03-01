@@ -115,7 +115,6 @@ export default function HomeShowcaseSection({
               streamers={showcaseData?.recommendedStreamers || []}
               emptyText="추천 버츄얼이 없습니다."
               showLiveMeta
-              enableScrollWhenMany
               liveStatusById={liveStatusById}
             />
           )}

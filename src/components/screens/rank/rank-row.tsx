@@ -21,17 +21,19 @@ export default function RankRow({ item, rankNumber, groupNameByCode, crewNameByC
           : "";
   const topRankRowClassName =
     rankNumber === 1
-      ? "border-yellow-300 bg-gradient-to-r from-yellow-50 via-amber-50 to-white"
+      ? "border-yellow-300 rank-first-gradient-flow"
       : rankNumber === 2
-        ? "border-slate-300 bg-gradient-to-r from-slate-50 via-gray-50 to-white"
+        ? "border-slate-300 rank-second-gradient-flow"
         : rankNumber === 3
-          ? "border-[#B87333] bg-gradient-to-r from-[#FFF8F2] via-[#F1E1D1] to-white"
+          ? "border-[#B87333] rank-third-gradient-flow"
           : "border-gray-200 bg-white";
+  const rowHoverClassName =
+    rankNumber === 1 ? "hover:border-yellow-400" : "hover:border-gray-400 hover:bg-gray-50/40";
 
   return (
     <Link
       href={`/vlist/${item.public_id ?? item.streamer_id}`}
-      className={`group flex items-center gap-3 rounded-xl border px-3 py-2 transition hover:border-gray-400 hover:bg-gray-50/40 ${topRankRowClassName}`}
+      className={`group flex items-center gap-3 rounded-xl border px-3 py-2 transition ${rowHoverClassName} ${topRankRowClassName}`}
     >
       <span className="inline-flex w-10 shrink-0 items-center justify-center text-center text-sm font-semibold text-gray-700">
         {rankNumber <= 3 ? <Trophy className={`h-5 w-5 ${trophyClassName}`} /> : `${rankNumber}위`}

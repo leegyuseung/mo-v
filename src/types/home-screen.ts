@@ -40,7 +40,6 @@ export type ShowcaseStreamerListProps = {
   streamers: HomeShowcaseStreamer[];
   emptyText: string;
   showBirthdayMeta?: boolean;
-  enableScrollWhenMany?: boolean;
   showLiveMeta?: boolean;
   liveStatusById?: LiveStatusByStreamerId;
 };

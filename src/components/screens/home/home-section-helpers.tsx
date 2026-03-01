@@ -31,7 +31,6 @@ export function ShowcaseStreamerList({
   streamers,
   emptyText,
   showBirthdayMeta = false,
-  enableScrollWhenMany = false,
   showLiveMeta = false,
   liveStatusById,
 }: ShowcaseStreamerListProps) {
@@ -39,8 +38,7 @@ export function ShowcaseStreamerList({
     return <p className="py-6 text-center text-xs text-gray-400">{emptyText}</p>;
   }
 
-  const listClassName =
-    enableScrollWhenMany ? "h-[136px] space-y-2 overflow-y-auto pt-1 pr-1" : "space-y-2";
+  const listClassName = "h-[136px] space-y-2 overflow-y-auto pt-1 pr-1";
 
   return (
     <div className={listClassName}>
@@ -112,7 +110,7 @@ export function ShowcaseStreamerList({
         return (
           <div
             key={`home-showcase-streamer-${streamer.id}`}
-            className="relative z-0 flex min-h-[62px] items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/60 p-2 shadow-sm transition-all duration-200 hover:z-20 hover:-translate-y-0.5 hover:border-gray-300 hover:bg-gray-100/60 hover:shadow-[0_14px_28px_-14px_rgba(0,0,0,0.45)] focus-within:z-20"
+            className="relative z-0 flex h-[62px] items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/60 p-2 shadow-sm transition-all duration-200 hover:z-20 hover:-translate-y-0.5 hover:border-gray-300 hover:bg-gray-100/60 hover:shadow-[0_14px_28px_-14px_rgba(0,0,0,0.45)] focus-within:z-20"
           >
             {canMoveToLive ? (
               <a

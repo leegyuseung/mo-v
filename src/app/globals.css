@@ -119,10 +119,12 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-pretendard);
   }
+
   button,
   input,
   textarea,
@@ -140,4 +142,44 @@
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
+.rank-first-gradient-flow {
+    background-image: linear-gradient(135deg,
+        #ffffff 0%,
+        #fef9e7 15%,
+        #fde68a 35%,
+        #fef9e7 50%,
+        #ffffff 65%,
+        #fde68a 85%,
+        #ffffff 100%);
+    background-size: 200% 100%;
+    background-position: 200% 50%;
+  }
+
+  .rank-second-gradient-flow {
+    background-image: linear-gradient(135deg,
+        #ffffff 0%,
+        #f1f5f9 15%,
+        #cbd5e1 35%,
+        #f1f5f9 50%,
+        #ffffff 65%,
+        #cbd5e1 85%,
+        #ffffff 100%);
+    background-size: 200% 100%;
+    background-position: 200% 50%;
+  }
+
+  .rank-third-gradient-flow {
+    background-image: linear-gradient(135deg,
+        #ffffff 0%,
+        #fef3e2 15%,
+        #deb887 35%,
+        #fef3e2 50%,
+        #ffffff 65%,
+        #deb887 85%,
+        #ffffff 100%);
+    background-size: 200% 100%;
+    background-position: 200% 50%;
+  }
+
 }
