@@ -32,12 +32,12 @@ export default function HomeShowcaseSection({
     <section className="p-4 md:p-6">
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
         <div className="flex flex-col rounded-2xl border border-gray-100 bg-white p-4 xl:col-span-1">
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex min-h-7 items-center justify-between">
             <h3 className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-800">
               <PartyPopper className="h-4 w-4 text-pink-500" />
               생일
             </h3>
-            <div className="flex items-center gap-2">
+            <div className="flex min-h-7 items-center gap-2">
               <span className="text-[11px] text-gray-400">{upcomingBirthdayCount}명</span>
               {birthdayTotalPages > 1 ? (
                 <>
@@ -90,7 +90,7 @@ export default function HomeShowcaseSection({
         </div>
 
         <div className="flex flex-col rounded-2xl border border-gray-100 bg-white p-4 xl:col-span-1">
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex min-h-7 items-center justify-between">
             <h3 className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-800">
               <ThumbsUp className="h-4 w-4 text-blue-500" />
               추천
