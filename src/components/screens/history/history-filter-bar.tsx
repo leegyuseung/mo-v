@@ -50,21 +50,23 @@ export default function HistoryFilterBar({
           ))}
         </select>
       </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <h2 className="text-sm font-semibold text-gray-500">포인트 내역</h2>
-        <div className="ml-auto flex items-center gap-1">
+      <div className="flex flex-nowrap items-center justify-end gap-1.5 md:gap-2">
+        <h2 className="hidden text-sm font-semibold text-gray-500 md:mr-auto md:block">
+          포인트 내역
+        </h2>
+        <div className="flex items-center gap-1">
           <input
             type="date"
             value={startDateFilter}
             onChange={(event) => onChangeStartDateFilter(event.target.value)}
-            className="h-8 rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-700 outline-none focus:border-gray-400"
+            className="h-8 w-[110px] rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-700 outline-none focus:border-gray-400 md:w-auto"
           />
           <span className="text-xs text-gray-400">~</span>
           <input
             type="date"
             value={endDateFilter}
             onChange={(event) => onChangeEndDateFilter(event.target.value)}
-            className="h-8 rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-700 outline-none focus:border-gray-400"
+            className="h-8 w-[110px] rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-700 outline-none focus:border-gray-400 md:w-auto"
           />
         </div>
         <button

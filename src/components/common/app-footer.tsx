@@ -31,7 +31,7 @@ export default function AppFooter() {
     <>
       <footer className="w-full border-t border-gray-100 py-6">
         <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-center gap-2 px-4">
-          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-gray-500">
+          <div className="hidden flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-gray-500 md:flex">
             <Link href="/legal/terms" className="hover:text-gray-700 hover:underline">
               서비스 이용약관
             </Link>
@@ -55,6 +55,34 @@ export default function AppFooter() {
             >
               오류 신고
             </button>
+          </div>
+          <div className="flex flex-col items-center gap-1 text-xs text-gray-500 md:hidden">
+            <div className="flex items-center justify-center gap-x-2">
+              <Link href="/legal/terms" className="hover:text-gray-700 hover:underline">
+                서비스 이용약관
+              </Link>
+              <span className="text-gray-300">|</span>
+              <Link href="/legal/privacy" className="hover:text-gray-700 hover:underline">
+                개인정보 수집·이용
+              </Link>
+              <span className="text-gray-300">|</span>
+              <Link href="/legal/third-party" className="hover:text-gray-700 hover:underline">
+                개인정보 처리위탁
+              </Link>
+            </div>
+            <div className="flex items-center justify-center gap-x-2">
+              <Link href="/legal/marketing" className="hover:text-gray-700 hover:underline">
+                마케팅 수신 동의
+              </Link>
+              <span className="text-gray-300">|</span>
+              <button
+                type="button"
+                className="cursor-pointer hover:text-gray-700 hover:underline"
+                onClick={() => setIsErrorReportModalOpen(true)}
+              >
+                오류 신고
+              </button>
+            </div>
           </div>
 
           <p className="text-center text-[11px] text-gray-400">

@@ -43,8 +43,12 @@ const adminMenuItems = [
 
 export default function AdminSideBar() {
     const pathname = usePathname();
-    const { state } = useSidebar();
+    const { state, isMobile, setOpenMobile } = useSidebar();
     const isCollapsed = state === "collapsed";
+    const closeSidebarOnMobile = () => {
+        if (!isMobile) return;
+        setOpenMobile(false);
+    };
 
     return (
         <Sidebar variant="sidebar" collapsible="icon" className="border-none">
@@ -81,7 +85,7 @@ export default function AdminSideBar() {
                                                 : "text-gray-400 hover:bg-gray-800 hover:text-white"
                                                 }`}
                                         >
-                                            <Link href={item.url}>
+                                            <Link href={item.url} onClick={closeSidebarOnMobile}>
                                                 <item.icon className="w-5 h-5" />
                                                 <span>{item.title}</span>
                                             </Link>
@@ -102,7 +106,7 @@ export default function AdminSideBar() {
                             tooltip="메인으로"
                             className="text-gray-400 hover:bg-gray-800 hover:text-white"
                         >
-                            <Link href="/">
+                            <Link href="/" onClick={closeSidebarOnMobile}>
                                 <ArrowLeft className="w-5 h-5" />
                                 <span>메인으로 돌아가기</span>
                             </Link>

@@ -59,7 +59,7 @@ export default function ErrorReportModal({
         <p className="mt-1 text-sm text-gray-500">
           <span className="block">발견한 오류를 입력해 주세요.</span>
           <span className="block">
-            확인 후 해결 완료 시 {ADMIN_ERROR_REPORT_REWARD_POINT}포인트를 지급합니다.
+            확인 후 {ADMIN_ERROR_REPORT_REWARD_POINT}포인트를 지급합니다.
           </span>
         </p>
 

@@ -21,6 +21,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarFooter,
+  useSidebar,
 } from "../ui/sidebar";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -48,7 +49,12 @@ const isNavigableItem = (item: MenuItem) => {
 
 export default function AppSideBar() {
   const { profile } = useAuthStore();
+  const { isMobile, setOpenMobile } = useSidebar();
   const isAdmin = (profile?.role || "").trim().toLowerCase() === "admin";
+  const closeSidebarOnMobile = () => {
+    if (!isMobile) return;
+    setOpenMobile(false);
+  };
 
   return (
     <Sidebar
@@ -68,7 +74,7 @@ export default function AppSideBar() {
                       tooltip={item.title}
                       className="hover:bg-transparent hover:text-blue-600"
                     >
-                      <Link href={item.url!}>
+                      <Link href={item.url!} onClick={closeSidebarOnMobile}>
                         <item.icon className="w-5 h-5" />
                         <span>{item.title}</span>
                       </Link>
@@ -100,7 +106,7 @@ export default function AppSideBar() {
                 tooltip="관리자"
                 className="hover:bg-transparent hover:text-blue-600"
               >
-                <Link href="/admin">
+                <Link href="/admin" onClick={closeSidebarOnMobile}>
                   <Shield className="w-5 h-5" />
                   <span>관리자</span>
                 </Link>

@@ -81,7 +81,7 @@ export default function ContentListItemCard({
               {isEnded ? <X className="h-3 w-3" /> : null}
               {statusLabel}
               {ddayLabel ? (
-                <span className="ml-0.5 text-[10px] font-bold text-rose-600">
+                <span className="ml-0.5 text-[10px] font-bold text-green-700">
                   {ddayLabel}
                 </span>
               ) : null}
