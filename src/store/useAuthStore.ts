@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { createClient } from "@/utils/supabase/client";
 import type { Profile, HeartPoints } from "@/types/profile";
 import type { AuthState, AuthActions } from "@/types/auth";
+import { ensureSignUpBonusClaimedOncePerSession } from "@/lib/auth/ensure-signup-bonus";
 import { useLoginMethodStore } from "@/store/useLoginMethodStore";
 import type { LoginProvider } from "@/store/useLoginMethodStore";
 
@@ -75,6 +76,12 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
                     set({ isLoading: false, isInitialized: true });
                     return;
                 }
+
+                // 필수 약관 동의 완료 상태에서 회원가입 보너스를 1회 지급 시도한다.
+                if (isRequiredAgreementAccepted) {
+                    await ensureSignUpBonusClaimedOncePerSession(session.user.id).catch(() => undefined);
+                }
+
                 // 프로필 조회
                 const { data: profile } = await supabase
                     .from("profiles")

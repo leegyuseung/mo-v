@@ -1,4 +1,10 @@
-import type { AuthForm, DeleteAccountInput, OAuthProvider, SignUpInput } from "@/types/auth";
+import type {
+  AuthForm,
+  DeleteAccountInput,
+  OAuthProvider,
+  SignUpBonusClaimResponse,
+  SignUpInput,
+} from "@/types/auth";
 import { USER_AGREEMENT_VERSION } from "@/lib/user-agreement";
 import { createClient } from "@/utils/supabase/client";
 
@@ -61,6 +67,24 @@ export async function resendSignUpConfirmationEmail(email: string) {
   });
 
   if (error) throw error;
+}
+
+export async function claimSignUpBonus() {
+  const response = await fetch("/api/auth/signup-bonus", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  const body = (await response.json().catch(() => null)) as
+    | SignUpBonusClaimResponse
+    | { message?: string }
+    | null;
+
+  if (!response.ok) {
+    throw new Error((body as { message?: string } | null)?.message || "회원가입 보너스 지급에 실패했습니다.");
+  }
+
+  return body as SignUpBonusClaimResponse;
 }
 
 export const signUp = async (formData: SignUpInput) => {

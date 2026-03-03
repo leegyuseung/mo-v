@@ -13,6 +13,12 @@ export type SignUpInput = AuthForm & {
 
 export type OAuthProvider = "google" | "kakao";
 
+export type SignUpBonusClaimResponse = {
+  ok: boolean;
+  granted: boolean;
+  afterPoint: number;
+};
+
 export type MutationCallback = {
   onSuccess?: () => void;
   onError?: (error: Error) => void;
