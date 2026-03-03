@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useSignInWithPassword } from "@/hooks/mutations/auth/use-sign-in-with-password";
 import { useSignInWithProvider } from "@/hooks/mutations/auth/use-sign-in-with-provider";
-import { useOAuthPopupListener } from "@/hooks/auth/use-oauth-popup-listener";
 import { useLoginMethodStore } from "@/store/useLoginMethodStore";
 import { resendSignUpConfirmationEmail } from "@/api/auth";
 import LoginForm from "@/components/screens/auth/login-form";
@@ -14,7 +13,6 @@ import LoginSocialButtons from "@/components/screens/auth/login-social-buttons";
 import {
     getAuthErrorCode,
     isEmailNotConfirmedError,
-    OAUTH_POPUP_OPTIONS,
     SOCIAL_PROVIDERS,
 } from "@/components/screens/auth/login-screen-utils";
 import type { OAuthProvider } from "@/types/auth";
@@ -75,8 +73,6 @@ export default function LoginScreen() {
         signIn({ email, password });
     };
 
-    useOAuthPopupListener();
-
     const handleSocialLogin = async (provider: OAuthProvider) => {
         try {
             // 소셜 로그인은 항상 세션 유지 (OAuth 리디렉트 특성상)
@@ -85,18 +81,7 @@ export default function LoginScreen() {
             } else {
                 sessionStorage.removeItem("session_active");
             }
-            const oauthUrl = await signInWithProvider(provider);
-            const popup = window.open(
-                oauthUrl,
-                "social-login",
-                OAUTH_POPUP_OPTIONS
-            );
-
-            if (!popup) {
-                window.location.href = oauthUrl;
-                return;
-            }
-            popup.focus();
+            await signInWithProvider(provider);
         } catch {
             toast.error("소셜 로그인에 실패했습니다. 다시 시도해주세요.");
         }

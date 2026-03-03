@@ -1,4 +1,6 @@
 const NICKNAME_REGEX = /^[0-9A-Za-z가-힣_]+$/;
+export const NICKNAME_ADMIN_KEYWORD_FORBIDDEN_MESSAGE =
+    '"관리자"가 포함된 닉네임을 사용할 수 없습니다.';
 
 /**
  * 닉네임 입력값을 검증하고 정제(trim)된 값을 반환한다.
@@ -20,4 +22,8 @@ export function validateNicknameInput(nickname?: string): string | undefined {
     }
 
     return trimmed;
+}
+
+export function containsAdminKeyword(value: string) {
+    return value.includes("관리자");
 }

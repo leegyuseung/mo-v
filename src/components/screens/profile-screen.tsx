@@ -18,6 +18,10 @@ import ProfileLoadingState from "@/components/screens/profile/profile-loading-st
 import ProfileLoginRequiredState from "@/components/screens/profile/profile-login-required-state";
 import ProfilePasswordPanel from "@/components/screens/profile/profile-password-panel";
 import ProfileWithdrawDialogs from "@/components/screens/profile/profile-withdraw-dialogs";
+import {
+  containsAdminKeyword,
+  NICKNAME_ADMIN_KEYWORD_FORBIDDEN_MESSAGE,
+} from "@/utils/validate";
 
 type ProfileScreenProps = {
   embedded?: boolean;
@@ -85,6 +89,8 @@ export default function ProfileScreen({ embedded = false }: ProfileScreenProps) 
     handleSubmit,
     reset,
     control,
+    setError,
+    clearErrors,
     formState: { errors, isDirty },
   } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -108,6 +114,15 @@ export default function ProfileScreen({ embedded = false }: ProfileScreenProps) 
 
   const onSubmit = (data: ProfileFormValues) => {
     if (!user) return;
+    if (profile?.role !== "admin" && containsAdminKeyword(data.nickname)) {
+      setError("nickname", {
+        type: "manual",
+        message: NICKNAME_ADMIN_KEYWORD_FORBIDDEN_MESSAGE,
+      });
+      return;
+    }
+
+    clearErrors("nickname");
 
     updateProfile({
       userId: user.id,

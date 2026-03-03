@@ -40,21 +40,14 @@ export async function changePassword(
 }
 
 export async function signInWithProvider(provider: OAuthProvider) {
-  const { data, error } = await supabase.auth.signInWithOAuth({
+  const { error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${window.location.origin}/auth/callback?popup=1`,
-      skipBrowserRedirect: true,
+      redirectTo: `${window.location.origin}/auth/callback`,
     },
   });
 
   if (error) throw error;
-
-  if (!data.url) {
-    throw new Error("소셜 로그인 URL을 생성하지 못했습니다.");
-  }
-
-  return data.url;
 }
 
 export async function resendSignUpConfirmationEmail(email: string) {
