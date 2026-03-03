@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useStreamerTopDonors } from "@/hooks/queries/heart/use-streamer-top-donors";
 import type { DonorPeriod } from "@/types/heart";
 import type { TopDonorsPeriodFilter, TopDonorsSectionProps } from "@/types/vlist-top-donors";
+import { cn } from "@/lib/utils";
 
 const TOP_DONOR_PERIOD_FILTERS: TopDonorsPeriodFilter[] = [
   { key: "all", label: "전체" },
@@ -13,7 +14,7 @@ const TOP_DONOR_PERIOD_FILTERS: TopDonorsPeriodFilter[] = [
 ];
 
 /** 하트 선물 TOP 5 섹션: 기간 선택 + 기부자 목록 */
-export default function TopDonorsSection({ streamerId }: TopDonorsSectionProps) {
+export default function TopDonorsSection({ streamerId, className }: TopDonorsSectionProps) {
   const [donorPeriod, setDonorPeriod] = useState<DonorPeriod>("all");
 
   const {
@@ -23,7 +24,12 @@ export default function TopDonorsSection({ streamerId }: TopDonorsSectionProps) 
   } = useStreamerTopDonors(streamerId, donorPeriod);
 
   return (
-    <div className="mt-4 w-full md:w-1/2">
+    <div
+      className={cn(
+        "mt-4 w-full md:w-1/2 h-[246px] rounded-xl border border-gray-200 bg-white p-3 flex flex-col",
+        className
+      )}
+    >
       <div className="mb-3 flex items-center justify-between gap-2">
         <p className="text-sm font-semibold text-gray-700">하트 선물 TOP 5</p>
         <div className="inline-flex items-center rounded-full border border-gray-200 bg-white p-1">
@@ -45,37 +51,39 @@ export default function TopDonorsSection({ streamerId }: TopDonorsSectionProps) 
           })}
         </div>
       </div>
-      {isTopDonorsLoading ? (
-        <div className="space-y-2">
-          {Array.from({ length: 5 }).map((_, index) => (
-            <div
-              key={`donor-skeleton-${index}`}
-              className="h-8 animate-pulse rounded-md bg-gray-200/70"
-            />
-          ))}
-        </div>
-      ) : isTopDonorsError ? (
-        <p className="text-sm text-red-500">
-          하트 랭킹 조회에 실패했습니다. 기간별 뷰 SQL을 확인해 주세요.
-        </p>
-      ) : topDonors.length === 0 ? (
-        <p className="text-sm text-gray-500">아직 하트 선물 내역이 없습니다.</p>
-      ) : (
-        <div className="space-y-2">
-          {topDonors.slice(0, 5).map((donor) => (
-            <div
-              key={`${donor.user_id || "unknown"}-${donor.donor_rank ?? "rank"}-${donor.last_sent_at ?? "0"}-${donor.total_sent ?? 0}`}
-              className="flex items-center justify-between px-1 py-2 text-sm"
-            >
-              <span className="text-gray-700">{`${donor.donor_rank ?? 0}위`}</span>
-              <span className="flex-1 px-3 text-gray-800">
-                {donor.user_nickname || "익명 유저"}
-              </span>
-              <span className="font-semibold text-gray-900">{`${(donor.total_sent ?? 0).toLocaleString()} 하트`}</span>
-            </div>
-          ))}
-        </div>
-      )}
+      <div className="flex-1 overflow-y-auto pr-1">
+        {isTopDonorsLoading ? (
+          <div className="space-y-2">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <div
+                key={`donor-skeleton-${index}`}
+                className="h-8 animate-pulse rounded-md bg-gray-200/70"
+              />
+            ))}
+          </div>
+        ) : isTopDonorsError ? (
+          <p className="text-sm text-red-500">
+            하트 랭킹 조회에 실패했습니다. 기간별 뷰 SQL을 확인해 주세요.
+          </p>
+        ) : topDonors.length === 0 ? (
+          <p className="text-sm text-gray-500">아직 하트 선물 내역이 없습니다.</p>
+        ) : (
+          <div className="space-y-2">
+            {topDonors.slice(0, 5).map((donor) => (
+              <div
+                key={`${donor.user_id || "unknown"}-${donor.donor_rank ?? "rank"}-${donor.last_sent_at ?? "0"}-${donor.total_sent ?? 0}`}
+                className="flex items-center justify-between px-1 py-2 text-sm"
+              >
+                <span className="text-gray-700">{`${donor.donor_rank ?? 0}위`}</span>
+                <span className="flex-1 px-3 text-gray-800">
+                  {donor.user_nickname || "익명 유저"}
+                </span>
+                <span className="font-semibold text-gray-900">{`${(donor.total_sent ?? 0).toLocaleString()} 하트`}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

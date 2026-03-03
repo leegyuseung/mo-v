@@ -24,6 +24,8 @@ import InfoEditRequestModal from "@/components/common/info-edit-request-modal";
 import ReportRequestModal from "@/components/common/report-request-modal";
 import StreamerProfileCard from "./streamer-profile-card";
 import TopDonorsSection from "./top-donors-section";
+import ParticipatingLiveBoxesSection from "./participating-live-boxes-section";
+import StreamerPeriodRankBadges from "./streamer-period-rank-badges";
 import GiftHeartModal from "./gift-heart-modal";
 import type { VlistDetailScreenProps } from "@/types/streamer";
 
@@ -235,7 +237,6 @@ export default function VlistDetailScreen({
       {/* ─── 프로필 카드 ─── */}
       <StreamerProfileCard
         streamer={streamer}
-        canonicalPlatform={canonicalPlatform}
         platformHref={platformHref}
         platformIconSrc={platformIconSrc}
         toneContainerClass={toneContainerClass}
@@ -248,10 +249,19 @@ export default function VlistDetailScreen({
         isReceivedHeartTotalLoading={isReceivedHeartTotalLoading}
         streamerStarCount={streamerStarCount}
         isStreamerStarCountLoading={isStreamerStarCountLoading}
+        periodRankBadges={<StreamerPeriodRankBadges streamerId={streamer.id} />}
       />
 
-      {/* ─── 하트 선물 TOP 5 ─── */}
-      <TopDonorsSection streamerId={streamer.id} />
+      <div className="mt-4 flex w-full flex-col gap-4 md:flex-row md:items-start">
+        {/* ─── 하트 선물 TOP 5 ─── */}
+        <TopDonorsSection streamerId={streamer.id} className="mt-0 w-full md:w-1/2" />
+        {/* ─── 참여 라이브박스(대기/진행중) ─── */}
+        <ParticipatingLiveBoxesSection
+          streamerChzzkId={streamer.chzzk_id}
+          streamerSoopId={streamer.soop_id}
+          className="mt-0 w-full md:w-1/2"
+        />
+      </div>
 
       {/* ─── 모달 ─── */}
       <InfoEditRequestModal

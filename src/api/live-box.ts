@@ -22,6 +22,38 @@ export async function fetchPublicLiveBoxes(client?: SupabaseClient): Promise<Liv
   return (data || []).map((liveBox) => withEffectiveLiveBoxStatus(liveBox));
 }
 
+/** 특정 스트리머 플랫폼 ID(chzzk/soop) 배열과 겹치는 공개 라이브박스만 조회한다. */
+export async function fetchParticipatingPublicLiveBoxes(
+  platformIds: string[],
+  client?: SupabaseClient
+): Promise<LiveBox[]> {
+  const normalizedPlatformIds = Array.from(
+    new Set(
+      platformIds
+        .map((value) => value.trim().toLowerCase())
+        .filter(Boolean)
+    )
+  );
+
+  if (normalizedPlatformIds.length === 0) {
+    return [];
+  }
+
+  const sb = client || getDefaultClient();
+  const { data, error } = await sb
+    .from("live_box")
+    .select("*")
+    .overlaps("participant_streamer_ids", normalizedPlatformIds)
+    .order("starts_at", { ascending: true, nullsFirst: false })
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  return (data || [])
+    .map((liveBox) => withEffectiveLiveBoxStatus(liveBox))
+    .filter((liveBox) => liveBox.status === "대기" || liveBox.status === "진행중");
+}
+
 /** 공개 라이브박스 단건을 조회한다. */
 export async function fetchPublicLiveBoxById(liveBoxId: number): Promise<LiveBox | null> {
   const { data, error } = await getDefaultClient()

@@ -7,6 +7,7 @@ import type {
     StreamerHeartLeaderboardItem,
     StreamerYearlySnapshotRow,
 } from "@/types/heart";
+import type { HeartPeriodRank, StreamerPeriodRanks } from "@/types/heart-period-rank";
 import type { StreamerTopDonor } from "@/types/profile";
 
 /** 클라이언트 환경에서만 초기화되는 Supabase 인스턴스. 서버에서 모듈이 import되어도 즉시 초기화되지 않는다 */
@@ -124,6 +125,90 @@ async function fetchYearlyStreamerTopDonorsViaApi(
         data: payload.data || [],
         count: Number(payload.count || 0),
     };
+}
+
+const STREAMER_PERIOD_RANK_SOURCES: ReadonlyArray<{
+    period: HeartPeriodRank["period"];
+    label: HeartPeriodRank["label"];
+    source: string;
+}> = [
+    { period: "all", label: "전체", source: "streamer_heart_rank" },
+    { period: "yearly", label: "연간", source: "streamer_heart_rank_yearly" },
+    { period: "monthly", label: "월간", source: "streamer_heart_rank_monthly" },
+    { period: "weekly", label: "주간", source: "streamer_heart_rank_weekly" },
+];
+
+const YEARLY_RANK_FALLBACK_LIMIT = 1000;
+
+async function fetchYearlyPeriodRankFallback(
+    supabase: SupabaseClient,
+    streamerId: number,
+    clientProvided: boolean
+): Promise<number | null> {
+    const yearlyRows = clientProvided
+        ? await fetchYearlyHeartLeaderboardFromSnapshots(
+              supabase,
+              YEARLY_RANK_FALLBACK_LIMIT
+          )
+        : await fetchYearlyHeartLeaderboardViaApi(YEARLY_RANK_FALLBACK_LIMIT);
+
+    const visibleRows = yearlyRows.filter(
+        (row) => (row.total_received || 0) > 0
+    );
+    const rankIndex = visibleRows.findIndex(
+        (row) => row.streamer_id === streamerId
+    );
+
+    return rankIndex >= 0 ? rankIndex + 1 : null;
+}
+
+/** 특정 스트리머의 기간별(전체/연간/월간/주간) 랭크 배지 정보를 경량 조회한다. */
+export async function fetchStreamerPeriodRanks(
+    streamerId: number,
+    client?: SupabaseClient
+): Promise<StreamerPeriodRanks> {
+    const supabase = client || getDefaultClient();
+
+    const ranks = await Promise.all(
+        STREAMER_PERIOD_RANK_SOURCES.map(async ({ period, label, source }) => {
+            const { data: row, error: rowError } = await supabase
+                .from(source as "streamer_heart_rank")
+                .select("total_received")
+                .eq("streamer_id", streamerId)
+                .maybeSingle();
+
+            if (rowError) {
+                if (period === "yearly") {
+                    return {
+                        period,
+                        label,
+                        rank: await fetchYearlyPeriodRankFallback(
+                            supabase,
+                            streamerId,
+                            Boolean(client)
+                        ),
+                    };
+                }
+                throw rowError;
+            }
+
+            const totalReceived = Number(row?.total_received || 0);
+            if (!row || totalReceived <= 0) {
+                return { period, label, rank: null };
+            }
+
+            const { count, error: countError } = await supabase
+                .from(source as "streamer_heart_rank")
+                .select("streamer_id", { count: "exact", head: true })
+                .gt("total_received", totalReceived);
+
+            if (countError) throw countError;
+
+            return { period, label, rank: Number(count || 0) + 1 };
+        })
+    );
+
+    return ranks;
 }
 
 /** 유저의 하트 포인트 잔액을 조회한다 */
@@ -249,15 +334,12 @@ export async function fetchStreamerHeartLeaderboard(
     limit: number = 5,
     client?: SupabaseClient
 ): Promise<StreamerHeartLeaderboardItem[]> {
-    if (period === "yearly") {
-        if (!client) return fetchYearlyHeartLeaderboardViaApi(limit);
-        return fetchYearlyHeartLeaderboardFromSnapshots(client, limit);
-    }
-
     const supabase = client || getDefaultClient();
 
     const source =
-        period === "weekly"
+        period === "yearly"
+            ? "streamer_heart_rank_yearly"
+            : period === "weekly"
             ? "streamer_heart_rank_weekly"
             : period === "monthly"
                 ? "streamer_heart_rank_monthly"
@@ -270,7 +352,13 @@ export async function fetchStreamerHeartLeaderboard(
         .order("nickname", { ascending: true })
         .limit(limit);
 
-    if (rankError) throw rankError;
+    if (rankError) {
+        if (period === "yearly") {
+            if (!client) return fetchYearlyHeartLeaderboardViaApi(limit);
+            return fetchYearlyHeartLeaderboardFromSnapshots(supabase, limit);
+        }
+        throw rankError;
+    }
 
     const rows = rankRows || [];
     const streamerIds = rows

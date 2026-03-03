@@ -10,7 +10,7 @@ export default function RankFilterBar({
 }: RankFilterBarProps) {
   return (
     <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-      <div className="inline-flex items-center rounded-lg border border-gray-200 bg-white p-1">
+      <div className="inline-flex flex-wrap items-center rounded-lg border border-gray-200 bg-white p-1">
         {filters.map((filter) => {
           const isActive = period === filter.key;
           return (
@@ -37,4 +37,3 @@ export default function RankFilterBar({
     </div>
   );
 }
-

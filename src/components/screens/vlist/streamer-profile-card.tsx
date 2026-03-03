@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { Heart } from "lucide-react";
 import StarCountBadge from "@/components/common/star-count-badge";
 
@@ -30,7 +31,6 @@ type StreamerProfileCardProps = {
     fancafe_url: string | null;
     youtube_url: string | null;
   };
-  canonicalPlatform: "chzzk" | "soop";
   platformHref: string;
   platformIconSrc: string;
   toneContainerClass: string;
@@ -43,12 +43,12 @@ type StreamerProfileCardProps = {
   isReceivedHeartTotalLoading: boolean;
   streamerStarCount: number;
   isStreamerStarCountLoading: boolean;
+  periodRankBadges?: ReactNode;
 };
 
 /** 버츄얼 프로필 카드: 이미지, 정보, 소속/그룹 태그, 외부 링크 */
 export default function StreamerProfileCard({
   streamer,
-  canonicalPlatform,
   platformHref,
   platformIconSrc,
   toneContainerClass,
@@ -61,6 +61,7 @@ export default function StreamerProfileCard({
   isReceivedHeartTotalLoading,
   streamerStarCount,
   isStreamerStarCountLoading,
+  periodRankBadges,
 }: StreamerProfileCardProps) {
   const infoRows: Array<{ label: string; value: string }> = [
     { label: "생일", value: streamer.birthday || "-" },
@@ -142,7 +143,10 @@ export default function StreamerProfileCard({
         </div>
 
         {/* 정보 패널 */}
-        <div className="flex-1 min-w-0 space-y-6">
+        <div className="relative flex-1 min-w-0 space-y-6">
+          {periodRankBadges ? (
+            <div className="absolute right-0 top-0 z-10">{periodRankBadges}</div>
+          ) : null}
           <div className="mt-1">
             <p className="text-3xl font-bold text-gray-900 break-all">
               {streamer.nickname || "-"}
