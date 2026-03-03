@@ -10,6 +10,8 @@ export type LiveBoxFormPanelProps = {
   filteredParticipants: LiveBoxParticipantCandidate[];
   startsAt: string;
   endsAt: string;
+  urlTitle: string;
+  url: string;
   description: string;
   status: LiveBoxStatus;
   statusOptions: LiveBoxStatus[];
@@ -21,6 +23,8 @@ export type LiveBoxFormPanelProps = {
   onRemoveParticipant: (platformId: string) => void;
   onStartsAtChange: (value: string) => void;
   onEndsAtChange: (value: string) => void;
+  onUrlTitleChange: (value: string) => void;
+  onUrlChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
   onStatusChange: (value: LiveBoxStatus) => void;
   onCancel: () => void;

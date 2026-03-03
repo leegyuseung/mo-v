@@ -5,6 +5,10 @@ import type {
   LiveBoxUpdateInput,
   LiveBoxWithCreatorProfile,
 } from "@/types/live-box";
+import {
+  normalizeLiveBoxExternalLink,
+  validateLiveBoxExternalLink,
+} from "@/utils/admin-live-box";
 import { withEffectiveLiveBoxStatus } from "@/utils/live-box-status";
 
 const supabase = createClient();
@@ -46,6 +50,33 @@ function assertValidLiveBoxPayload(payload: LiveBoxCreateInput | LiveBoxUpdateIn
   ) {
     throw new Error("시작일시는 종료일시보다 늦을 수 없습니다.");
   }
+
+  const linkValidationMessage = validateLiveBoxExternalLink({
+    urlTitle: payload.url_title,
+    url: payload.url,
+  });
+  if (linkValidationMessage) {
+    throw new Error(linkValidationMessage);
+  }
+}
+
+function toLiveBoxPersistPayload(payload: LiveBoxCreateInput | LiveBoxUpdateInput) {
+  const normalizedExternalLink = normalizeLiveBoxExternalLink({
+    urlTitle: payload.url_title,
+    url: payload.url,
+  });
+
+  return {
+    title: payload.title,
+    category: payload.category,
+    participant_streamer_ids: payload.participant_streamer_ids,
+    starts_at: payload.starts_at,
+    ends_at: payload.ends_at,
+    url_title: normalizedExternalLink.urlTitle || null,
+    url: normalizedExternalLink.url || null,
+    description: payload.description,
+    status: payload.status,
+  };
 }
 
 /** 관리자 박스 목록을 최신순으로 조회한다. */
@@ -67,15 +98,7 @@ export async function createLiveBox(payload: LiveBoxCreateInput): Promise<LiveBo
 
   const { data, error } = await supabase
     .from("live_box")
-    .insert({
-      title: payload.title,
-      category: payload.category,
-      participant_streamer_ids: payload.participant_streamer_ids,
-      starts_at: payload.starts_at,
-      ends_at: payload.ends_at,
-      description: payload.description,
-      status: payload.status,
-    })
+    .insert(toLiveBoxPersistPayload(payload))
     .select("*")
     .single();
 
@@ -92,15 +115,7 @@ export async function updateLiveBox(
 
   const { data, error } = await supabase
     .from("live_box")
-    .update({
-      title: payload.title,
-      category: payload.category,
-      participant_streamer_ids: payload.participant_streamer_ids,
-      starts_at: payload.starts_at,
-      ends_at: payload.ends_at,
-      description: payload.description,
-      status: payload.status,
-    })
+    .update(toLiveBoxPersistPayload(payload))
     .eq("id", liveBoxId)
     .select("*")
     .single();

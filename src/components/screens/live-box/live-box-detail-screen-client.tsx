@@ -83,6 +83,10 @@ export default function LiveBoxDetailScreenClient({
     });
   }, [liveBox, participantKeyword, participantByPlatformId]);
 
+  const externalUrlTitle = liveBox?.url_title?.trim() || "";
+  const externalUrl = liveBox?.url?.trim() || "";
+  const hasExternalLink = externalUrlTitle.length > 0 && externalUrl.length > 0;
+
   if (hasLiveBoxError) {
     return (
       <div className="mx-auto max-w-4xl p-4 md:p-6">
@@ -122,12 +126,22 @@ export default function LiveBoxDetailScreenClient({
           <LiveBoxStatusBadge status={liveBox.status} />
         </div>
 
-        <div className="mb-4 flex justify-end">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          {hasExternalLink ? (
+            <a
+              href={externalUrl}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="inline-flex h-9 items-center rounded-md border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 transition-colors hover:border-gray-400 hover:bg-gray-50"
+            >
+              {externalUrlTitle}
+            </a>
+          ) : null}
           <SearchInput
             value={participantKeyword}
             onChange={setParticipantKeyword}
             placeholder="참여자 검색 (닉네임)"
-            containerClassName="w-full md:w-80"
+            containerClassName={`w-full md:w-80 ${hasExternalLink ? "" : "md:ml-auto"}`}
             inputClassName="h-9"
           />
         </div>

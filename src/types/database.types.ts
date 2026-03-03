@@ -312,6 +312,8 @@ export type Database = {
           starts_at: string | null
           status: string
           title: string
+          url: string | null
+          url_title: string | null
         }
         Insert: {
           category: string[]
@@ -324,6 +326,8 @@ export type Database = {
           starts_at?: string | null
           status?: string
           title: string
+          url?: string | null
+          url_title?: string | null
         }
         Update: {
           category?: string[]
@@ -336,6 +340,8 @@ export type Database = {
           starts_at?: string | null
           status?: string
           title?: string
+          url?: string | null
+          url_title?: string | null
         }
         Relationships: [
           {

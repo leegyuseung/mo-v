@@ -53,6 +53,8 @@ export default function LiveBoxesScreenClient() {
           filteredParticipants={formState.filteredParticipants}
           startsAt={formState.startsAt}
           endsAt={formState.endsAt}
+          urlTitle={formState.urlTitle}
+          url={formState.url}
           description={formState.description}
           status={formState.status}
           statusOptions={STATUS_OPTIONS}
@@ -64,6 +66,8 @@ export default function LiveBoxesScreenClient() {
           onRemoveParticipant={formState.removeParticipant}
           onStartsAtChange={formState.setStartsAt}
           onEndsAtChange={formState.setEndsAt}
+          onUrlTitleChange={formState.setUrlTitle}
+          onUrlChange={formState.setUrl}
           onDescriptionChange={formState.setDescription}
           onStatusChange={formState.setStatus}
           onCancel={formState.closeFormPanel}

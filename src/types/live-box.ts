@@ -21,6 +21,8 @@ export type LiveBoxCreateInput = {
   participant_streamer_ids: string[];
   starts_at: string | null;
   ends_at: string | null;
+  url_title?: string | null;
+  url?: string | null;
   description: string | null;
   status: LiveBoxStatus;
 };

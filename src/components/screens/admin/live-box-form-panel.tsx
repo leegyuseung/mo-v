@@ -18,6 +18,8 @@ export default function LiveBoxFormPanel({
   filteredParticipants,
   startsAt,
   endsAt,
+  urlTitle,
+  url,
   description,
   status,
   statusOptions,
@@ -29,6 +31,8 @@ export default function LiveBoxFormPanel({
   onRemoveParticipant,
   onStartsAtChange,
   onEndsAtChange,
+  onUrlTitleChange,
+  onUrlChange,
   onDescriptionChange,
   onStatusChange,
   onCancel,
@@ -131,6 +135,22 @@ export default function LiveBoxFormPanel({
         <div className="space-y-1.5">
           <p className="text-xs text-gray-500">마감일시</p>
           <Input type="date" value={endsAt} onChange={(event) => onEndsAtChange(event.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <p className="text-xs text-gray-500">URL 제목</p>
+          <Input
+            value={urlTitle}
+            onChange={(event) => onUrlTitleChange(event.target.value)}
+            placeholder="예: 이벤트 페이지"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <p className="text-xs text-gray-500">URL</p>
+          <Input
+            value={url}
+            onChange={(event) => onUrlChange(event.target.value)}
+            placeholder="https://example.com"
+          />
         </div>
         <div className="space-y-1.5">
           <p className="text-xs text-gray-500">상태</p>

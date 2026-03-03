@@ -11,8 +11,10 @@ import type {
 import {
   formatLiveBoxDate,
   getLiveBoxParticipantCandidate,
+  normalizeLiveBoxExternalLink,
   normalizeLiveBoxStatus,
   parseLiveBoxCategoryInput,
+  validateLiveBoxExternalLink,
 } from "@/utils/admin-live-box";
 import { toSeoulBoundaryIso } from "@/utils/seoul-time";
 
@@ -40,6 +42,8 @@ export function useAdminLiveBoxFormState({
   const [selectedParticipantIds, setSelectedParticipantIds] = useState<string[]>([]);
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
+  const [urlTitle, setUrlTitle] = useState("");
+  const [url, setUrl] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<LiveBoxStatus>("대기");
 
@@ -87,6 +91,8 @@ export function useAdminLiveBoxFormState({
     setSelectedParticipantIds([]);
     setStartsAt("");
     setEndsAt("");
+    setUrlTitle("");
+    setUrl("");
     setDescription("");
     setStatus("대기");
   }, []);
@@ -114,6 +120,8 @@ export function useAdminLiveBoxFormState({
       setSelectedParticipantIds(target.participant_streamer_ids);
       setStartsAt(target.starts_at ? formatLiveBoxDate(target.starts_at) : "");
       setEndsAt(target.ends_at ? formatLiveBoxDate(target.ends_at) : "");
+      setUrlTitle(target.url_title || "");
+      setUrl(target.url || "");
       setDescription(target.description || "");
       setStatus(normalizeLiveBoxStatus(target.status));
       setParticipantSearch("");
@@ -152,6 +160,19 @@ export function useAdminLiveBoxFormState({
       return;
     }
 
+    const linkValidationMessage = validateLiveBoxExternalLink({
+      urlTitle,
+      url,
+    });
+    if (linkValidationMessage) {
+      toast.error(linkValidationMessage);
+      return;
+    }
+    const normalizedExternalLink = normalizeLiveBoxExternalLink({
+      urlTitle,
+      url,
+    });
+
     const startsAtIso = startsAt ? toSeoulBoundaryIso(startsAt, "start") : null;
     const endsAtIso = endsAt ? toSeoulBoundaryIso(endsAt, "end") : null;
 
@@ -171,6 +192,8 @@ export function useAdminLiveBoxFormState({
       participant_streamer_ids: selectedParticipantIds,
       starts_at: startsAtIso,
       ends_at: endsAtIso,
+      url_title: normalizedExternalLink.urlTitle || null,
+      url: normalizedExternalLink.url || null,
       description: description.trim() || null,
       status,
     };
@@ -196,6 +219,8 @@ export function useAdminLiveBoxFormState({
     categoryInput,
     startsAt,
     endsAt,
+    urlTitle,
+    url,
     selectedParticipantIds,
     description,
     status,
@@ -215,6 +240,8 @@ export function useAdminLiveBoxFormState({
     filteredParticipants,
     startsAt,
     endsAt,
+    urlTitle,
+    url,
     description,
     status,
     isSubmitting: isCreating || isUpdating,
@@ -223,6 +250,8 @@ export function useAdminLiveBoxFormState({
     setParticipantSearch,
     setStartsAt,
     setEndsAt,
+    setUrlTitle,
+    setUrl,
     setDescription,
     setStatus,
     addParticipant,

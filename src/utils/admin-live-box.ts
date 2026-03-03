@@ -3,6 +3,46 @@ import type { LiveBoxStatus } from "@/types/live-box";
 import type { LiveBoxParticipantCandidate } from "@/types/admin-live-box";
 import { toSeoulDateParts } from "@/utils/seoul-time";
 
+export const LIVE_BOX_EXTERNAL_LINK_REQUIRED_ERROR_MESSAGE =
+  "URL 제목과 URL은 함께 입력해 주세요.";
+export const LIVE_BOX_EXTERNAL_LINK_FORMAT_ERROR_MESSAGE =
+  "URL은 http:// 또는 https:// 형식이어야 합니다.";
+
+const HTTP_URL_PATTERN = /^https?:\/\//i;
+
+export type LiveBoxExternalLinkInput = {
+  urlTitle?: string | null;
+  url?: string | null;
+};
+
+export function normalizeLiveBoxExternalLink({
+  urlTitle,
+  url,
+}: LiveBoxExternalLinkInput) {
+  return {
+    urlTitle: urlTitle?.trim() || "",
+    url: url?.trim() || "",
+  };
+}
+
+/**
+ * 라이브박스 외부 링크 입력값이 저장 가능한 상태인지 확인한다.
+ * 왜: 관리자 폼과 API에서 동일 규칙을 공유해 검증 결과를 일관되게 유지하기 위함.
+ */
+export function validateLiveBoxExternalLink(input: LiveBoxExternalLinkInput): string | null {
+  const normalized = normalizeLiveBoxExternalLink(input);
+
+  if ((normalized.urlTitle && !normalized.url) || (!normalized.urlTitle && normalized.url)) {
+    return LIVE_BOX_EXTERNAL_LINK_REQUIRED_ERROR_MESSAGE;
+  }
+
+  if (normalized.url && !HTTP_URL_PATTERN.test(normalized.url)) {
+    return LIVE_BOX_EXTERNAL_LINK_FORMAT_ERROR_MESSAGE;
+  }
+
+  return null;
+}
+
 export function formatLiveBoxDate(value: string | null) {
   if (!value) return "-";
   const date = toSeoulDateParts(value);
