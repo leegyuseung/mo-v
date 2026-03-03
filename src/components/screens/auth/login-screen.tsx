@@ -9,9 +9,13 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useSignInWithPassword } from "@/hooks/mutations/auth/use-sign-in-with-password";
 import { useSignInWithProvider } from "@/hooks/mutations/auth/use-sign-in-with-provider";
+import { useOAuthPopupListener } from "@/hooks/auth/use-oauth-popup-listener";
 import { useLoginMethodStore } from "@/store/useLoginMethodStore";
 import { toast } from "sonner";
 import AppFooter from "@/components/common/app-footer";
+
+/** OAuth 팝업 창 설정 */
+const OAUTH_POPUP_OPTIONS = "popup=yes,width=520,height=720,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes,resizable=yes";
 
 /** 소셜 로그인 버튼 정보 */
 const SOCIAL_PROVIDERS: {
@@ -70,6 +74,8 @@ export default function LoginScreen() {
         signIn({ email, password });
     };
 
+    useOAuthPopupListener();
+
     const handleSocialLogin = async (provider: "google" | "kakao") => {
         try {
             // 소셜 로그인은 항상 세션 유지 (OAuth 리디렉트 특성상)
@@ -78,7 +84,18 @@ export default function LoginScreen() {
             } else {
                 sessionStorage.removeItem("session_active");
             }
-            await signInWithProvider(provider);
+            const oauthUrl = await signInWithProvider(provider);
+            const popup = window.open(
+                oauthUrl,
+                "social-login",
+                OAUTH_POPUP_OPTIONS
+            );
+
+            if (!popup) {
+                window.location.href = oauthUrl;
+                return;
+            }
+            popup.focus();
         } catch {
             toast.error("소셜 로그인에 실패했습니다. 다시 시도해주세요.");
         }

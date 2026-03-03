@@ -1,4 +1,5 @@
-import type { AuthForm, DeleteAccountInput } from "@/types/auth";
+import type { AuthForm, DeleteAccountInput, SignUpInput } from "@/types/auth";
+import { USER_AGREEMENT_VERSION } from "@/lib/user-agreement";
 import { createClient } from "@/utils/supabase/client";
 
 const supabase = createClient();
@@ -33,22 +34,39 @@ export async function changePassword(
 }
 
 export async function signInWithProvider(provider: "google" | "kakao") {
-  const { error } = await supabase.auth.signInWithOAuth({
+  const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: `${window.location.origin}/auth/callback?popup=1`,
+      skipBrowserRedirect: true,
     },
   });
 
   if (error) throw error;
+
+  if (!data.url) {
+    throw new Error("소셜 로그인 URL을 생성하지 못했습니다.");
+  }
+
+  return data.url;
 }
 
-export const signUp = async (formData: AuthForm) => {
+export const signUp = async (formData: SignUpInput) => {
   const { data, error } = await supabase.auth.signUp({
     email: formData.email,
     password: formData.password,
     options: {
       emailRedirectTo: `${window.location.origin}/login`,
+      data: {
+        agreement_terms: formData.agreements.terms,
+        agreement_privacy: formData.agreements.privacy,
+        agreement_third_party: formData.agreements.thirdParty,
+        agreement_marketing: formData.agreements.marketing,
+        agreement_terms_version: USER_AGREEMENT_VERSION.terms,
+        agreement_privacy_version: USER_AGREEMENT_VERSION.privacy,
+        agreement_third_party_version: USER_AGREEMENT_VERSION.thirdParty,
+        agreement_marketing_version: USER_AGREEMENT_VERSION.marketing,
+      },
     },
   });
 

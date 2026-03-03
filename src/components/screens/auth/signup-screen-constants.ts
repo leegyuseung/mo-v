@@ -11,7 +11,7 @@ import type {
 export const SIGNUP_AGREEMENTS: readonly SignUpAgreement[] = [
   { id: "terms", title: "서비스 이용약관 동의", required: true, content: termsMd },
   { id: "privacy", title: "개인정보 수집 및 이용 동의", required: true, content: privacyMd },
-  { id: "thirdParty", title: "개인정보 처리 위탁 동의", required: false, content: thirdPartyMd },
+  { id: "thirdParty", title: "개인정보 처리 위탁 동의", required: true, content: thirdPartyMd },
   { id: "marketing", title: "마케팅 정보 수신 동의", required: false, content: marketingMd },
 ];
 

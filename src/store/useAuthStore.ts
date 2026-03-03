@@ -36,6 +36,37 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
             } = await supabase.auth.getSession();
 
             if (session?.user) {
+                const pathname =
+                    typeof window !== "undefined" ? window.location.pathname : "";
+                const isAgreementFlowPath =
+                    pathname.startsWith("/auth/agreements") ||
+                    pathname.startsWith("/auth/callback");
+
+                const { data: agreement, error: agreementError } = await supabase
+                    .from("user_agreements")
+                    .select("terms_accepted,privacy_accepted,third_party_accepted")
+                    .eq("user_id", session.user.id)
+                    .maybeSingle();
+
+                const isRequiredAgreementAccepted = Boolean(
+                    agreement?.terms_accepted && agreement?.privacy_accepted && agreement?.third_party_accepted
+                );
+
+                // 약관 미동의 상태에서는 약관 동의 화면 외 경로에서 로그인 상태를 유지하지 않는다.
+                if (!isRequiredAgreementAccepted && !isAgreementFlowPath) {
+                    if (!agreementError || agreementError.code !== "42P01") {
+                        await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
+                        set({
+                            user: null,
+                            profile: null,
+                            heartPoints: null,
+                            isLoading: false,
+                            isInitialized: true,
+                        });
+                        return;
+                    }
+                }
+
                 // "로그인 상태 유지" 미체크 시: sessionStorage 마커가 없으면 브라우저가
                 // 닫혔다 열린 것이므로 세션을 만료시킨다.
                 const { rememberMe } = useLoginMethodStore.getState();

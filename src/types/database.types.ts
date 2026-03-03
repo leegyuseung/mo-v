@@ -440,6 +440,51 @@ export type Database = {
         }
         Relationships: []
       }
+      user_agreements: {
+        Row: {
+          agreed_at: string | null
+          created_at: string
+          marketing_accepted: boolean
+          marketing_version: string | null
+          privacy_accepted: boolean
+          privacy_version: string | null
+          terms_accepted: boolean
+          terms_version: string | null
+          third_party_accepted: boolean
+          third_party_version: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agreed_at?: string | null
+          created_at?: string
+          marketing_accepted?: boolean
+          marketing_version?: string | null
+          privacy_accepted?: boolean
+          privacy_version?: string | null
+          terms_accepted?: boolean
+          terms_version?: string | null
+          third_party_accepted?: boolean
+          third_party_version?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          agreed_at?: string | null
+          created_at?: string
+          marketing_accepted?: boolean
+          marketing_version?: string | null
+          privacy_accepted?: boolean
+          privacy_version?: string | null
+          terms_accepted?: boolean
+          terms_version?: string | null
+          third_party_accepted?: boolean
+          third_party_version?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       entity_report_requests: {
         Row: {
           content: string

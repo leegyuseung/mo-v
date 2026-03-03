@@ -76,7 +76,16 @@ export default function SignupScreen() {
             toast.error("필수 약관에 동의해주세요.");
             return;
         }
-        signupMutate(data);
+        signupMutate({
+            email: data.email,
+            password: data.password,
+            agreements: {
+                terms: agreements.terms,
+                privacy: agreements.privacy,
+                thirdParty: agreements.thirdParty,
+                marketing: agreements.marketing,
+            },
+        });
     };
 
     return (

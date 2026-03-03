@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ClipboardList, UserRound } from "lucide-react";
+import { ClipboardList, Settings, UserRound } from "lucide-react";
 
 const profileMenus = [
   { href: "/profile", label: "프로필 수정", icon: UserRound },
   { href: "/profile/requests", label: "내 요청 내역", icon: ClipboardList },
+  { href: "/profile/setting", label: "계정 설정", icon: Settings },
 ];
 
 function isActive(pathname: string, href: string) {

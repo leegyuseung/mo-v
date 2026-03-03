@@ -1,9 +1,14 @@
 import { User } from "@supabase/supabase-js";
 import type { Profile, HeartPoints } from "@/types/profile";
+import type { UserAgreementState } from "@/types/user-agreement";
 
 export type AuthForm = {
   email: string;
   password: string;
+};
+
+export type SignUpInput = AuthForm & {
+  agreements: UserAgreementState;
 };
 
 export type MutationCallback = {
