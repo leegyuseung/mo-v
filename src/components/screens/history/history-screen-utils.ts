@@ -1,6 +1,7 @@
 import type { HistoryFilterOption } from "@/types/history-screen";
 
 export const HISTORY_PAGE_SIZE = 15;
+export const HEART_HISTORY_REFRESH_SIGNAL_KEY = "heart_history_refresh_at";
 
 export const HISTORY_FILTER_OPTIONS: HistoryFilterOption[] = [
   { value: "all", label: "전체" },
@@ -13,6 +14,7 @@ const HISTORY_TYPE_LABELS: Record<string, string> = {
   daily_gift_box: "일일 선물 이벤트",
   gift_sent: "하트 선물",
   admin_review_reward: "신고 보상",
+  signup_bonus: "회원가입 보너스",
 };
 
 export function getHistoryTypeLabel(type: string | null | undefined) {

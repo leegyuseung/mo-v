@@ -5,13 +5,19 @@ import { useHeartPointHistory } from "@/hooks/queries/heart/use-heart-point-hist
 import { Heart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import Pagination from "@/components/common/pagination";
 import HistoryFilterBar from "@/components/screens/history/history-filter-bar";
 import HistoryList from "@/components/screens/history/history-list";
 import { useHistoryScreenState } from "@/hooks/history/use-history-screen-state";
+import {
+    HEART_HISTORY_REFRESH_SIGNAL_KEY,
+} from "@/components/screens/history/history-screen-utils";
+import { getHeartPointHistoryQueryKey } from "@/hooks/queries/heart/use-heart-point-history";
 
 export default function HistoryScreen() {
     const router = useRouter();
+    const queryClient = useQueryClient();
     const { user, heartPoints, isLoading: isAuthLoading, isInitialized } = useAuthStore();
 
     // 로그인 안 되어있으면 로그인 페이지로 이동
@@ -39,6 +45,21 @@ export default function HistoryScreen() {
         resetDateFilter,
         onPageChange,
     } = useHistoryScreenState(historyData?.data);
+
+    useEffect(() => {
+        if (!user?.id) return;
+
+        const onStorage = (event: StorageEvent) => {
+            if (event.key !== HEART_HISTORY_REFRESH_SIGNAL_KEY) return;
+            queryClient.invalidateQueries({
+                queryKey: getHeartPointHistoryQueryKey(user.id),
+                exact: true,
+            });
+        };
+
+        window.addEventListener("storage", onStorage);
+        return () => window.removeEventListener("storage", onStorage);
+    }, [queryClient, user?.id]);
 
     // 로딩 중이거나 비로그인 상태 (리다이렉트 대기)
     if (!isInitialized || isAuthLoading || !user) {

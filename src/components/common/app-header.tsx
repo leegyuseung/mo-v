@@ -8,10 +8,14 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useSignOut } from "@/hooks/mutations/auth/use-sign-out";
 import { useCheckDailyGiftBoxStatus } from "@/hooks/mutations/event/use-check-daily-gift-box-status";
 import { useClaimDailyGiftBox } from "@/hooks/mutations/event/use-claim-daily-gift-box";
-import { Bell, Gift, Mail, Star, PanelLeft, PanelLeftClose } from "lucide-react";
+import { Bell, CalendarDays, Gift, Mail, Star, PanelLeft, PanelLeftClose } from "lucide-react";
 import { useSidebar } from "../ui/sidebar";
 import AppHeaderProfileMenu from "@/components/common/app-header-profile-menu";
 import GiftEventModal from "@/components/common/gift-event-modal";
+import LiveBoxScheduleCalendarModal from "@/components/common/live-box-schedule-calendar-modal";
+import { HEART_HISTORY_REFRESH_SIGNAL_KEY } from "@/components/screens/history/history-screen-utils";
+import { getHeartPointHistoryQueryKey } from "@/hooks/queries/heart/use-heart-point-history";
+import { useLiveBoxes } from "@/hooks/queries/live-box/use-live-boxes";
 import { toast } from "sonner";
 
 export default function AppHeader() {
@@ -22,8 +26,11 @@ export default function AppHeader() {
   const { toggleSidebar, isMobile, open, openMobile } = useSidebar();
   const isSidebarOpen = isMobile ? openMobile : open;
   const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [scheduleModalOpenKey, setScheduleModalOpenKey] = useState(0);
   const [isGiftOpening, setIsGiftOpening] = useState(false);
   const [giftAmount, setGiftAmount] = useState<number | null>(null);
+  const { data: liveBoxes = [], isLoading: isLiveBoxesLoading } = useLiveBoxes(isScheduleModalOpen);
   const { mutateAsync: checkDailyGiftBoxStatus, isPending: isGiftChecking } =
     useCheckDailyGiftBoxStatus();
   const { mutateAsync: claimGiftBox } = useClaimDailyGiftBox();
@@ -68,9 +75,10 @@ export default function AppHeader() {
         created_at: heartPoints?.created_at || new Date().toISOString(),
         updated_at: new Date().toISOString(),
       });
-      await queryClient.invalidateQueries({
-        queryKey: ["heartPointHistory", user!.id],
-      });
+      const historyQueryKey = getHeartPointHistoryQueryKey(user!.id);
+      await queryClient.invalidateQueries({ queryKey: historyQueryKey, exact: true });
+      await queryClient.refetchQueries({ queryKey: historyQueryKey, exact: true, type: "active" });
+      localStorage.setItem(HEART_HISTORY_REFRESH_SIGNAL_KEY, String(Date.now()));
 
       setTimeout(() => {
         setGiftAmount(result.amount);
@@ -133,6 +141,22 @@ export default function AppHeader() {
             선물 이벤트 (1~50하트)
           </span>
         </div>
+        <div className="group relative">
+          <button
+            type="button"
+            aria-label="콘텐츠 일정"
+            onClick={() => {
+              setScheduleModalOpenKey((previous) => previous + 1);
+              setIsScheduleModalOpen(true);
+            }}
+            className="h-9 w-9 md:h-10 md:w-10 inline-flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer"
+          >
+            <CalendarDays className="w-4 h-4 text-black" />
+          </button>
+          <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hidden md:block">
+            콘텐츠 일정
+          </span>
+        </div>
         <div className="group relative hidden md:block">
           <button
             type="button"
@@ -183,6 +207,13 @@ export default function AppHeader() {
         isGiftOpening={isGiftOpening}
         onOpenGiftBox={openGiftBox}
         onClose={() => setIsGiftModalOpen(false)}
+      />
+      <LiveBoxScheduleCalendarModal
+        key={`live-box-schedule-modal-${scheduleModalOpenKey}`}
+        open={isScheduleModalOpen}
+        liveBoxes={liveBoxes}
+        isLoading={isLiveBoxesLoading}
+        onClose={() => setIsScheduleModalOpen(false)}
       />
     </div>
   );
