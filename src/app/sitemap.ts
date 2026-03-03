@@ -73,6 +73,12 @@ function staticEntries(now: Date): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
+      url: withBaseUrl("/aggregate"),
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.75,
+    },
+    {
       url: withBaseUrl("/legal"),
       lastModified: now,
       changeFrequency: "monthly",

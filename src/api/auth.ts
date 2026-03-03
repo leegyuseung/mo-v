@@ -1,4 +1,4 @@
-import type { AuthForm, DeleteAccountInput, SignUpInput } from "@/types/auth";
+import type { AuthForm, DeleteAccountInput, OAuthProvider, SignUpInput } from "@/types/auth";
 import { USER_AGREEMENT_VERSION } from "@/lib/user-agreement";
 import { createClient } from "@/utils/supabase/client";
 
@@ -33,7 +33,7 @@ export async function changePassword(
   if (updateError) throw updateError;
 }
 
-export async function signInWithProvider(provider: "google" | "kakao") {
+export async function signInWithProvider(provider: OAuthProvider) {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
@@ -49,6 +49,18 @@ export async function signInWithProvider(provider: "google" | "kakao") {
   }
 
   return data.url;
+}
+
+export async function resendSignUpConfirmationEmail(email: string) {
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: {
+      emailRedirectTo: `${window.location.origin}/login`,
+    },
+  });
+
+  if (error) throw error;
 }
 
 export const signUp = async (formData: SignUpInput) => {

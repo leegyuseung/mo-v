@@ -11,6 +11,8 @@ export type SignUpInput = AuthForm & {
   agreements: UserAgreementState;
 };
 
+export type OAuthProvider = "google" | "kakao";
+
 export type MutationCallback = {
   onSuccess?: () => void;
   onError?: (error: Error) => void;

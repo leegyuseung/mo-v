@@ -26,7 +26,7 @@ const SIGNUP_ERROR_MESSAGE_BY_CODE: Record<SignUpErrorCode, string> = {
   user_already_exists: "이미 가입된 이메일입니다.",
   email_address_invalid: "유효하지 않은 이메일 형식입니다.",
   signup_disabled: "현재 회원가입이 비활성화되어 있습니다.",
-  over_email_send_rate_limit: "단시간에 너무 많은 요청이 있었습니다. 잠시 후 다시 시도해주세요.",
+  over_email_send_rate_limit: "요청이 많습니다. 1분 뒤 다시 시도해주세요.",
 };
 
 export function getSignupErrorMessage(errorCode?: string) {

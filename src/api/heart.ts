@@ -5,7 +5,9 @@ import type {
     DonorPeriod,
     HeartRankPeriod,
     StreamerHeartLeaderboardItem,
+    StreamerYearlySnapshotRow,
 } from "@/types/heart";
+import type { StreamerTopDonor } from "@/types/profile";
 
 /** 클라이언트 환경에서만 초기화되는 Supabase 인스턴스. 서버에서 모듈이 import되어도 즉시 초기화되지 않는다 */
 let _defaultClient: ReturnType<typeof createClient> | null = null;
@@ -14,47 +16,42 @@ function getDefaultClient() {
   return _defaultClient;
 }
 
-function getSeoulCurrentYearRange() {
+function getSeoulCurrentYear() {
     const now = new Date();
-    const currentYear = Number(
+    return Number(
         new Intl.DateTimeFormat("en-CA", {
             timeZone: "Asia/Seoul",
             year: "numeric",
         }).format(now)
     );
-    const startIso = new Date(`${currentYear}-01-01T00:00:00+09:00`).toISOString();
-    const endIso = new Date(`${currentYear + 1}-01-01T00:00:00+09:00`).toISOString();
-    return { startIso, endIso };
 }
 
-async function fetchYearlyHeartLeaderboardFromHistory(
+async function fetchYearlyHeartLeaderboardFromSnapshots(
     supabase: SupabaseClient,
     limit: number
 ): Promise<StreamerHeartLeaderboardItem[]> {
-    const { startIso, endIso } = getSeoulCurrentYearRange();
+    const year = getSeoulCurrentYear();
 
-    const { data: historyRows, error: historyError } = await supabase
-        .from("streamer_heart_history")
-        .select("to_streamer_id,amount")
-        .gte("created_at", startIso)
-        .lt("created_at", endIso);
+    const { data: snapshotRows, error: snapshotError } = await supabase.rpc(
+        "get_streamer_heart_rank_snapshot",
+        {
+            p_period_type: "yearly",
+            p_year: year,
+            p_month: 0,
+            p_week_of_month: 0,
+        }
+    );
 
-    if (historyError) throw historyError;
-    if (!historyRows || historyRows.length === 0) return [];
-
-    const totalByStreamerId = new Map<number, number>();
-    historyRows.forEach((row) => {
-        const streamerId = row.to_streamer_id;
-        const amount = Number(row.amount || 0);
-        if (!Number.isFinite(streamerId) || streamerId <= 0) return;
-        totalByStreamerId.set(streamerId, (totalByStreamerId.get(streamerId) || 0) + amount);
-    });
-
-    const sortedTotals = Array.from(totalByStreamerId.entries())
-        .map(([streamerId, totalReceived]) => ({ streamerId, totalReceived }))
-        .filter((item) => item.totalReceived > 0)
-        .sort((a, b) => b.totalReceived - a.totalReceived)
-        .slice(0, limit);
+    if (snapshotError) throw snapshotError;
+    const sortedTotals = ((snapshotRows || []) as StreamerYearlySnapshotRow[])
+        .filter((item) => Number(item.rank) > 0 && Number(item.streamer_id) > 0)
+        .sort((a, b) => a.rank - b.rank)
+        .slice(0, limit)
+        .map((item) => ({
+            streamerId: item.streamer_id,
+            totalReceived: Number(item.total_received || 0),
+            nickname: item.streamer_nickname,
+        }));
 
     if (sortedTotals.length === 0) return [];
 
@@ -74,7 +71,7 @@ async function fetchYearlyHeartLeaderboardFromHistory(
             if (!streamer) return null;
             return {
                 streamer_id: item.streamerId,
-                nickname: streamer.nickname,
+                nickname: item.nickname || streamer.nickname,
                 platform: streamer.platform,
                 total_received: item.totalReceived,
                 image_url: streamer.image_url,
@@ -100,6 +97,33 @@ async function fetchYearlyHeartLeaderboardViaApi(
 
     const data = (await response.json()) as StreamerHeartLeaderboardItem[];
     return data || [];
+}
+
+async function fetchYearlyStreamerTopDonorsViaApi(
+    streamerId: number,
+    limit: number,
+    offset: number
+): Promise<{ data: StreamerTopDonor[]; count: number }> {
+    const params = new URLSearchParams({
+        streamerId: String(streamerId),
+        limit: String(limit),
+        offset: String(offset),
+    });
+
+    const response = await fetch(`/api/heart/yearly-top-donors?${params.toString()}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+        throw new Error("연간 하트 후원자 조회에 실패했습니다.");
+    }
+
+    const payload = (await response.json()) as { data: StreamerTopDonor[]; count: number };
+    return {
+        data: payload.data || [],
+        count: Number(payload.count || 0),
+    };
 }
 
 /** 유저의 하트 포인트 잔액을 조회한다 */
@@ -226,15 +250,11 @@ export async function fetchStreamerHeartLeaderboard(
     client?: SupabaseClient
 ): Promise<StreamerHeartLeaderboardItem[]> {
     if (period === "yearly") {
-        if (!client) {
-            return fetchYearlyHeartLeaderboardViaApi(limit);
-        }
+        if (!client) return fetchYearlyHeartLeaderboardViaApi(limit);
+        return fetchYearlyHeartLeaderboardFromSnapshots(client, limit);
     }
 
     const supabase = client || getDefaultClient();
-    if (period === "yearly") {
-        return fetchYearlyHeartLeaderboardFromHistory(supabase, limit);
-    }
 
     const source =
         period === "weekly"
@@ -295,6 +315,10 @@ export async function fetchStreamerTopDonors(
     offset: number = 0,
     period: DonorPeriod = "all"
 ) {
+    if (period === "yearly") {
+        return fetchYearlyStreamerTopDonorsViaApi(streamerId, limit, offset);
+    }
+
     const source =
         period === "weekly"
             ? "streamer_top_donors_weekly"

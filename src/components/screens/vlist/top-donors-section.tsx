@@ -3,10 +3,14 @@
 import { useState } from "react";
 import { useStreamerTopDonors } from "@/hooks/queries/heart/use-streamer-top-donors";
 import type { DonorPeriod } from "@/types/heart";
+import type { TopDonorsPeriodFilter, TopDonorsSectionProps } from "@/types/vlist-top-donors";
 
-type TopDonorsSectionProps = {
-  streamerId: number;
-};
+const TOP_DONOR_PERIOD_FILTERS: TopDonorsPeriodFilter[] = [
+  { key: "all", label: "전체" },
+  { key: "yearly", label: "연간" },
+  { key: "monthly", label: "월간" },
+  { key: "weekly", label: "주간" },
+];
 
 /** 하트 선물 TOP 5 섹션: 기간 선택 + 기부자 목록 */
 export default function TopDonorsSection({ streamerId }: TopDonorsSectionProps) {
@@ -23,11 +27,7 @@ export default function TopDonorsSection({ streamerId }: TopDonorsSectionProps) 
       <div className="mb-3 flex items-center justify-between gap-2">
         <p className="text-sm font-semibold text-gray-700">하트 선물 TOP 5</p>
         <div className="inline-flex items-center rounded-full border border-gray-200 bg-white p-1">
-          {[
-            { key: "all" as const, label: "전체" },
-            { key: "weekly" as const, label: "이번주" },
-            { key: "monthly" as const, label: "이번달" },
-          ].map((item) => {
+          {TOP_DONOR_PERIOD_FILTERS.map((item) => {
             const active = donorPeriod === item.key;
             return (
               <button
@@ -62,12 +62,12 @@ export default function TopDonorsSection({ streamerId }: TopDonorsSectionProps) 
         <p className="text-sm text-gray-500">아직 하트 선물 내역이 없습니다.</p>
       ) : (
         <div className="space-y-2">
-          {topDonors.slice(0, 5).map((donor, index) => (
+          {topDonors.slice(0, 5).map((donor) => (
             <div
-              key={`${donor.user_id || "unknown"}-${index}`}
+              key={`${donor.user_id || "unknown"}-${donor.donor_rank ?? "rank"}-${donor.last_sent_at ?? "0"}-${donor.total_sent ?? 0}`}
               className="flex items-center justify-between px-1 py-2 text-sm"
             >
-              <span className="text-gray-700">{`${donor.donor_rank ?? index + 1}위`}</span>
+              <span className="text-gray-700">{`${donor.donor_rank ?? 0}위`}</span>
               <span className="flex-1 px-3 text-gray-800">
                 {donor.user_nickname || "익명 유저"}
               </span>

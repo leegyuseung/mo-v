@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
-import type { StreamerHeartLeaderboardItem } from "@/types/heart";
+import type { StreamerHeartLeaderboardItem, StreamerYearlySnapshotRow } from "@/types/heart";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -31,42 +31,35 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const limit = parseLimit(url.searchParams);
-  const { startIso, endIso } = getSeoulCurrentYearRange();
+  const { startIso } = getSeoulCurrentYearRange();
+  const currentYear = Number(startIso.slice(0, 4));
 
   const admin = createAdminClient(supabaseUrl, serviceRoleKey);
 
-  const { data: historyRows, error: historyError } = await admin
-    .from("streamer_heart_history")
-    .select("to_streamer_id,amount")
-    .gte("created_at", startIso)
-    .lt("created_at", endIso);
-  if (historyError) {
+  const { data: snapshotRows, error: snapshotError } = await admin.rpc(
+    "get_streamer_heart_rank_snapshot",
+    {
+      p_period_type: "yearly",
+      p_year: currentYear,
+      p_month: 0,
+      p_week_of_month: 0,
+    }
+  );
+
+  if (snapshotError) {
     return NextResponse.json({ message: "연간 하트 집계 조회에 실패했습니다." }, { status: 500 });
   }
 
-  if (!historyRows || historyRows.length === 0) {
-    return NextResponse.json([] satisfies StreamerHeartLeaderboardItem[]);
-  }
-
-  const totalByStreamerId = new Map<number, number>();
-  historyRows.forEach((row) => {
-    const streamerId = row.to_streamer_id;
-    const amount = Number(row.amount || 0);
-    if (!Number.isFinite(streamerId) || streamerId <= 0) return;
-    totalByStreamerId.set(streamerId, (totalByStreamerId.get(streamerId) || 0) + amount);
-  });
-
-  const sortedTotals = Array.from(totalByStreamerId.entries())
-    .map(([streamerId, totalReceived]) => ({ streamerId, totalReceived }))
-    .filter((item) => item.totalReceived > 0)
-    .sort((a, b) => b.totalReceived - a.totalReceived)
+  const sortedTotals = ((snapshotRows || []) as StreamerYearlySnapshotRow[])
+    .filter((item) => Number(item.rank) > 0 && Number(item.streamer_id) > 0)
+    .sort((a, b) => a.rank - b.rank)
     .slice(0, limit);
 
   if (sortedTotals.length === 0) {
     return NextResponse.json([] satisfies StreamerHeartLeaderboardItem[]);
   }
 
-  const streamerIds = sortedTotals.map((item) => item.streamerId);
+  const streamerIds = sortedTotals.map((item) => item.streamer_id);
   const { data: streamerRows, error: streamerError } = await admin
     .from("streamers")
     .select("id,nickname,platform,image_url,public_id,group_name,crew_name")
@@ -78,13 +71,13 @@ export async function GET(request: Request) {
   const streamerById = new Map((streamerRows || []).map((streamer) => [streamer.id, streamer]));
   const result: StreamerHeartLeaderboardItem[] = sortedTotals
     .map((item) => {
-      const streamer = streamerById.get(item.streamerId);
+      const streamer = streamerById.get(item.streamer_id);
       if (!streamer) return null;
       return {
-        streamer_id: item.streamerId,
-        nickname: streamer.nickname,
+        streamer_id: item.streamer_id,
+        nickname: item.streamer_nickname || streamer.nickname,
         platform: streamer.platform,
-        total_received: item.totalReceived,
+        total_received: Number(item.total_received || 0),
         image_url: streamer.image_url,
         public_id: streamer.public_id,
         group_name: streamer.group_name,

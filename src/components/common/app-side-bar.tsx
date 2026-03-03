@@ -2,6 +2,7 @@
 import Link from "next/link";
 import type { ComponentType } from "react";
 import {
+  BarChart3,
   Boxes,
   Clapperboard,
   MicVocal,
@@ -39,6 +40,7 @@ const menuItems = [
   { title: "그룹", url: "/group", icon: MicVocal },
   { title: "소속", url: "/crew", icon: UsersRound },
   { title: "순위", url: "/rank", icon: Trophy },
+  { title: "집계", url: "/aggregate", icon: BarChart3 },
   { title: "홍보", icon: Megaphone },
   { title: "콘텐츠", url: "/contents", icon: Clapperboard },
 ] satisfies MenuItem[];

@@ -4,11 +4,18 @@ export type GiftHeartToStreamerResult = {
     streamerAfterTotal: number;
 };
 
-/** 후원 랭킹 기간 필터 (전체 / 주간 / 월간) */
-export type DonorPeriod = "all" | "weekly" | "monthly";
+/** 후원 랭킹 기간 필터 (전체 / 주간 / 월간 / 연간) */
+export type DonorPeriod = "all" | "weekly" | "monthly" | "yearly";
 
 /** 하트 랭킹 기간 필터 (전체 / 연간 / 월간 / 주간) */
 export type HeartRankPeriod = "all" | "yearly" | "weekly" | "monthly";
+
+export type StreamerYearlySnapshotRow = {
+    rank: number;
+    streamer_id: number;
+    total_received: number;
+    streamer_nickname: string | null;
+};
 
 /** 하트 랭킹 리더보드 항목 */
 export type StreamerHeartLeaderboardItem = {
