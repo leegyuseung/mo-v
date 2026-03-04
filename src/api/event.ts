@@ -1,7 +1,7 @@
 import type { DailyGiftBoxStatus, DailyGiftBoxClaimResult } from "@/types/event";
 
 /**
- * 당일의 하트 이벤트(선물 상자) 참여 여부와 획득 포인트 상태를 단일 조회한다.
+ * 현재 12시간 회차(00시/12시 기준)의 하트 이벤트 참여 여부와 획득 포인트 상태를 단일 조회한다.
  * 클라이언트나 서버 어디서든 `/api/event/gift-box/status` 루트를 경유한다.
  */
 export async function fetchDailyGiftBoxStatus(): Promise<DailyGiftBoxStatus> {
@@ -19,7 +19,7 @@ export async function fetchDailyGiftBoxStatus(): Promise<DailyGiftBoxStatus> {
 }
 
 /**
- * 당일의 무료 하트(1~50포인트)를 1회 획득한다.
+ * 현재 12시간 회차의 무료 하트(1~50포인트)를 1회 획득한다.
  * 동시성 문제 방지를 위해 Atomic 업데이트가 적용된 내부 API를 호출한다.
  */
 export async function claimDailyGiftBox(): Promise<DailyGiftBoxClaimResult> {

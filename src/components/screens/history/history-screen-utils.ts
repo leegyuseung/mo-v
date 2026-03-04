@@ -11,7 +11,7 @@ export const HISTORY_FILTER_OPTIONS: HistoryFilterOption[] = [
 
 const HISTORY_TYPE_LABELS: Record<string, string> = {
   profile_first_edit: "첫 프로필 수정 보너스",
-  daily_gift_box: "일일 선물 이벤트",
+  daily_gift_box: "선물 이벤트",
   gift_sent: "하트 선물",
   admin_review_reward: "신고 보상",
   signup_bonus: "회원가입 보너스",

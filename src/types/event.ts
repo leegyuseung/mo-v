@@ -1,10 +1,14 @@
 export type DailyGiftBoxStatus = {
-    claimedToday: boolean;
+    claimedInCurrentWindow: boolean;
+    windowKey: string;
+    windowLabel: string;
     amount: number | null;
 };
 
 export type DailyGiftBoxClaimResult = {
-    claimedToday: boolean;
+    claimedInCurrentWindow: boolean;
+    windowKey: string;
+    windowLabel: string;
     amount: number;
     afterPoint: number | null;
 };

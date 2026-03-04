@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { creditHeartPointsAtomic } from "@/utils/credit-heart-points";
+import { getCurrentKstGiftBoxWindow } from "@/utils/gift-box-window";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
@@ -10,15 +11,12 @@ const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const MIN_GIFT_POINT = 1;
 const MAX_GIFT_POINT = 50;
 
-function getKstDateString() {
-  const date = new Date();
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Seoul",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-  return formatter.format(date);
+function resolveGiftBoxClaimErrorMessage(error: unknown) {
+  if (error && typeof error === "object" && "code" in error) {
+    const code = String((error as { code?: unknown }).code ?? "");
+    if (code === "42P01") return "선물 이벤트 테이블이 아직 준비되지 않았습니다.";
+  }
+  return "선물 이벤트 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.";
 }
 
 function randomInt(min: number, max: number) {
@@ -54,14 +52,14 @@ export async function POST() {
   }
 
   const admin = createAdminClient(supabaseUrl, serviceRoleKey);
-  const today = getKstDateString();
+  const window = getCurrentKstGiftBoxWindow();
 
   try {
     const { data: initialClaimRow, error: findError } = await admin
       .from("daily_gift_box_claims")
       .select("id,amount,credited_at")
       .eq("user_id", user.id)
-      .eq("claim_date", today)
+      .eq("claim_window_key", window.windowKey)
       .maybeSingle();
     let claimRow = initialClaimRow;
 
@@ -73,7 +71,8 @@ export async function POST() {
         .from("daily_gift_box_claims")
         .insert({
           user_id: user.id,
-          claim_date: today,
+          claim_date: window.dateKey,
+          claim_window_key: window.windowKey,
           amount,
         })
         .select("id,amount,credited_at")
@@ -85,7 +84,7 @@ export async function POST() {
             .from("daily_gift_box_claims")
             .select("id,amount,credited_at")
             .eq("user_id", user.id)
-            .eq("claim_date", today)
+            .eq("claim_window_key", window.windowKey)
             .single();
           if (retryError) throw retryError;
           claimRow = retryRow;
@@ -123,7 +122,7 @@ export async function POST() {
             userId: user.id,
             amount: claimRow.amount,
             type: "daily_gift_box",
-            description: "일일 선물 이벤트",
+            description: "선물 이벤트",
           });
         } catch (creditError) {
           // 지급 실패 시 재시도를 허용하기 위해 선점 마킹을 되돌린다.
@@ -154,13 +153,15 @@ export async function POST() {
     }
 
     return NextResponse.json({
-      claimedToday: true,
+      claimedInCurrentWindow: true,
+      windowKey: window.windowKey,
+      windowLabel: window.windowLabel,
       amount: claimRow.amount,
       afterPoint,
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "선물 이벤트 처리에 실패했습니다.";
+    console.error("gift-box claim failed", error);
+    const message = resolveGiftBoxClaimErrorMessage(error);
     return NextResponse.json({ message }, { status: 500 });
   }
 }

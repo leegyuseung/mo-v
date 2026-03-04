@@ -13,7 +13,7 @@ type GiftEventModalProps = {
   onClose: () => void;
 };
 
-/** 선물 이벤트 모달: 하루 한 번 선물상자를 열어 하트를 획득한다 */
+/** 선물 이벤트 모달: 하루 두 번(00시/12시) 선물상자를 열어 하트를 획득한다 */
 export default function GiftEventModal({
   open,
   giftAmount,
@@ -38,7 +38,10 @@ export default function GiftEventModal({
         </div>
 
         <div className="mb-4">
-          <p className="text-sm text-gray-500">하루 한 번 선물상자를 열고 하트를 받아보세요.</p>
+          <p className="text-sm text-gray-500">하루 두 번 선물상자를 열고 하트를 받아보세요.</p>
+          <p className="mt-1 text-xs font-medium text-gray-500">
+            초기화 시간: 매일 00:00 / 12:00
+          </p>
           <p className="mt-1 text-xs font-medium text-rose-500">랜덤 1~50하트</p>
         </div>
 
@@ -56,7 +59,7 @@ export default function GiftEventModal({
           ) : (
             <div className="text-center">
               <AnimatedRewardHeart className="mx-auto mb-2" />
-              <p className="text-sm text-gray-500">오늘 받은 하트</p>
+              <p className="text-sm text-gray-500">이번 회차 받은 하트</p>
               <p className="mt-1 text-3xl font-bold text-red-600">
                 {giftAmount.toLocaleString()}하트
               </p>

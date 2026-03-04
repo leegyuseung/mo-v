@@ -2,20 +2,17 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { getCurrentKstGiftBoxWindow } from "@/utils/gift-box-window";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-function getKstDateString() {
-  const date = new Date();
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Seoul",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-  return formatter.format(date);
+function resolveGiftBoxStatusErrorMessage(errorCode: string | null | undefined) {
+  if (errorCode === "42P01") {
+    return "선물 이벤트 테이블이 아직 준비되지 않았습니다.";
+  }
+  return "선물 이벤트 상태를 확인하지 못했습니다.";
 }
 
 export async function GET() {
@@ -47,21 +44,27 @@ export async function GET() {
   }
 
   const admin = createAdminClient(supabaseUrl, serviceRoleKey);
-  const today = getKstDateString();
+  const window = getCurrentKstGiftBoxWindow();
 
-  const { data, error } = await (admin as any)
+  const { data, error } = await admin
     .from("daily_gift_box_claims")
     .select("amount")
     .eq("user_id", user.id)
-    .eq("claim_date", today)
+    .eq("claim_window_key", window.windowKey)
     .maybeSingle();
 
-  if (error && error.code !== "42P01") {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  if (error) {
+    console.error("gift-box status query failed", { code: error.code, message: error.message });
+    return NextResponse.json(
+      { message: resolveGiftBoxStatusErrorMessage(error.code) },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({
-    claimedToday: Boolean(data),
+    claimedInCurrentWindow: Boolean(data),
+    windowKey: window.windowKey,
+    windowLabel: window.windowLabel,
     amount: data?.amount ?? null,
   });
 }
