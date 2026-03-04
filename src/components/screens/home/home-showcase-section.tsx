@@ -13,6 +13,7 @@ export default function HomeShowcaseSection({
   isShowcaseLoading,
   isShowcaseError,
   liveStatusById,
+  isLiveStatusLoading,
 }: HomeShowcaseSectionProps) {
   const BIRTHDAY_PAGE_SIZE = 2;
   const [birthdayPage, setBirthdayPage] = useState(0);
@@ -85,6 +86,7 @@ export default function HomeShowcaseSection({
               emptyText="D-3 이내 생일 버츄얼이 없습니다."
               showBirthdayMeta
               liveStatusById={liveStatusById}
+              isLiveStatusLoading={isLiveStatusLoading}
             />
           )}
         </div>
@@ -116,6 +118,7 @@ export default function HomeShowcaseSection({
               emptyText="추천 버츄얼이 없습니다."
               showLiveMeta
               liveStatusById={liveStatusById}
+              isLiveStatusLoading={isLiveStatusLoading}
             />
           )}
         </div>

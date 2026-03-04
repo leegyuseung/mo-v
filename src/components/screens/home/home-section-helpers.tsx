@@ -33,6 +33,7 @@ export function ShowcaseStreamerList({
   showBirthdayMeta = false,
   showLiveMeta = false,
   liveStatusById,
+  isLiveStatusLoading = false,
 }: ShowcaseStreamerListProps) {
   if (streamers.length === 0) {
     return <p className="py-6 text-center text-xs text-gray-400">{emptyText}</p>;
@@ -44,7 +45,10 @@ export function ShowcaseStreamerList({
     <div className={listClassName}>
       {streamers.map((streamer) => {
         const status = liveStatusById?.[streamer.id];
-        const isLive = Boolean(status?.isLive);
+        const hasResolvedStatus = Boolean(status);
+        const isLive = status?.isLive === true;
+        const isPendingStatus = isLiveStatusLoading && !hasResolvedStatus;
+        const liveLabel = isPendingStatus ? "확인중" : isLive ? "라이브" : "오프라인";
         const liveUrl = status?.liveUrl;
         const profileUrl = `/vlist/${streamer.public_id || String(streamer.id)}`;
         const canMoveToLive = isLive && Boolean(liveUrl);
@@ -82,11 +86,16 @@ export function ShowcaseStreamerList({
                 </p>
               ) : showLiveMeta ? (
                 <p
-                  className={`inline-flex items-center gap-1 text-[11px] ${isLive ? "text-red-600" : "text-gray-500"
-                    }`}
+                  className={`inline-flex items-center gap-1 text-[11px] ${
+                    isPendingStatus ? "text-gray-400" : isLive ? "text-red-600" : "text-gray-500"
+                  }`}
                 >
-                  <span className={`h-1.5 w-1.5 rounded-full ${isLive ? "bg-red-500" : "bg-gray-400"}`} />
-                  {isLive ? "라이브" : "오프라인"}
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full ${
+                      isPendingStatus ? "bg-gray-300" : isLive ? "bg-red-500" : "bg-gray-400"
+                    }`}
+                  />
+                  {liveLabel}
                 </p>
               ) : null}
             </div>
@@ -97,11 +106,16 @@ export function ShowcaseStreamerList({
             ) : null}
             {showBirthdayMeta ? (
               <span
-                className={`absolute right-2 bottom-2 inline-flex shrink-0 items-center gap-1 rounded-full px-1 text-[11px] font-semibold ${isLive ? "text-red-600" : "text-gray-500"
-                  }`}
+                className={`absolute right-2 bottom-2 inline-flex shrink-0 items-center gap-1 rounded-full px-1 text-[11px] font-semibold ${
+                  isPendingStatus ? "text-gray-400" : isLive ? "text-red-600" : "text-gray-500"
+                }`}
               >
-                <span className={`h-1.5 w-1.5 rounded-full ${isLive ? "bg-red-500" : "bg-gray-400"}`} />
-                {isLive ? "라이브" : "오프라인"}
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    isPendingStatus ? "bg-gray-300" : isLive ? "bg-red-500" : "bg-gray-400"
+                  }`}
+                />
+                {liveLabel}
               </span>
             ) : null}
           </>

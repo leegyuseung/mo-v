@@ -77,7 +77,11 @@ export default function HomeScreen() {
       ],
     [showcaseData?.upcomingBirthdays, showcaseData?.recommendedStreamers]
   );
-  const { data: liveStatusById = {} } = useLiveStreamerStatuses(showcaseStreamerIds);
+  const {
+    data: liveStatusById,
+    isLoading: isLiveStatusLoading,
+    isFetching: isLiveStatusFetching,
+  } = useLiveStreamerStatuses(showcaseStreamerIds);
 
   const { data: liveBoxData = [], isLoading: isLiveBoxLoading, isError: isLiveBoxError } =
     useLiveBoxes();
@@ -176,6 +180,7 @@ export default function HomeScreen() {
         isShowcaseLoading={isShowcaseLoading}
         isShowcaseError={isShowcaseError}
         liveStatusById={liveStatusById}
+        isLiveStatusLoading={isLiveStatusLoading || isLiveStatusFetching}
       />
 
       <HomeLiveStarSection

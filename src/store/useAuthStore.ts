@@ -68,13 +68,12 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
                     }
                 }
 
-                // "로그인 상태 유지" 미체크 시: sessionStorage 마커가 없으면 브라우저가
-                // 닫혔다 열린 것이므로 세션을 만료시킨다.
+                // "로그인 상태 유지" 미체크 시에도 탭 간 세션은 공유되어야 한다.
+                // sessionStorage는 탭 단위이므로, 마커 부재를 근거로 전역 signOut 하면
+                // 다른 탭 세션까지 끊겨버리므로 현재 탭에 마커만 보정한다.
                 const { rememberMe } = useLoginMethodStore.getState();
                 if (!rememberMe && !sessionStorage.getItem("session_active")) {
-                    await supabase.auth.signOut();
-                    set({ isLoading: false, isInitialized: true });
-                    return;
+                    sessionStorage.setItem("session_active", "true");
                 }
 
                 // 필수 약관 동의 완료 상태에서 회원가입 보너스를 1회 지급 시도한다.

@@ -19,7 +19,8 @@ export type HomeShowcaseSectionProps = {
   showcaseData: HomeShowcaseData | undefined;
   isShowcaseLoading: boolean;
   isShowcaseError: boolean;
-  liveStatusById: LiveStatusByStreamerId;
+  liveStatusById?: LiveStatusByStreamerId;
+  isLiveStatusLoading: boolean;
 };
 
 export type HomeLiveStarSectionProps = {
@@ -42,4 +43,5 @@ export type ShowcaseStreamerListProps = {
   showBirthdayMeta?: boolean;
   showLiveMeta?: boolean;
   liveStatusById?: LiveStatusByStreamerId;
+  isLiveStatusLoading?: boolean;
 };
