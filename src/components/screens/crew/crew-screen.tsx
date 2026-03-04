@@ -15,6 +15,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useStarredCrewIds } from "@/hooks/queries/star/use-starred-crew-ids";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useBrokenImages } from "@/hooks/use-broken-images";
+import { shouldBypassNextImageOptimization } from "@/utils/image";
 
 type CrewScreenProps = {
   initialStarredCrewIds?: number[];
@@ -210,6 +211,7 @@ export default function CrewScreen({ initialStarredCrewIds = [] }: CrewScreenPro
                           priority={index === 0}
                           loading={index === 0 ? "eager" : "lazy"}
                           onError={() => crewImages.markBroken(crew.id)}
+                          unoptimized={shouldBypassNextImageOptimization(crew.image_url)}
                           className="object-contain"
                         />
                       ) : (

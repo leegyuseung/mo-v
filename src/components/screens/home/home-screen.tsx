@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import HomeHeartRankSection from "@/components/screens/home/home-heart-rank-section";
+import HomeBroadcastBoard from "@/components/screens/home/home-broadcast-board";
 import HomeShowcaseSection from "@/components/screens/home/home-showcase-section";
 import { Skeleton } from "@/components/ui/skeleton";
 import { generateArray } from "@/utils/array";
@@ -63,7 +64,17 @@ import { useHomeShowcaseData } from "@/hooks/queries/home/use-home-showcase-data
 import type { HomeRankCard } from "@/types/home-screen";
 
 export default function HomeScreen() {
+  const [isDeferredDataEnabled, setIsDeferredDataEnabled] = useState(false);
   const { user } = useAuthStore();
+
+  useEffect(() => {
+    // 첫 페인트 이후 하단 섹션 데이터를 지연 로드해 초기 체감 속도를 높인다.
+    const timer = window.setTimeout(() => {
+      setIsDeferredDataEnabled(true);
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, []);
   const {
     data: showcaseData,
     isLoading: isShowcaseLoading,
@@ -83,8 +94,11 @@ export default function HomeScreen() {
     isFetching: isLiveStatusFetching,
   } = useLiveStreamerStatuses(showcaseStreamerIds);
 
-  const { data: liveBoxData = [], isLoading: isLiveBoxLoading, isError: isLiveBoxError } =
-    useLiveBoxes();
+  const {
+    data: liveBoxData = [],
+    isLoading: isLiveBoxLoading,
+    isError: isLiveBoxError,
+  } = useLiveBoxes(isDeferredDataEnabled);
 
   const topLiveBoxes = useMemo(() => {
     return liveBoxData
@@ -92,27 +106,27 @@ export default function HomeScreen() {
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }, [liveBoxData]);
 
-  const { data: liveData, isLoading: isLiveLoading } = useLiveStreamers();
+  const { data: liveData, isLoading: isLiveLoading } = useLiveStreamers(isDeferredDataEnabled);
   const {
     data: allRank = [],
     isLoading: isAllRankLoading,
     isError: isAllRankError,
-  } = useHeartLeaderboard("all", 5);
+  } = useHeartLeaderboard("all", 5, true);
   const {
     data: yearlyRank = [],
     isLoading: isYearlyRankLoading,
     isError: isYearlyRankError,
-  } = useHeartLeaderboard("yearly", 5);
+  } = useHeartLeaderboard("yearly", 5, isDeferredDataEnabled);
   const {
     data: monthlyRank = [],
     isLoading: isMonthlyRankLoading,
     isError: isMonthlyRankError,
-  } = useHeartLeaderboard("monthly", 5);
+  } = useHeartLeaderboard("monthly", 5, isDeferredDataEnabled);
   const {
     data: weeklyRank = [],
     isLoading: isWeeklyRankLoading,
     isError: isWeeklyRankError,
-  } = useHeartLeaderboard("weekly", 5);
+  } = useHeartLeaderboard("weekly", 5, isDeferredDataEnabled);
 
   const rankCards: HomeRankCard[] = [
     {
@@ -126,21 +140,21 @@ export default function HomeScreen() {
       key: "yearly",
       title: "연간 하트 Top5",
       data: yearlyRank,
-      isLoading: isYearlyRankLoading,
+      isLoading: !isDeferredDataEnabled || isYearlyRankLoading,
       isError: isYearlyRankError,
     },
     {
       key: "monthly",
       title: "월간 하트 Top5",
       data: monthlyRank,
-      isLoading: isMonthlyRankLoading,
+      isLoading: !isDeferredDataEnabled || isMonthlyRankLoading,
       isError: isMonthlyRankError,
     },
     {
       key: "weekly",
       title: "주간 하트 Top5",
       data: weeklyRank,
-      isLoading: isWeeklyRankLoading,
+      isLoading: !isDeferredDataEnabled || isWeeklyRankLoading,
       isError: isWeeklyRankError,
     },
   ];
@@ -156,7 +170,11 @@ export default function HomeScreen() {
       .slice(0, 4);
   }, [liveData]);
 
-  const { data: starredStreamerIds = [] } = useStarredStreamerIds(user?.id);
+  const { data: starredStreamerIds = [] } = useStarredStreamerIds(
+    user?.id,
+    [],
+    isDeferredDataEnabled
+  );
   const liveFavoriteStreamers = useMemo(() => {
     const idSet = new Set(starredStreamerIds);
     return (liveData || []).filter((item) => item.isLive && idSet.has(item.id));
@@ -173,6 +191,8 @@ export default function HomeScreen() {
         </div>
       </section>
 
+      <HomeBroadcastBoard />
+
       <HomeHeartRankSection rankCards={rankCards} />
 
       <HomeShowcaseSection
@@ -184,7 +204,7 @@ export default function HomeScreen() {
       />
 
       <HomeLiveStarSection
-        isLiveLoading={isLiveLoading}
+        isLiveLoading={!isDeferredDataEnabled || isLiveLoading}
         topLiveStreamers={topLiveStreamers}
         isLoggedIn={Boolean(user)}
         starredStreamerIds={starredStreamerIds}
@@ -192,7 +212,7 @@ export default function HomeScreen() {
       />
 
       <HomeLiveBoxSection
-        isLiveBoxLoading={isLiveBoxLoading}
+        isLiveBoxLoading={!isDeferredDataEnabled || isLiveBoxLoading}
         isLiveBoxError={isLiveBoxError}
         topLiveBoxes={topLiveBoxes}
       />

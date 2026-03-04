@@ -15,6 +15,7 @@ const HISTORY_TYPE_LABELS: Record<string, string> = {
   gift_sent: "하트 선물",
   admin_review_reward: "신고 보상",
   signup_bonus: "회원가입 보너스",
+  home_broadcast: "홈 전광판 등록",
 };
 
 export function getHistoryTypeLabel(type: string | null | undefined) {

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { UserRound } from "lucide-react";
 import type { ShowcaseStreamerListProps } from "@/types/home-screen";
 import { formatSeoulDate } from "@/utils/seoul-time";
+import { shouldBypassNextImageOptimization } from "@/utils/image";
 
 export function getStatusBadgeClass(status: string) {
   if (status === "진행중") return "bg-green-50 text-green-700 border-green-200";
@@ -67,6 +68,7 @@ export function ShowcaseStreamerList({
                     fill
                     sizes="44px"
                     loading="lazy"
+                    unoptimized={shouldBypassNextImageOptimization(streamer.image_url)}
                     className="object-cover"
                   />
                 ) : (

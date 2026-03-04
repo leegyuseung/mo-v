@@ -15,6 +15,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useStarredGroupIds } from "@/hooks/queries/star/use-starred-group-ids";
 import { useBrokenImages } from "@/hooks/use-broken-images";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { shouldBypassNextImageOptimization } from "@/utils/image";
 
 type GroupScreenProps = {
   initialStarredGroupIds?: number[];
@@ -211,6 +212,7 @@ export default function GroupScreen({ initialStarredGroupIds = [] }: GroupScreen
                           priority={index === 0}
                           loading={index === 0 ? "eager" : "lazy"}
                           onError={() => groupImages.markBroken(group.id)}
+                          unoptimized={shouldBypassNextImageOptimization(group.image_url)}
                           className="object-contain"
                         />
                       ) : (

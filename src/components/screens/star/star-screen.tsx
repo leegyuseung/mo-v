@@ -14,6 +14,7 @@ import type { StarTargetType } from "@/types/star";
 import { toast } from "sonner";
 import AvatarItem from "@/components/screens/star/avatar-item";
 import HorizontalRow from "@/components/screens/star/horizontal-row";
+import { shouldBypassNextImageOptimization } from "@/utils/image";
 
 export default function StarScreen() {
   const [liveSearch, setLiveSearch] = useState("");
@@ -173,6 +174,7 @@ export default function StarScreen() {
                       fill
                       sizes="56px"
                       loading="lazy"
+                      unoptimized={shouldBypassNextImageOptimization(streamer.image_url)}
                       className="object-cover"
                     />
                   ) : (
@@ -233,6 +235,7 @@ export default function StarScreen() {
                     fill
                     sizes="56px"
                     loading="lazy"
+                    unoptimized={shouldBypassNextImageOptimization(streamer.image_url)}
                     className="object-cover"
                   />
                 ) : (
@@ -286,6 +289,7 @@ export default function StarScreen() {
                     fill
                     sizes="56px"
                     loading="lazy"
+                    unoptimized={shouldBypassNextImageOptimization(group.image_url)}
                     className="object-contain"
                   />
                 ) : (
@@ -339,6 +343,7 @@ export default function StarScreen() {
                     fill
                     sizes="56px"
                     loading="lazy"
+                    unoptimized={shouldBypassNextImageOptimization(crew.image_url)}
                     className="object-contain"
                   />
                 ) : (

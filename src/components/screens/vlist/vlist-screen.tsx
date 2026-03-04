@@ -30,6 +30,7 @@ import StreamerCardSkeleton from "@/components/common/streamer-card-skeleton";
 import { generateArray } from "@/utils/array";
 import { useInfiniteScrollTrigger } from "@/hooks/use-infinite-scroll-trigger";
 import { fetchStreamers } from "@/api/streamers";
+import { shouldBypassNextImageOptimization } from "@/utils/image";
 
 type VlistScreenProps = {
   initialStarredStreamerIds?: number[];
@@ -274,6 +275,7 @@ export default function VlistScreen({ initialStarredStreamerIds = [] }: VlistScr
                     priority={index < 4}
                     className="object-cover transition group-hover:scale-[1.03]"
                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
+                    unoptimized={shouldBypassNextImageOptimization(streamer.image_url)}
                   />
                 ) : (
                   <div className="h-full w-full flex items-center justify-center">

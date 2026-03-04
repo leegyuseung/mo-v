@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { generateArray } from "@/utils/array";
 import type { StreamerHeartLeaderboardItem } from "@/types/heart";
 import type { HomeHeartRankSectionProps } from "@/types/home-screen";
+import { shouldBypassNextImageOptimization } from "@/utils/image";
 
 function getRankRows(items: StreamerHeartLeaderboardItem[]) {
   return items.filter((item) => (item.total_received ?? 0) > 0).slice(0, 5);
@@ -114,6 +115,7 @@ export default function HomeHeartRankSection({ rankCards }: HomeHeartRankSection
                             fill
                             sizes="36px"
                             loading="lazy"
+                            unoptimized={shouldBypassNextImageOptimization(item.image_url)}
                             className="object-cover"
                           />
                         ) : (

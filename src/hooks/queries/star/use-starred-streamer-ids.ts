@@ -5,11 +5,15 @@ import { fetchStarredStreamerIds } from "@/api/star";
  * 유저가 즐겨찾기한 버츄얼들의 ID 목록을 가져오는 커스텀 훅
  * @param userId 조회할 유저의 ID
  */
-export function useStarredStreamerIds(userId?: string, initialIds: number[] = []) {
+export function useStarredStreamerIds(
+    userId?: string,
+    initialIds: number[] = [],
+    enabled: boolean = true
+) {
     return useQuery({
         queryKey: ["starred-streamers", userId],
         queryFn: () => fetchStarredStreamerIds(userId!),
-        enabled: Boolean(userId),
+        enabled: Boolean(userId) && enabled,
         initialData: initialIds,
     });
 }

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { UserRound, UsersRound } from "lucide-react";
+import { shouldBypassNextImageOptimization } from "@/utils/image";
 
 /** StreamerAvatar에 전달하는 props */
 type StreamerAvatarProps = {
@@ -48,6 +49,7 @@ export default function StreamerAvatar({
                     sizes={`${size}px`}
                     priority={priority}
                     loading={priority ? "eager" : "lazy"}
+                    unoptimized={shouldBypassNextImageOptimization(src)}
                     className={objectFit === "contain" ? "object-contain" : "object-cover"}
                 />
             ) : (

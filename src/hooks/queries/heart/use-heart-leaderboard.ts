@@ -7,10 +7,15 @@ import type { HeartRankPeriod } from "@/types/heart";
  * @param period 하트 랭킹 기간
  * @param limit 최대로 가져올 데이터 개수 (기본값: 5)
  */
-export function useHeartLeaderboard(period: HeartRankPeriod, limit: number = 5) {
+export function useHeartLeaderboard(
+    period: HeartRankPeriod,
+    limit: number = 5,
+    enabled: boolean = true
+) {
     return useQuery({
         queryKey: ["heart-rank-leaderboard", period, limit],
         queryFn: () => fetchStreamerHeartLeaderboard(period, limit),
+        enabled,
         staleTime: 20 * 1000,
         gcTime: 5 * 60 * 1000,
         refetchOnReconnect: true,

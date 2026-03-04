@@ -30,7 +30,7 @@ export default function HomeLiveBoxSection({
       <div className="rounded-2xl border border-gray-100 bg-white p-4">
         <div className="mb-4 flex items-center justify-between">
           <span className="inline-flex items-center justify-center rounded-full bg-violet-600 px-2 py-0.5 text-[10px] text-white">
-            LIVE BOX
+            라이브 박스
           </span>
           <div className="flex items-center gap-2">
             <Link

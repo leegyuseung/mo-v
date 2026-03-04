@@ -4,6 +4,7 @@ import { UserRound } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { generateArray } from "@/utils/array";
 import type { HomeLiveStarSectionProps } from "@/types/home-screen";
+import { shouldBypassNextImageOptimization } from "@/utils/image";
 
 export default function HomeLiveStarSection({
   isLiveLoading,
@@ -41,7 +42,7 @@ export default function HomeLiveStarSection({
           <div className="rounded-2xl border border-gray-100 bg-white p-4">
             <div className="mb-4 flex items-center justify-between">
               <span className="inline-flex items-center justify-center rounded-full bg-red-600 px-2 py-0.5 text-[10px] text-white">
-                LIVE
+                라이브
               </span>
               <Link
                 href="/live"
@@ -97,6 +98,7 @@ export default function HomeLiveStarSection({
                                 sizes="(min-width: 768px) 80px, 56px"
                                 priority={index === 0}
                                 loading={index === 0 ? "eager" : "lazy"}
+                                unoptimized={shouldBypassNextImageOptimization(streamer.image_url)}
                                 className="object-cover transition-transform duration-200 group-hover:scale-110"
                               />
                             ) : (
@@ -120,7 +122,7 @@ export default function HomeLiveStarSection({
           <div className="rounded-2xl border border-gray-100 bg-white p-4">
             <div className="mb-4 flex items-center justify-between">
               <span className="inline-flex items-center justify-center rounded-full bg-yellow-500 px-2 py-0.5 text-[10px] text-white">
-                STAR
+                즐겨찾기
               </span>
               <Link
                 href="/star"
@@ -180,6 +182,7 @@ export default function HomeLiveStarSection({
                                 fill
                                 sizes="(min-width: 768px) 80px, 56px"
                                 loading="lazy"
+                                unoptimized={shouldBypassNextImageOptimization(streamer.image_url)}
                                 className="object-cover transition-transform duration-200 group-hover:scale-110"
                               />
                             ) : (
