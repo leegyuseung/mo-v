@@ -414,6 +414,7 @@ export type Database = {
           is_first_edit: boolean
           nickname: string | null
           nickname_code: string | null
+          public_id: string | null
           provider: string | null
           role: string
           updated_at: string | null
@@ -427,6 +428,7 @@ export type Database = {
           is_first_edit?: boolean
           nickname?: string | null
           nickname_code?: string | null
+          public_id?: string | null
           provider?: string | null
           role?: string
           updated_at?: string | null
@@ -440,6 +442,7 @@ export type Database = {
           is_first_edit?: boolean
           nickname?: string | null
           nickname_code?: string | null
+          public_id?: string | null
           provider?: string | null
           role?: string
           updated_at?: string | null

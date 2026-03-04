@@ -4,6 +4,7 @@ import type {
   AggregateRankPeriodKey,
   AggregateRankSnapshotRow,
 } from "@/types/aggregate-rank";
+import { enrichAggregateRankRows } from "@/api/aggregate-rank-enrichment";
 
 const supabase = createClient();
 
@@ -12,7 +13,7 @@ export async function fetchAggregateRankSnapshot(
   year: number,
   month: number,
   weekOfMonth: number
-) {
+): Promise<AggregateRankSnapshotRow[]> {
   const { data, error } = await supabase.rpc("get_streamer_heart_rank_snapshot", {
     p_period_type: period,
     p_year: year,
@@ -22,36 +23,7 @@ export async function fetchAggregateRankSnapshot(
 
   if (error) throw error;
   const rows = (data || []) as AggregateRankSnapshotRow[];
-
-  const streamerIds = Array.from(
-    new Set(
-      rows
-        .map((row) => Number(row.streamer_id))
-        .filter((id) => Number.isInteger(id) && id > 0)
-    )
-  );
-
-  if (streamerIds.length === 0) {
-    return rows.map((row) => ({ ...row, streamer_image_url: null }));
-  }
-
-  const { data: streamers, error: streamerError } = await supabase
-    .from("streamers")
-    .select("id,image_url")
-    .in("id", streamerIds);
-
-  if (streamerError) {
-    return rows.map((row) => ({ ...row, streamer_image_url: null }));
-  }
-
-  const imageByStreamerId = new Map(
-    (streamers || []).map((streamer) => [streamer.id, streamer.image_url || null])
-  );
-
-  return rows.map((row) => ({
-    ...row,
-    streamer_image_url: imageByStreamerId.get(row.streamer_id) || null,
-  }));
+  return enrichAggregateRankRows(supabase, rows);
 }
 
 export async function fetchAggregateRankPeriodKeys(period: AggregatePeriod, minYear: number = 2026) {

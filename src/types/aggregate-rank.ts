@@ -16,6 +16,8 @@ export type AggregateRankSnapshotRow = {
   gift_count: number;
   donor_count: number;
   top_donor_user_id: string | null;
+  top_donor_public_id?: string | null;
+  top_donor_avatar_url?: string | null;
   top_donor_nickname: string | null;
   top_donor_total: number;
   period_start_at: string;

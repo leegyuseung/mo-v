@@ -5,6 +5,7 @@ import type {
   AggregateRankPeriodKey,
   AggregateRankSnapshotRow,
 } from "@/types/aggregate-rank";
+import { enrichAggregateRankRows } from "@/api/aggregate-rank-enrichment";
 
 async function createServerSupabaseClient() {
   const cookieStore = await cookies();
@@ -16,7 +17,7 @@ export async function fetchAggregateRankSnapshotOnServer(
   year: number,
   month: number,
   weekOfMonth: number
-) {
+): Promise<AggregateRankSnapshotRow[]> {
   const supabase = await createServerSupabaseClient();
 
   const { data, error } = await supabase.rpc("get_streamer_heart_rank_snapshot", {
@@ -28,35 +29,7 @@ export async function fetchAggregateRankSnapshotOnServer(
   if (error) throw error;
 
   const rows = (data || []) as AggregateRankSnapshotRow[];
-  const streamerIds = Array.from(
-    new Set(
-      rows
-        .map((row) => Number(row.streamer_id))
-        .filter((id) => Number.isInteger(id) && id > 0)
-    )
-  );
-
-  if (streamerIds.length === 0) {
-    return rows.map((row) => ({ ...row, streamer_image_url: null }));
-  }
-
-  const { data: streamers, error: streamerError } = await supabase
-    .from("streamers")
-    .select("id,image_url")
-    .in("id", streamerIds);
-
-  if (streamerError) {
-    return rows.map((row) => ({ ...row, streamer_image_url: null }));
-  }
-
-  const imageByStreamerId = new Map(
-    (streamers || []).map((streamer) => [streamer.id, streamer.image_url || null])
-  );
-
-  return rows.map((row) => ({
-    ...row,
-    streamer_image_url: imageByStreamerId.get(row.streamer_id) || null,
-  }));
+  return enrichAggregateRankRows(supabase, rows);
 }
 
 export async function fetchAggregateRankPeriodKeysOnServer(

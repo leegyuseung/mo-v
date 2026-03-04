@@ -127,6 +127,41 @@ async function fetchYearlyStreamerTopDonorsViaApi(
     };
 }
 
+async function attachPublicIdToTopDonors(
+  rows: StreamerTopDonor[]
+): Promise<StreamerTopDonor[]> {
+    const userIds = Array.from(
+        new Set(
+            rows
+                .map((row) => row.user_id)
+                .filter((id): id is string => typeof id === "string" && id.length > 0)
+        )
+    );
+
+    if (userIds.length === 0) {
+        return rows.map((row) => ({ ...row, user_public_id: null }));
+    }
+
+    const { data: profiles, error } = await getDefaultClient()
+        .from("profiles")
+        .select("id,public_id")
+        .in("id", userIds);
+
+    if (error) {
+        return rows.map((row) => ({ ...row, user_public_id: null }));
+    }
+
+    const publicIdByUserId = new Map(
+        (profiles || []).map((profile) => [profile.id, profile.public_id || null])
+    );
+
+    return rows.map((row) => ({
+        ...row,
+        user_public_id:
+            typeof row.user_id === "string" ? publicIdByUserId.get(row.user_id) || null : null,
+    }));
+}
+
 const STREAMER_PERIOD_RANK_SOURCES: ReadonlyArray<{
     period: HeartPeriodRank["period"];
     label: HeartPeriodRank["label"];
@@ -404,7 +439,11 @@ export async function fetchStreamerTopDonors(
     period: DonorPeriod = "all"
 ) {
     if (period === "yearly") {
-        return fetchYearlyStreamerTopDonorsViaApi(streamerId, limit, offset);
+        const yearly = await fetchYearlyStreamerTopDonorsViaApi(streamerId, limit, offset);
+        return {
+            data: await attachPublicIdToTopDonors(yearly.data),
+            count: yearly.count,
+        };
     }
 
     const source =
@@ -422,7 +461,10 @@ export async function fetchStreamerTopDonors(
         .range(offset, offset + limit - 1);
 
     if (error) throw error;
-    return { data: data || [], count: count || 0 };
+    return {
+        data: await attachPublicIdToTopDonors((data || []) as StreamerTopDonor[]),
+        count: count || 0,
+    };
 }
 
 /** 특정 버츄얼이 받은 하트 총 누적량을 조회한다 */

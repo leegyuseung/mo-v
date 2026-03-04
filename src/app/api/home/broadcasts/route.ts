@@ -51,7 +51,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from("home_broadcasts")
-    .select("id,content,author_nickname,created_at,expires_at")
+    .select("id,content,author_id,author_nickname,created_at,expires_at")
     .order("created_at", { ascending: false })
     .limit(20);
 
@@ -77,9 +77,33 @@ export async function GET() {
     const expiresAtMs = new Date(row.expires_at).getTime();
     return {
       ...row,
+      author_public_id: null as string | null,
       status: Number.isFinite(expiresAtMs) && expiresAtMs > nowMs ? "active" : "ended",
     };
   });
+
+  const authorIds = Array.from(
+    new Set(
+      mapped
+        .map((row) => row.author_id)
+        .filter((id): id is string => typeof id === "string" && id.length > 0)
+    )
+  );
+
+  if (authorIds.length > 0) {
+    const { data: authors } = await supabase
+      .from("profiles")
+      .select("id,public_id")
+      .in("id", authorIds);
+
+    const publicIdByAuthorId = new Map(
+      (authors || []).map((author) => [author.id, author.public_id || null])
+    );
+
+    mapped.forEach((row) => {
+      row.author_public_id = row.author_id ? publicIdByAuthorId.get(row.author_id) || null : null;
+    });
+  }
 
   return NextResponse.json({ data: mapped });
 }

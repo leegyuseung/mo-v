@@ -1,5 +1,6 @@
 "use client";
 
+import UserProfileMenuTrigger from "@/components/common/user-profile-menu-trigger";
 import type { HomeBroadcastFeedProps } from "@/types/home-broadcast-board";
 
 const HOME_BROADCAST_EXPIRE_MINUTES = 6 * 60;
@@ -29,7 +30,7 @@ export default function HomeBroadcastFeed({
       : collapsedBroadcast?.content || "진행중인 전광판 메시지가 없습니다.";
 
   return (
-    <div className={`min-w-0 flex-1 overflow-hidden ${isExpanded ? "h-auto" : "h-9"}`}>
+    <div className={`min-w-0 flex-1 ${isExpanded ? "h-auto" : "h-9"}`}>
       {isExpanded ? (
         <div className="space-y-1 pr-1">
           {isLoading ? (
@@ -51,7 +52,12 @@ export default function HomeBroadcastFeed({
                   <div className="inline-flex shrink-0 items-center gap-2 text-[11px] text-gray-500">
                     <span>{getRemainingMinutesLabel(item.created_at, nowMs)}</span>
                     <span className="text-gray-300">|</span>
-                    <span>{item.author_nickname || "-"}</span>
+                    <UserProfileMenuTrigger
+                      userPublicId={item.author_public_id}
+                      label={item.author_nickname || "-"}
+                      align="right"
+                      className="max-w-24 cursor-pointer truncate text-gray-500 hover:text-gray-700"
+                    />
                   </div>
                 </div>
               </div>
@@ -72,7 +78,12 @@ export default function HomeBroadcastFeed({
               <div className="inline-flex shrink-0 items-center gap-2 text-[11px] text-gray-500">
                 <span>{getRemainingMinutesLabel(collapsedBroadcast.created_at, nowMs)}</span>
                 <span className="text-gray-300">|</span>
-                <span>{collapsedBroadcast.author_nickname || "-"}</span>
+                <UserProfileMenuTrigger
+                  userPublicId={collapsedBroadcast.author_public_id}
+                  label={collapsedBroadcast.author_nickname || "-"}
+                  align="right"
+                  className="max-w-20 cursor-pointer truncate text-gray-500 hover:text-gray-700"
+                />
               </div>
             ) : null}
           </div>
@@ -81,4 +92,3 @@ export default function HomeBroadcastFeed({
     </div>
   );
 }
-

@@ -2,13 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ClipboardList, Settings, UserRound } from "lucide-react";
-
-const profileMenus = [
-  { href: "/profile", label: "프로필 수정", icon: UserRound },
-  { href: "/profile/requests", label: "내 요청 내역", icon: ClipboardList },
-  { href: "/profile/setting", label: "계정 설정", icon: Settings },
-];
+import { ClipboardList, Eye, Settings, UserRound } from "lucide-react";
+import { useAuthStore } from "@/store/useAuthStore";
 
 function isActive(pathname: string, href: string) {
   if (href === "/profile") return pathname === "/profile";
@@ -17,6 +12,18 @@ function isActive(pathname: string, href: string) {
 
 export default function ProfileSideMenu() {
   const pathname = usePathname();
+  const { profile } = useAuthStore();
+
+  const profileMenus = [
+    {
+      href: profile?.public_id ? `/user/${profile.public_id}` : "/profile",
+      label: "프로필 보기",
+      icon: Eye,
+    },
+    { href: "/profile", label: "프로필 수정", icon: UserRound },
+    { href: "/profile/requests", label: "내 요청 내역", icon: ClipboardList },
+    { href: "/profile/setting", label: "계정 설정", icon: Settings },
+  ];
 
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-2 shadow-sm">
@@ -26,7 +33,7 @@ export default function ProfileSideMenu() {
 
           return (
             <Link
-              key={menu.href}
+              key={`${menu.label}-${menu.href}`}
               href={menu.href}
               className={`flex min-w-[140px] items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
                 active ? "bg-gray-900 text-white" : "text-gray-700 hover:bg-gray-100"

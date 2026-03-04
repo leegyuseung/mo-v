@@ -97,7 +97,7 @@ export async function GET(request: Request) {
 
   const { data: profiles, error: profileError } = await admin
     .from("profiles")
-    .select("id,nickname,nickname_code")
+    .select("id,nickname,nickname_code,public_id")
     .in("id", slicedUserIds);
 
   if (profileError) {
@@ -115,6 +115,7 @@ export async function GET(request: Request) {
       user_id: item.userId,
       user_nickname: donor?.nickname || null,
       user_nickname_code: donor?.nickname_code || null,
+      user_public_id: donor?.public_id || null,
     };
   });
 

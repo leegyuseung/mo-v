@@ -1,6 +1,8 @@
 export type HomeBroadcastItem = {
   id: number;
   content: string;
+  author_id: string | null;
+  author_public_id: string | null;
   author_nickname: string | null;
   created_at: string;
   expires_at: string;

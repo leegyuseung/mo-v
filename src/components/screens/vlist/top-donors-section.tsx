@@ -5,6 +5,7 @@ import { useStreamerTopDonors } from "@/hooks/queries/heart/use-streamer-top-don
 import type { DonorPeriod } from "@/types/heart";
 import type { TopDonorsPeriodFilter, TopDonorsSectionProps } from "@/types/vlist-top-donors";
 import { cn } from "@/lib/utils";
+import UserProfileMenuTrigger from "@/components/common/user-profile-menu-trigger";
 
 const TOP_DONOR_PERIOD_FILTERS: TopDonorsPeriodFilter[] = [
   { key: "all", label: "전체" },
@@ -75,9 +76,15 @@ export default function TopDonorsSection({ streamerId, className }: TopDonorsSec
                 className="flex items-center justify-between px-1 py-2 text-sm"
               >
                 <span className="text-gray-700">{`${donor.donor_rank ?? 0}위`}</span>
-                <span className="flex-1 px-3 text-gray-800">
-                  {donor.user_nickname || "익명 유저"}
-                </span>
+                <div className="flex-1 px-3">
+                  <UserProfileMenuTrigger
+                    userPublicId={donor.user_public_id}
+                    label={`${donor.user_nickname || "익명 유저"}${
+                      donor.user_nickname_code ? ` #${donor.user_nickname_code}` : ""
+                    }`}
+                    className="max-w-full cursor-pointer truncate text-left text-gray-800 hover:text-gray-900"
+                  />
+                </div>
                 <span className="font-semibold text-gray-900">{`${(donor.total_sent ?? 0).toLocaleString()} 하트`}</span>
               </div>
             ))}
