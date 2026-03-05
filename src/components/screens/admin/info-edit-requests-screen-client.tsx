@@ -12,6 +12,7 @@ import { useResolveStreamerInfoEditRequest } from "@/hooks/mutations/admin/use-d
 import { useResolveEntityInfoEditRequest } from "@/hooks/mutations/admin/use-resolve-entity-info-edit-request";
 import type { EntityInfoEditRequest, StreamerInfoEditRequest } from "@/types/admin-requests";
 import { ADMIN_REVIEW_REWARD_POINT } from "@/lib/constant";
+import { getEntityInfoEditTargetLabel } from "@/utils/entity-info-edit";
 
 function ResolveConfirmAlert({
   open,
@@ -151,11 +152,7 @@ function EntityInfoEditRequestRow({ request }: { request: EntityInfoEditRequest 
           {new Date(request.created_at).toLocaleString("ko-KR")}
         </td>
         <td className="px-4 py-3 text-sm text-gray-700">
-          {request.target_type === "group"
-            ? "그룹"
-            : request.target_type === "crew"
-              ? "크루"
-              : "콘텐츠"}
+          {getEntityInfoEditTargetLabel(request.target_type)}
         </td>
         <td className="px-4 py-3 text-sm font-medium text-gray-800">
           {request.target_name}
@@ -245,7 +242,7 @@ export default function InfoEditRequestsScreen() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-gray-900">그룹/크루/콘텐츠 정보수정요청</h2>
+        <h2 className="text-lg font-semibold text-gray-900">그룹/크루/콘텐츠/라이브박스 정보수정요청</h2>
         <div className="overflow-x-auto rounded-2xl border border-gray-100 bg-white shadow-sm">
           <table className="min-w-[1080px] w-full table-fixed text-left">
             <thead>
@@ -274,7 +271,7 @@ export default function InfoEditRequestsScreen() {
               ) : (
                 <tr>
                   <td colSpan={6} className="px-4 py-14 text-center text-sm text-gray-400">
-                    그룹/크루/콘텐츠 정보 수정 요청이 없습니다.
+                    그룹/크루/콘텐츠/라이브박스 정보 수정 요청이 없습니다.
                   </td>
                 </tr>
               )}

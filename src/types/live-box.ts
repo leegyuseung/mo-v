@@ -35,3 +35,11 @@ export type LiveBoxParticipantProfile = Pick<
   Streamer,
   "id" | "nickname" | "image_url" | "chzzk_id" | "soop_id"
 >;
+
+/** 라이브박스 정보수정요청 생성 입력 */
+export type CreateLiveBoxInfoEditRequestInput = {
+  content: string;
+  liveBoxId: number;
+  liveBoxTitle: string;
+  requesterNickname: string | null;
+};

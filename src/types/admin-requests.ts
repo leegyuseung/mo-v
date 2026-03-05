@@ -1,3 +1,5 @@
+import type { EntityInfoEditTargetType } from "@/types/entity-info-edit";
+
 /** 스트리머/정보수정/신고/박스 요청 공통 상태 */
 export type AdminRequestStatus =
   | "pending"
@@ -65,7 +67,7 @@ export type EntityInfoEditRequest = {
   id: number;
   created_at: string;
   content: string;
-  target_type: "group" | "crew" | "contents";
+  target_type: EntityInfoEditTargetType;
   target_id: number;
   target_code: string | null;
   target_name: string;

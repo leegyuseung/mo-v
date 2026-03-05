@@ -2,10 +2,14 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowBigLeft, CalendarClock, Tag, Users } from "lucide-react";
+import { ArrowBigLeft, CalendarClock, Eraser, Tag, Users } from "lucide-react";
+import IconTooltipButton from "@/components/common/icon-tooltip-button";
+import InfoEditRequestModal from "@/components/common/info-edit-request-modal";
 import LiveBoxStatusBadge from "@/components/common/live-box-status-badge";
 import SearchInput from "@/components/common/search-input";
 import LiveBoxParticipantsPanel from "@/components/screens/live-box/live-box-participants-panel";
+import { useLiveBoxDetailActions } from "@/hooks/live-box/use-live-box-detail-actions";
+import { STREAMER_INFO_EDIT_REQUEST_MODAL_TEXT } from "@/lib/constant";
 import { formatLiveBoxDisplayDate } from "@/utils/live-box-presenter";
 import type {
   LiveBoxDetailLiveLookup,
@@ -86,6 +90,17 @@ export default function LiveBoxDetailScreenClient({
   const externalUrlTitle = liveBox?.url_title?.trim() || "";
   const externalUrl = liveBox?.url?.trim() || "";
   const hasExternalLink = externalUrlTitle.length > 0 && externalUrl.length > 0;
+  const {
+    user,
+    isInfoEditModalOpen,
+    isInfoEditRequestSubmitting,
+    openInfoEditRequestModal,
+    closeInfoEditRequestModal,
+    handleSubmitInfoEditRequest,
+  } = useLiveBoxDetailActions({
+    liveBoxId: liveBox?.id ?? 0,
+    liveBoxTitle: liveBox?.title || "라이브박스",
+  });
 
   if (hasLiveBoxError) {
     return (
@@ -109,16 +124,24 @@ export default function LiveBoxDetailScreenClient({
 
   return (
     <div className="mx-auto max-w-4xl p-4 md:p-6">
-      <Link
-        href="/live-box"
-        className="group relative inline-flex h-10 w-10 items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-        aria-label="뒤로가기"
-      >
-        <ArrowBigLeft className="h-4 w-4" />
-        <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-          뒤로가기
-        </span>
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link
+          href="/live-box"
+          className="group relative inline-flex h-10 w-10 items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+          aria-label="뒤로가기"
+        >
+          <ArrowBigLeft className="h-4 w-4" />
+          <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+            뒤로가기
+          </span>
+        </Link>
+        <IconTooltipButton
+          icon={Eraser}
+          label="정보수정요청"
+          onClick={openInfoEditRequestModal}
+          disabled={!user}
+        />
+      </div>
 
       <article className="mt-4 rounded-2xl border border-gray-200 bg-white p-5 md:p-6">
         <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
@@ -202,6 +225,18 @@ export default function LiveBoxDetailScreenClient({
           </p>
         ) : null}
       </article>
+
+      <InfoEditRequestModal
+        open={isInfoEditModalOpen}
+        texts={{
+          ...STREAMER_INFO_EDIT_REQUEST_MODAL_TEXT,
+          title: "라이브박스 정보 수정 요청",
+          description: "수정이 필요한 내용을 입력해 주세요. 관리자가 확인 후 반영합니다.",
+        }}
+        isSubmitting={isInfoEditRequestSubmitting}
+        onSubmit={handleSubmitInfoEditRequest}
+        onClose={closeInfoEditRequestModal}
+      />
     </div>
   );
 }

@@ -244,6 +244,7 @@ export async function fetchEntityInfoEditRequests(): Promise<EntityInfoEditReque
     .from(ENTITY_INFO_EDIT_REQUEST_TABLE)
     .select("*")
     .eq("status", "pending")
+    .in("target_type", ["group", "crew", "contents", "live_box"])
     .order("created_at", { ascending: false });
 
   if (error) throw error;

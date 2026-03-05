@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowBigLeft, Eye, Heart, Siren, UserRoundPen } from "lucide-react";
+import { ArrowBigLeft, Eraser, Eye, Heart, Siren } from "lucide-react";
 import IconTooltipButton from "@/components/common/icon-tooltip-button";
 import InfoEditRequestModal from "@/components/common/info-edit-request-modal";
 import ReportRequestModal from "@/components/common/report-request-modal";
@@ -61,7 +61,7 @@ export default function ContentsDetailActionBar(props: ContentsDetailActionBarPr
             disabled={!userId || isFavoritePending || isEnded}
           />
           <IconTooltipButton
-            icon={UserRoundPen}
+            icon={Eraser}
             label="정보수정요청"
             onClick={openInfoEditRequestModal}
             disabled={!isAuthor || isEnded}

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowBigLeft, Siren, Star, UserRound, UserRoundPen, UsersRound } from "lucide-react";
+import { ArrowBigLeft, Eraser, Siren, Star, UserRound, UsersRound } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 import { useIdolGroupDetail } from "@/hooks/queries/groups/use-idol-group-detail";
@@ -163,7 +163,7 @@ export default function GroupDetailScreen({ groupCode }: GroupDetailScreenProps)
             disabled={isStarToggling}
           />
           <IconTooltipButton
-            icon={UserRoundPen}
+            icon={Eraser}
             label="정보수정요청"
             onClick={openInfoEditRequestModal}
             disabled={!user}

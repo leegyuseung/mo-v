@@ -1,6 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/client";
-import type { LiveBox, LiveBoxParticipantProfile } from "@/types/live-box";
+import { ENTITY_INFO_EDIT_REQUEST_TABLE } from "@/lib/constant";
+import type {
+  CreateLiveBoxInfoEditRequestInput,
+  LiveBox,
+  LiveBoxParticipantProfile,
+} from "@/types/live-box";
 import { withEffectiveLiveBoxStatus } from "@/utils/live-box-status";
 
 /** 클라이언트 환경에서만 초기화되는 Supabase 인스턴스. 서버에서 모듈이 import되어도 즉시 초기화되지 않는다 */
@@ -74,4 +79,43 @@ export async function fetchLiveBoxParticipantProfiles(): Promise<LiveBoxParticip
 
   if (error) throw error;
   return (data || []) as LiveBoxParticipantProfile[];
+}
+
+/** 라이브박스 정보수정요청을 생성한다. */
+export async function createLiveBoxInfoEditRequest({
+  content,
+  liveBoxId,
+  liveBoxTitle,
+  requesterNickname,
+}: CreateLiveBoxInfoEditRequestInput) {
+  const supabase = getDefaultClient();
+  const trimmedContent = content.trim();
+  if (!trimmedContent) {
+    throw new Error("수정 요청 내용을 입력해 주세요.");
+  }
+  if (!Number.isInteger(liveBoxId) || liveBoxId <= 0) {
+    throw new Error("유효하지 않은 라이브박스 요청입니다.");
+  }
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    throw new Error("로그인 후 정보 수정 요청이 가능합니다.");
+  }
+
+  const { error } = await supabase.from(ENTITY_INFO_EDIT_REQUEST_TABLE).insert({
+    target_type: "live_box",
+    target_id: liveBoxId,
+    target_code: String(liveBoxId),
+    target_name: liveBoxTitle,
+    content: trimmedContent,
+    requester_id: user.id,
+    requester_nickname: requesterNickname,
+    status: "pending",
+  });
+
+  if (error) throw error;
 }

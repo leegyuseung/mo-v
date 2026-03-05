@@ -2,6 +2,7 @@ import type {
   MyEntityReportRequest,
   ProfileRequestStatus,
 } from "@/types/profile";
+import { getEntityInfoEditTargetLabel } from "@/utils/entity-info-edit";
 
 /** 서버에서 내려오는 문자열 상태를 화면 공통 상태 타입으로 정규화한다. */
 export function normalizeProfileRequestStatus(status: string): ProfileRequestStatus {
@@ -31,9 +32,11 @@ export function formatProfileRequestDateTime(value: string | null) {
 }
 
 export function getInfoEditTargetLabel(targetType: string) {
-  if (targetType === "group") return "정보 수정 요청 (그룹)";
   if (targetType === "crew") return "정보 수정 요청 (소속)";
   if (targetType === "contents") return "정보 수정 요청 (콘텐츠)";
+  if (targetType === "live_box") return "정보 수정 요청 (라이브박스)";
+  if (targetType === "group") return "정보 수정 요청 (그룹)";
+  if (targetType !== "streamer") return `정보 수정 요청 (${getEntityInfoEditTargetLabel(targetType)})`;
   return "정보 수정 요청 (버츄얼)";
 }
 

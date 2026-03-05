@@ -14,7 +14,7 @@ import { useStreamerReceivedHeartTotal } from "@/hooks/queries/heart/use-streame
 import { useStarCount } from "@/hooks/queries/star/use-star-count";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { ArrowBigLeft, Heart, Siren, Star, UserRoundPen } from "lucide-react";
+import { ArrowBigLeft, Eraser, Heart, Siren, Star } from "lucide-react";
 import { toast } from "sonner";
 import {
   ENTITY_REPORT_MODAL_TEXT,
@@ -225,7 +225,7 @@ export default function VlistDetailScreen({
           </div>
           <div className="group relative">
             <Button type="button" variant="ghost" size="icon" className="cursor-pointer h-10 w-10" onClick={openInfoEditRequestModal} disabled={!user}>
-              <UserRoundPen className="w-5 h-5" />
+              <Eraser className="w-5 h-5" />
             </Button>
             <span className="pointer-events-none absolute right-1/2 top-full z-20 mt-1 translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
               정보수정요청
