@@ -27,8 +27,24 @@ export function validateContentImageFile(file: File) {
   }
 }
 
+async function trySyncContentsStatuses() {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  // 관리 화면에서도 마감 상태가 늦게 반영되는 환경을 대비해 조회 직전 동기화를 시도한다.
+  try {
+    await supabase.rpc("end_expired_contents");
+  } catch {
+    // 함수 미존재/권한 문제 시에도 목록 조회는 진행한다.
+  }
+}
+
 /** 관리자 콘텐츠 목록을 최신순으로 조회한다. */
 export async function fetchAdminContents(): Promise<ContentWithAuthorProfile[]> {
+  await trySyncContentsStatuses();
+
   const { data, error } = await supabase
     .from(CONTENT_TABLE)
     .select("*, author_profile:profiles!contents_created_by_fkey(nickname)")

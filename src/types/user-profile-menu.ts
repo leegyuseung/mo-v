@@ -8,3 +8,14 @@ export type UserProfileMenuTriggerProps = {
   className?: string;
   align?: "left" | "right";
 };
+
+export type UserAvatarNameMenuTriggerProps = {
+  userPublicId?: string | null;
+  nickname?: string | null;
+  nicknameCode?: string | null;
+  avatarUrl?: string | null;
+  className?: string;
+  nameClassName?: string;
+  avatarClassName?: string;
+  align?: "left" | "right";
+};

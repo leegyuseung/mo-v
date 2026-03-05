@@ -139,26 +139,38 @@ async function attachPublicIdToTopDonors(
     );
 
     if (userIds.length === 0) {
-        return rows.map((row) => ({ ...row, user_public_id: null }));
+        return rows.map((row) => ({ ...row, user_public_id: null, user_avatar_url: null }));
     }
 
     const { data: profiles, error } = await getDefaultClient()
         .from("profiles")
-        .select("id,public_id")
+        .select("id,public_id,avatar_url")
         .in("id", userIds);
 
     if (error) {
-        return rows.map((row) => ({ ...row, user_public_id: null }));
+        return rows.map((row) => ({ ...row, user_public_id: null, user_avatar_url: null }));
     }
 
-    const publicIdByUserId = new Map(
-        (profiles || []).map((profile) => [profile.id, profile.public_id || null])
+    const profileByUserId = new Map(
+        (profiles || []).map((profile) => [
+            profile.id,
+            {
+                publicId: profile.public_id || null,
+                avatarUrl: profile.avatar_url || null,
+            },
+        ])
     );
 
     return rows.map((row) => ({
         ...row,
         user_public_id:
-            typeof row.user_id === "string" ? publicIdByUserId.get(row.user_id) || null : null,
+            typeof row.user_id === "string"
+                ? profileByUserId.get(row.user_id)?.publicId || null
+                : null,
+        user_avatar_url:
+            typeof row.user_id === "string"
+                ? profileByUserId.get(row.user_id)?.avatarUrl || null
+                : null,
     }));
 }
 

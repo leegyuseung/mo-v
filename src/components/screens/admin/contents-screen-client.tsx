@@ -24,7 +24,7 @@ import ContentPendingRequestRow from "@/components/screens/admin/content-pending
 
 function getStatusLabel(status: string) {
   if (status === "pending") return "대기중";
-  if (status === "approved") return "승인";
+  if (status === "approved") return "진행중";
   if (status === "ended") return "마감";
   if (status === "rejected") return "거절";
   if (status === "cancelled") return "취소";
@@ -51,6 +51,16 @@ function formatDateRangeLabel(start: string | null, end: string | null) {
   return `${formatDateLabel(start)} ~ ${formatDateLabel(end)}`;
 }
 
+const REGISTERED_CONTENT_STATUS_FILTERS: Array<{ value: "all" | ContentStatus; label: string }> = [
+  { value: "all", label: "전체" },
+  { value: "approved", label: "등록(진행중)" },
+  { value: "ended", label: "마감" },
+  { value: "pending", label: "대기" },
+  { value: "rejected", label: "거절" },
+  { value: "cancelled", label: "취소" },
+  { value: "deleted", label: "삭제" },
+];
+
 /** 관리자 콘텐츠 관리 화면 */
 export default function ContentsScreenClient() {
   const { data: contents, isLoading, isError } = useContents();
@@ -58,10 +68,13 @@ export default function ContentsScreenClient() {
   const [editingContent, setEditingContent] = useState<ContentWithAuthorProfile | null>(null);
   const [detailContent, setDetailContent] = useState<ContentWithAuthorProfile | null>(null);
   const [deleteTargetContent, setDeleteTargetContent] = useState<ContentWithAuthorProfile | null>(null);
+  const [registeredStatusFilter, setRegisteredStatusFilter] = useState<"all" | ContentStatus>("approved");
 
   const registeredContents = useMemo(() => {
-    return (contents || []).filter((content) => content.status === "approved");
-  }, [contents]);
+    const list = contents || [];
+    if (registeredStatusFilter === "all") return list;
+    return list.filter((content) => content.status === registeredStatusFilter);
+  }, [contents, registeredStatusFilter]);
 
   const pendingContents = useMemo(() => {
     return (contents || []).filter((content) => content.status === "pending");
@@ -105,9 +118,27 @@ export default function ContentsScreenClient() {
         <p className="text-sm text-gray-500">등록된 콘텐츠와 콘텐츠 등록 요청을 함께 관리합니다.</p>
       </div>
 
-      <div className="mb-4">
-        <h2 className="text-xl font-bold text-gray-900">등록된 콘텐츠</h2>
-        <p className="text-sm text-gray-500">등록 완료된 콘텐츠 목록입니다. 항목별 수정이 가능합니다.</p>
+      <div className="mb-4 flex items-end justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">등록된 콘텐츠</h2>
+          <p className="text-sm text-gray-500">상태 필터로 콘텐츠를 나눠서 볼 수 있습니다.</p>
+        </div>
+        <div className="inline-flex items-center gap-2">
+          <span className="text-xs font-semibold text-gray-500">상태 필터</span>
+          <select
+            value={registeredStatusFilter}
+            onChange={(event) =>
+              setRegisteredStatusFilter(event.target.value as "all" | ContentStatus)
+            }
+            className="h-9 min-w-[150px] rounded-md border border-gray-200 bg-white px-2 text-sm text-gray-700"
+          >
+            {REGISTERED_CONTENT_STATUS_FILTERS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
@@ -115,6 +146,9 @@ export default function ContentsScreenClient() {
           <thead>
             <tr className="bg-gray-50/80 border-b border-gray-100">
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">제목</th>
+              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">상태</th>
+              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">모집 시작</th>
+              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">모집 마감</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">작성자</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">화면 주소</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">등록일시</th>
@@ -125,14 +159,14 @@ export default function ContentsScreenClient() {
             {isLoading ? (
               [...Array(4)].map((_, index) => (
                 <tr key={`admin-content-skeleton-${index}`} className="border-b border-gray-100">
-                  <td className="px-4 py-3" colSpan={5}>
+                  <td className="px-4 py-3" colSpan={8}>
                     <Skeleton className="h-5 w-full" />
                   </td>
                 </tr>
               ))
             ) : isError ? (
               <tr>
-                <td colSpan={5} className="px-4 py-12 text-center text-sm text-gray-400">
+                <td colSpan={8} className="px-4 py-12 text-center text-sm text-gray-400">
                   콘텐츠 목록을 불러오지 못했습니다.
                 </td>
               </tr>
@@ -140,6 +174,21 @@ export default function ContentsScreenClient() {
               registeredContents.map((content) => (
                 <tr key={`admin-content-${content.id}`} className="border-b border-gray-100 align-middle">
                   <td className="px-4 py-3 text-sm font-medium text-gray-800">{content.title}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600">
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${getStatusClassName(
+                        content.status
+                      )}`}
+                    >
+                      {getStatusLabel(content.status)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-600">
+                    {formatDateLabel(content.recruitment_start_at)}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-600">
+                    {formatDateLabel(content.recruitment_end_at)}
+                  </td>
                   <td className="px-4 py-3 text-sm text-gray-600">
                     {content.author_profile?.nickname || content.created_by}
                   </td>
@@ -183,7 +232,7 @@ export default function ContentsScreenClient() {
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="px-4 py-12 text-center text-sm text-gray-400">
+                <td colSpan={8} className="px-4 py-12 text-center text-sm text-gray-400">
                   등록된 콘텐츠가 없습니다.
                 </td>
               </tr>

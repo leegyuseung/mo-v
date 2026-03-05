@@ -8,6 +8,7 @@ export type StreamerHeartHistory = Tables<"streamer_heart_history">;
 export type StreamerHeartRank = Tables<"streamer_heart_rank">;
 export type StreamerTopDonor = Tables<"streamer_top_donors"> & {
   user_public_id?: string | null;
+  user_avatar_url?: string | null;
 };
 
 export type MyStreamerRegistrationRequest = Pick<

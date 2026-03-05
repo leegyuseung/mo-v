@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Heart, Trophy, UserRound } from "lucide-react";
 import { formatDateTimeLabel } from "@/components/screens/aggregate/aggregate-screen-utils";
 import type { AggregateRankRowProps } from "@/types/aggregate-rank";
-import UserProfileMenuTrigger from "@/components/common/user-profile-menu-trigger";
+import UserAvatarNameMenuTrigger from "@/components/common/user-avatar-name-menu-trigger";
 
 export default function AggregateRankRow({ row }: AggregateRankRowProps) {
   return (
@@ -63,27 +63,14 @@ export default function AggregateRankRow({ row }: AggregateRankRowProps) {
           </span>
           <span className="inline-flex items-center gap-1.5">
             <span>최다 기부 유저:</span>
-            <UserProfileMenuTrigger
+            <UserAvatarNameMenuTrigger
               userPublicId={row.top_donor_public_id}
+              nickname={row.top_donor_nickname || row.top_donor_user_id}
+              avatarUrl={row.top_donor_avatar_url}
               align="right"
-              ariaLabel="최다 기부 유저 메뉴 열기"
               className="inline-flex max-w-[190px] cursor-pointer items-center gap-1.5 text-gray-800 hover:text-gray-900"
-            >
-              <span className="inline-flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-gray-100">
-                {row.top_donor_avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={row.top_donor_avatar_url}
-                    alt={row.top_donor_nickname || "top donor"}
-                    loading="lazy"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <UserRound className="h-3.5 w-3.5 text-gray-400" />
-                )}
-              </span>
-              <span className="truncate">{row.top_donor_nickname || row.top_donor_user_id || "-"}</span>
-            </UserProfileMenuTrigger>
+              nameClassName="truncate"
+            />
             <span className="font-medium text-gray-800">{row.top_donor_total.toLocaleString()} 포인트</span>
           </span>
         </div>

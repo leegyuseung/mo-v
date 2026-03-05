@@ -28,17 +28,19 @@ export default function HomeBroadcastFeed({
     : isError
       ? "전광판을 불러오지 못했습니다."
       : collapsedBroadcast?.content || "진행중인 전광판 메시지가 없습니다.";
+  const fixedPlaceholderClass =
+    "min-w-0 h-9 rounded-lg border px-3 py-2 flex items-center";
 
   return (
     <div className={`min-w-0 flex-1 ${isExpanded ? "h-auto" : "h-9"}`}>
       {isExpanded ? (
         <div className="space-y-1 pr-1">
           {isLoading ? (
-            <div className="min-w-0 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
+            <div className={`${fixedPlaceholderClass} border-gray-100 bg-gray-50`}>
               <p className="truncate text-sm text-gray-400">불러오는 중...</p>
             </div>
           ) : isError ? (
-            <div className="min-w-0 rounded-lg border border-red-100 bg-red-50 px-3 py-2">
+            <div className={`${fixedPlaceholderClass} border-red-100 bg-red-50`}>
               <p className="truncate text-sm text-red-500">전광판을 불러오지 못했습니다.</p>
             </div>
           ) : visibleLines.length > 0 ? (
@@ -63,7 +65,7 @@ export default function HomeBroadcastFeed({
               </div>
             ))
           ) : (
-            <div className="min-w-0 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
+            <div className={`${fixedPlaceholderClass} border-gray-100 bg-gray-50`}>
               <p className="truncate text-sm text-gray-400">진행중인 전광판 메시지가 없습니다.</p>
             </div>
           )}
