@@ -13,7 +13,6 @@ import type {
   ContentSortKey,
   ContentStatusFilter,
   EnrichedContent,
-  ParticipantCompositionFilter,
   SortDirection,
 } from "@/types/contents-screen";
 import type { Content } from "@/types/content";
@@ -24,6 +23,16 @@ type UseContentsScreenListParams = {
   favoriteCountByContentId: Record<number, number>;
 };
 
+function getSafeTime(value: string | null | undefined) {
+  if (!value) return 0;
+  const parsed = new Date(value).getTime();
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function getSafeNumber(value: number | null | undefined) {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
 export function useContentsScreenList({
   initialContents,
   nowTimestamp,
@@ -33,8 +42,6 @@ export function useContentsScreenList({
   const [badgeFilter, setBadgeFilter] = useState<BadgeFilter>("all");
   const [sortKey, setSortKey] = useState<ContentSortKey>("created");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
-  const [participantCompositionFilter, setParticipantCompositionFilter] =
-    useState<ParticipantCompositionFilter>("all");
   const [statusFilter, setStatusFilter] = useState<ContentStatusFilter>("approved");
   const [selectedContentTypes, setSelectedContentTypes] = useState<string[]>([]);
   const [page, setPage] = useState(1);
@@ -109,57 +116,46 @@ export function useContentsScreenList({
         if (badgeFilter === "new" && !content.isNew) return false;
         if (badgeFilter === "closing" && !content.isClosingSoon) return false;
 
-        if (
-          participantCompositionFilter !== "all" &&
-          content.participant_composition !== participantCompositionFilter
-        ) {
-          return false;
-        }
-
         return true;
       })
       .sort((a, b) => {
-        const approvedRecruitmentRankDiff =
-          getApprovedRecruitmentRank(a) - getApprovedRecruitmentRank(b);
-        if (approvedRecruitmentRankDiff !== 0) {
-          return approvedRecruitmentRankDiff;
-        }
-
-        if (sortKey === "title") {
-          const diff = a.title.localeCompare(b.title, "ko");
-          if (diff !== 0) return sortDirection === "asc" ? diff : -diff;
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        if (sortKey === "created") {
+          const approvedRecruitmentRankDiff =
+            getApprovedRecruitmentRank(a) - getApprovedRecruitmentRank(b);
+          if (approvedRecruitmentRankDiff !== 0) {
+            return approvedRecruitmentRankDiff;
+          }
         }
 
         if (sortKey === "view") {
-          const diff = a.view_count - b.view_count;
+          const diff = getSafeNumber(a.view_count) - getSafeNumber(b.view_count);
           if (diff !== 0) return sortDirection === "asc" ? diff : -diff;
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+          return getSafeTime(b.created_at) - getSafeTime(a.created_at);
         }
 
         if (sortKey === "heart") {
-          const aFavoriteCount = favoriteCountByContentId[a.id] ?? a.favorite_count;
-          const bFavoriteCount = favoriteCountByContentId[b.id] ?? b.favorite_count;
+          const aFavoriteCount = getSafeNumber(favoriteCountByContentId[a.id] ?? a.favorite_count);
+          const bFavoriteCount = getSafeNumber(favoriteCountByContentId[b.id] ?? b.favorite_count);
           const diff = aFavoriteCount - bFavoriteCount;
           if (diff !== 0) return sortDirection === "asc" ? diff : -diff;
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+          return getSafeTime(b.created_at) - getSafeTime(a.created_at);
         }
 
         if (sortKey === "deadline") {
           const aDeadlineValue = resolveDeadline(a);
           const bDeadlineValue = resolveDeadline(b);
           if (!aDeadlineValue && !bDeadlineValue) {
-            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            return getSafeTime(b.created_at) - getSafeTime(a.created_at);
           }
           if (!aDeadlineValue) return 1;
           if (!bDeadlineValue) return -1;
 
-          const diff = new Date(aDeadlineValue).getTime() - new Date(bDeadlineValue).getTime();
+          const diff = getSafeTime(aDeadlineValue) - getSafeTime(bDeadlineValue);
           if (diff !== 0) return sortDirection === "asc" ? diff : -diff;
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+          return getSafeTime(b.created_at) - getSafeTime(a.created_at);
         }
 
-        const diff = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        const diff = getSafeTime(a.created_at) - getSafeTime(b.created_at);
         if (diff !== 0) return sortDirection === "asc" ? diff : -diff;
         return a.title.localeCompare(b.title, "ko");
       });
@@ -167,7 +163,6 @@ export function useContentsScreenList({
     badgeFilter,
     contents,
     favoriteCountByContentId,
-    participantCompositionFilter,
     searchKeyword,
     selectedContentTypes,
     sortDirection,
@@ -193,6 +188,8 @@ export function useContentsScreenList({
   };
 
   const onClickSortButton = (nextSortKey: ContentSortKey) => {
+    setPage(1);
+
     if (sortKey === nextSortKey) {
       setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
       return;
@@ -209,8 +206,6 @@ export function useContentsScreenList({
     setBadgeFilter,
     sortKey,
     onClickSortButton,
-    participantCompositionFilter,
-    setParticipantCompositionFilter,
     statusFilter,
     setStatusFilter,
     selectedContentTypes,

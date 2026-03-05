@@ -27,7 +27,7 @@ export default function HomeBroadcastFeed({
     ? "불러오는 중..."
     : isError
       ? "전광판을 불러오지 못했습니다."
-      : collapsedBroadcast?.content || "진행중인 전광판 메시지가 없습니다.";
+      : collapsedBroadcast?.content || "전광판에 표시할 메시지가 없습니다.";
   const fixedPlaceholderClass =
     "min-w-0 h-9 rounded-lg border px-3 py-2 flex items-center";
 
@@ -66,7 +66,7 @@ export default function HomeBroadcastFeed({
             ))
           ) : (
             <div className={`${fixedPlaceholderClass} border-gray-100 bg-gray-50`}>
-              <p className="truncate text-sm text-gray-400">진행중인 전광판 메시지가 없습니다.</p>
+              <p className="truncate text-sm text-gray-400">전광판에 표시할 메시지가 없습니다.</p>
             </div>
           )}
         </div>

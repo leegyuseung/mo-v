@@ -8,6 +8,12 @@ import ProfileLoginRequiredState from "@/components/screens/profile/profile-logi
 import type { ProfileSettingsScreenProps } from "@/types/user-agreement";
 import type { SettingToggleCardProps } from "@/types/profile-settings";
 
+const TWO_LINE_CLAMP_STYLE = {
+  display: "-webkit-box",
+  WebkitLineClamp: 2,
+  WebkitBoxOrient: "vertical",
+} as const;
+
 function SettingToggleCard({
   title,
   description,
@@ -21,9 +27,15 @@ function SettingToggleCard({
   return (
     <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
       <div className="flex items-center justify-between gap-4">
-        <div>
+        <div className="min-w-0 flex-1">
           <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
-          <p className="mt-1 text-xs text-gray-500">{description}</p>
+          <p
+            title={description}
+            className="mt-1 overflow-hidden text-xs text-gray-500"
+            style={TWO_LINE_CLAMP_STYLE}
+          >
+            {description}
+          </p>
         </div>
 
         <button
@@ -31,13 +43,13 @@ function SettingToggleCard({
           onClick={onToggle}
           disabled={disabled}
           aria-pressed={checked}
-          className={`relative inline-flex h-7 w-12 cursor-pointer items-center rounded-full disabled:cursor-not-allowed disabled:opacity-60 ${
+          className={`relative inline-flex h-7 w-12 min-w-12 shrink-0 cursor-pointer items-center rounded-full disabled:cursor-not-allowed disabled:opacity-60 ${
             checked ? "bg-gray-900" : "bg-gray-300"
           }`}
         >
-          <span
-            className="inline-block h-5 w-5 translate-x-1 rounded-full bg-white shadow"
-          />
+          <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${
+            checked ? "translate-x-6" : "translate-x-1"
+          }`} />
         </button>
       </div>
 

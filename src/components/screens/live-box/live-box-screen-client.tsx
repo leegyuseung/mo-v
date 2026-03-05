@@ -16,6 +16,11 @@ import type {
 } from "@/types/live-box-screen";
 
 const PAGE_SIZE = 9;
+const LIVE_BOX_STATUS_PRIORITY: Record<string, number> = {
+  진행중: 0,
+  대기: 1,
+  종료: 2,
+};
 
 /** 라이브박스 목록 클라이언트 화면 (검색 + 필터/정렬 + 페이지네이션) */
 export default function LiveBoxScreenClient({
@@ -84,6 +89,15 @@ export default function LiveBoxScreenClient({
         return box.status === "종료";
       })
       .sort((a, b) => {
+        if (statusFilter === "all") {
+          const statusDiff =
+            (LIVE_BOX_STATUS_PRIORITY[a.status] ?? Number.MAX_SAFE_INTEGER) -
+            (LIVE_BOX_STATUS_PRIORITY[b.status] ?? Number.MAX_SAFE_INTEGER);
+          if (statusDiff !== 0) {
+            return statusDiff;
+          }
+        }
+
         if (sortKey === "title") {
           const diff = a.title.localeCompare(b.title, "ko");
           return sortDirection === "asc" ? diff : -diff;

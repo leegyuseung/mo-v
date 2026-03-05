@@ -47,8 +47,6 @@ export default function ContentsScreen({
     setBadgeFilter,
     sortKey,
     onClickSortButton,
-    participantCompositionFilter,
-    setParticipantCompositionFilter,
     statusFilter,
     setStatusFilter,
     selectedContentTypes,
@@ -100,11 +98,6 @@ export default function ContentsScreen({
         onToggleContentType={onToggleContentType}
         sortKey={sortKey}
         onClickSortButton={onClickSortButton}
-        participantCompositionFilter={participantCompositionFilter}
-        onChangeParticipantCompositionFilter={(filter) => {
-          setParticipantCompositionFilter(filter);
-          setPage(1);
-        }}
         statusFilter={statusFilter}
         onChangeStatusFilter={(filter) => {
           setStatusFilter(filter);

@@ -39,7 +39,7 @@ export default function ProfileRequestsFilterButtons({
         variant={filter === "registration" ? "default" : "outline"}
         className={`cursor-pointer rounded-xl ${filter === "registration" ? "bg-gray-900 hover:bg-gray-800 text-white" : ""}`}
       >
-        버츄얼 추가 요청 {registrationCount}
+        버츄얼 추가 {registrationCount}
       </Button>
       <Button
         type="button"
@@ -47,7 +47,7 @@ export default function ProfileRequestsFilterButtons({
         variant={filter === "info-edit" ? "default" : "outline"}
         className={`cursor-pointer rounded-xl ${filter === "info-edit" ? "bg-gray-900 hover:bg-gray-800 text-white" : ""}`}
       >
-        정보 수정 요청 {infoEditCount}
+        정보 수정 {infoEditCount}
       </Button>
       <Button
         type="button"
@@ -55,7 +55,7 @@ export default function ProfileRequestsFilterButtons({
         variant={filter === "report" ? "default" : "outline"}
         className={`cursor-pointer rounded-xl ${filter === "report" ? "bg-gray-900 hover:bg-gray-800 text-white" : ""}`}
       >
-        정보 신고 요청 {reportCount}
+        정보 신고 {reportCount}
       </Button>
       <Button
         type="button"
@@ -63,7 +63,7 @@ export default function ProfileRequestsFilterButtons({
         variant={filter === "error-report" ? "default" : "outline"}
         className={`cursor-pointer rounded-xl ${filter === "error-report" ? "bg-gray-900 hover:bg-gray-800 text-white" : ""}`}
       >
-        오류 신고 요청 {errorReportCount}
+        오류 신고 {errorReportCount}
       </Button>
       <Button
         type="button"
@@ -71,7 +71,7 @@ export default function ProfileRequestsFilterButtons({
         variant={filter === "live-box" ? "default" : "outline"}
         className={`cursor-pointer rounded-xl ${filter === "live-box" ? "bg-gray-900 hover:bg-gray-800 text-white" : ""}`}
       >
-        라이브박스 요청 {liveBoxCount}
+        라이브박스 {liveBoxCount}
       </Button>
     </div>
   );

@@ -9,13 +9,12 @@ export default function AggregateRankRow({ row }: AggregateRankRowProps) {
     <div
       className="group grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-2 rounded-xl border border-gray-200 bg-white px-3 py-3 transition hover:border-gray-400"
     >
-      <div className="row-span-2 flex min-w-0 items-center gap-2 self-center">
+      <div className="flex min-w-0 items-center gap-2 self-center md:row-span-2">
         <span className="inline-flex min-w-10 items-center justify-center text-sm font-semibold text-gray-700">
           {row.rank <= 3 ? (
             <Trophy
-              className={`h-5 w-5 ${
-                row.rank === 1 ? "text-yellow-500" : row.rank === 2 ? "text-gray-400" : "text-[#8B5A2B]"
-              }`}
+              className={`h-5 w-5 ${row.rank === 1 ? "text-yellow-500" : row.rank === 2 ? "text-gray-400" : "text-[#8B5A2B]"
+                }`}
             />
           ) : (
             `${row.rank}위`
@@ -47,7 +46,7 @@ export default function AggregateRankRow({ row }: AggregateRankRowProps) {
       </div>
 
       <div className="flex min-w-0 items-center justify-end gap-2">
-        <p className="truncate text-[11px] text-gray-500">
+        <p className="hidden truncate text-[11px] text-gray-500 md:block">
           집계 기간: {formatDateTimeLabel(row.period_start_at)} ~ {formatDateTimeLabel(row.period_end_at)}
         </p>
         <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-600">
@@ -56,13 +55,13 @@ export default function AggregateRankRow({ row }: AggregateRankRowProps) {
         </span>
       </div>
 
-      <div className="text-xs text-gray-600">
+      <div className="hidden text-xs text-gray-600 md:block">
         <div className="flex flex-wrap items-center justify-end gap-3 text-right md:flex-nowrap">
           <span>
             기부 유저 수: <span className="font-medium text-gray-800">{row.donor_count.toLocaleString()}</span>
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span>최다 기부 유저:</span>
+            <span>최다 선물 유저:</span>
             <UserAvatarNameMenuTrigger
               userPublicId={row.top_donor_public_id}
               nickname={row.top_donor_nickname || row.top_donor_user_id}

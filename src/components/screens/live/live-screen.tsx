@@ -15,8 +15,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useBrokenImages } from "@/hooks/use-broken-images";
 import type { StreamerPlatform } from "@/types/streamer";
 import type { LiveSortOrder } from "@/types/live";
-import { STREAMER_PLATFORM_OPTIONS } from "@/lib/constant";
-import { getPlatformActiveClass, getPlatformInactiveClass } from "@/utils/platform";
 import StreamerGroupCrewBadges from "@/components/common/streamer-group-crew-badges";
 
 export default function LiveScreen() {
@@ -96,45 +94,37 @@ export default function LiveScreen() {
       {/* ─── 플랫폼·정렬·검색 필터 ─── */}
       <div className="mb-5 flex flex-col gap-3">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-wrap gap-2">
-            <span className="mr-1 self-center text-sm text-gray-500">구분</span>
-            {STREAMER_PLATFORM_OPTIONS.map((item) => (
-              <Button
-                key={item.value}
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  setPlatform(item.value);
-                  setPage(1);
-                }}
-                className={`cursor-pointer ${platform === item.value
-                  ? getPlatformActiveClass(item.value)
-                  : getPlatformInactiveClass(item.value)
-                  }`}
-              >
-                {item.label}
-              </Button>
-            ))}
-          </div>
-
-          <div className="flex w-full gap-2 md:w-auto">
-            <SearchInput
-              value={keyword}
-              onChange={(value) => {
-                setKeyword(value);
+          <div className="flex flex-wrap items-center gap-2 md:flex-nowrap md:overflow-x-auto">
+            <span className="mr-1 inline-flex h-9 items-center text-sm text-gray-500">구분</span>
+            <select
+              value={platform}
+              onChange={(event) => {
+                setPlatform(event.target.value as StreamerPlatform);
                 setPage(1);
               }}
-              placeholder="버츄얼 명을 입력해 주세요"
-              containerClassName="w-full md:w-80"
-              inputClassName="h-9 border-gray-200 bg-white"
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 overflow-x-auto">
-          <div className="flex shrink-0 items-center gap-2">
-            <span className="text-sm text-gray-500">정렬</span>
+              className="h-9 w-28 shrink-0 cursor-pointer rounded-md border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none focus:border-gray-300"
+            >
+              <option value="all">전체</option>
+              <option value="soop">SOOP</option>
+              <option value="chzzk">CHZZK</option>
+            </select>
+            <span className="ml-2 inline-flex h-9 items-center text-sm text-gray-500">장르</span>
+            <select
+              value={genre}
+              onChange={(event) => {
+                setGenre(event.target.value);
+                setPage(1);
+              }}
+              className="h-9 w-32 shrink-0 cursor-pointer rounded-md border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none focus:border-gray-300 md:w-44"
+            >
+              <option value="all">전체</option>
+              {genres.map((genreOption) => (
+                <option key={`live-genre-${genreOption}`} value={genreOption}>
+                  {genreOption}
+                </option>
+              ))}
+            </select>
+            <span className="inline-flex h-9 items-center text-sm text-gray-500">정렬</span>
             <Button
               type="button"
               size="sm"
@@ -151,7 +141,7 @@ export default function LiveScreen() {
                   return next;
                 })
               }
-              className={`cursor-pointer ${isNameSort
+              className={`h-9 shrink-0 cursor-pointer ${isNameSort
                 ? "bg-gray-800 hover:bg-gray-900 text-white"
                 : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
                 }`}
@@ -174,7 +164,7 @@ export default function LiveScreen() {
                   return next;
                 })
               }
-              className={`cursor-pointer ${isViewerSort
+              className={`h-9 shrink-0 cursor-pointer ${isViewerSort
                 ? "bg-gray-800 hover:bg-gray-900 text-white"
                 : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
                 }`}
@@ -182,22 +172,21 @@ export default function LiveScreen() {
               시청자 수
             </Button>
           </div>
-          <select
-            value={genre}
-            onChange={(event) => {
-              setGenre(event.target.value);
-              setPage(1);
-            }}
-            className="ml-auto h-9 w-32 shrink-0 rounded-md border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none focus:border-gray-300 md:w-44"
-          >
-            <option value="all">전체</option>
-            {genres.map((genreOption) => (
-              <option key={`live-genre-${genreOption}`} value={genreOption}>
-                {genreOption}
-              </option>
-            ))}
-          </select>
+
+          <div className="flex w-full gap-2 md:w-auto">
+            <SearchInput
+              value={keyword}
+              onChange={(value) => {
+                setKeyword(value);
+                setPage(1);
+              }}
+              placeholder="버츄얼 명을 입력해 주세요"
+              containerClassName="w-full md:w-80"
+              inputClassName="h-9 border-gray-200 bg-white"
+            />
+          </div>
         </div>
+
       </div>
 
       {/* ─── 현재 라이브 수 ─── */}

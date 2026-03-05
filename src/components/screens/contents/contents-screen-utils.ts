@@ -79,6 +79,6 @@ export function resolveDeadline(content: Content) {
 }
 
 export function getDefaultSortDirection(sortKey: ContentSortKey): SortDirection {
-  if (sortKey === "title" || sortKey === "deadline") return "asc";
+  if (sortKey === "deadline") return "asc";
   return "desc";
 }

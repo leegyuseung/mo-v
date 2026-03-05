@@ -1,10 +1,10 @@
 import type { MouseEvent } from "react";
 import type { ContentStatus } from "@/types/content";
 import type {
+  BadgeFilter,
   ContentSortKey,
   ContentStatusFilter,
   EnrichedContent,
-  ParticipantCompositionFilter,
 } from "@/types/contents-screen";
 
 export type ContentsScreenFilterPanelProps = {
@@ -12,15 +12,13 @@ export type ContentsScreenFilterPanelProps = {
   onChangeSearchKeyword: (keyword: string) => void;
   canCreateContent: boolean;
   onClickCreateContent: () => void;
-  badgeFilter: "all" | "new" | "closing";
-  onChangeBadgeFilter: (filter: "all" | "new" | "closing") => void;
+  badgeFilter: BadgeFilter;
+  onChangeBadgeFilter: (filter: BadgeFilter) => void;
   selectedContentTypes: string[];
   onResetContentTypeFilter: () => void;
   onToggleContentType: (type: string) => void;
   sortKey: ContentSortKey;
   onClickSortButton: (sortKey: ContentSortKey) => void;
-  participantCompositionFilter: ParticipantCompositionFilter;
-  onChangeParticipantCompositionFilter: (filter: ParticipantCompositionFilter) => void;
   statusFilter: ContentStatusFilter;
   onChangeStatusFilter: (filter: ContentStatusFilter) => void;
   totalCount: number;

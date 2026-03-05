@@ -91,13 +91,7 @@ function staticEntries(now: Date): MetadataRoute.Sitemap {
       priority: 0.35,
     },
     {
-      url: withBaseUrl("/legal/privacy"),
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.35,
-    },
-    {
-      url: withBaseUrl("/legal/third-party"),
+      url: withBaseUrl("/legal/privacy-policy"),
       lastModified: now,
       changeFrequency: "monthly",
       priority: 0.35,

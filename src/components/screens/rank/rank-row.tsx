@@ -59,10 +59,14 @@ export default function RankRow({ item, rankNumber, groupNameByCode, crewNameByC
           <p className="truncate text-sm font-semibold text-gray-900">
             {item.nickname || "이름 미등록"}
           </p>
-          {item.platform ? <PlatformBadge platform={item.platform} /> : null}
+          {item.platform ? (
+            <span className="hidden md:inline-flex">
+              <PlatformBadge platform={item.platform} />
+            </span>
+          ) : null}
         </div>
         {groupTags.length > 0 || crewTags.length > 0 ? (
-          <div className="mt-1 flex flex-wrap gap-1.5">
+          <div className="mt-1 hidden flex-wrap gap-1.5 md:flex">
             {groupTags.map((group) => (
               <span
                 key={`${item.streamer_id}-group-${group}`}

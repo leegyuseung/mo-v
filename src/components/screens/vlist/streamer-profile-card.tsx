@@ -74,6 +74,30 @@ export default function StreamerProfileCard({
     { label: "별명", value: streamer.alias?.join(", ") || "-" },
   ];
 
+  const renderIdentityTag = (tag: IdentityTag) => {
+    if (tag.type === "group") {
+      return (
+        <Link
+          key={`${tag.type}-${tag.name}`}
+          href={tag.href}
+          className="inline-flex items-center rounded-full border border-pink-100 bg-pink-50 px-2.5 py-1 text-xs font-medium text-pink-700 hover:bg-pink-100"
+        >
+          {tag.name}
+        </Link>
+      );
+    }
+
+    return (
+      <Link
+        key={`${tag.type}-${tag.name}`}
+        href={tag.href}
+        className="inline-flex items-center rounded-full border border-sky-100 bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-700"
+      >
+        {tag.name}
+      </Link>
+    );
+  };
+
   return (
     <div className={`rounded-3xl border p-5 md:p-7 shadow-sm space-y-6 ${toneContainerClass}`}>
       <div className="flex flex-col gap-6 md:flex-row md:items-start">
@@ -129,17 +153,19 @@ export default function StreamerProfileCard({
               </a>
             ) : null}
           </div>
-          <div className="mt-1 inline-flex items-center gap-1">
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full">
-              <Heart className="h-4 w-4 fill-red-500 text-red-500" />
-            </span>
-            <span className="text-xs font-semibold text-gray-800">
-              {isReceivedHeartTotalLoading
-                ? "-"
-                : receivedHeartTotal.toLocaleString()}
-            </span>
+          <div className="mt-1 flex items-center gap-3 md:flex-col md:gap-1">
+            <div className="inline-flex items-center gap-1">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full">
+                <Heart className="h-4 w-4 fill-red-500 text-red-500" />
+              </span>
+              <span className="text-xs font-semibold text-gray-800">
+                {isReceivedHeartTotalLoading
+                  ? "-"
+                  : receivedHeartTotal.toLocaleString()}
+              </span>
+            </div>
+            <StarCountBadge count={streamerStarCount} isLoading={isStreamerStarCountLoading} />
           </div>
-          <StarCountBadge count={streamerStarCount} isLoading={isStreamerStarCountLoading} />
         </div>
 
         {/* 정보 패널 */}
@@ -148,30 +174,19 @@ export default function StreamerProfileCard({
             <div className="absolute right-0 top-0 z-10">{periodRankBadges}</div>
           ) : null}
           <div className="mt-1">
-            <p className="text-3xl font-bold text-gray-900 break-all">
-              {streamer.nickname || "-"}
-            </p>
+            <div className="flex items-start justify-between gap-2 md:block">
+              <p className="text-3xl font-bold text-gray-900 break-all">
+                {streamer.nickname || "-"}
+              </p>
+              {identityTags.length > 0 ? (
+                <div className="flex max-w-[52%] flex-wrap items-center justify-end gap-1 md:hidden">
+                  {identityTags.map(renderIdentityTag)}
+                </div>
+              ) : null}
+            </div>
             {identityTags.length > 0 ? (
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                {identityTags.map((tag) => (
-                  tag.type === "group" ? (
-                    <Link
-                      key={`${tag.type}-${tag.name}`}
-                      href={tag.href}
-                      className="inline-flex items-center rounded-full border border-pink-100 bg-pink-50 px-2.5 py-1 text-xs font-medium text-pink-700 hover:bg-pink-100"
-                    >
-                      {tag.name}
-                    </Link>
-                  ) : (
-                    <Link
-                      key={`${tag.type}-${tag.name}`}
-                      href={tag.href}
-                      className="inline-flex items-center rounded-full border border-sky-100 bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-700"
-                    >
-                      {tag.name}
-                    </Link>
-                  )
-                ))}
+              <div className="mt-2 hidden flex-wrap items-center gap-2 md:flex">
+                {identityTags.map(renderIdentityTag)}
               </div>
             ) : null}
           </div>

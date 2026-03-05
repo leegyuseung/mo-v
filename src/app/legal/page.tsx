@@ -2,8 +2,7 @@ import Link from "next/link";
 
 const LEGAL_LINKS = [
   { href: "/legal/terms", label: "서비스 이용약관" },
-  { href: "/legal/privacy", label: "개인정보 수집·이용" },
-  { href: "/legal/third-party", label: "개인정보 처리위탁" },
+  { href: "/legal/privacy-policy", label: "개인정보처리방침" },
   { href: "/legal/marketing", label: "마케팅 수신 동의" },
 ];
 

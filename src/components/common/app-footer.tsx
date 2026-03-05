@@ -36,18 +36,15 @@ export default function AppFooter() {
               서비스 이용약관
             </Link>
             <span className="text-gray-300">|</span>
-            <Link href="/legal/privacy" className="hover:text-gray-700 hover:underline">
-              개인정보 수집·이용
-            </Link>
-            <span className="text-gray-300">|</span>
-            <Link href="/legal/third-party" className="hover:text-gray-700 hover:underline">
-              개인정보 처리위탁
+            <Link href="/legal/privacy-policy" className="hover:text-gray-700 hover:underline">
+              개인정보처리방침
             </Link>
             <span className="text-gray-300">|</span>
             <Link href="/legal/marketing" className="hover:text-gray-700 hover:underline">
               마케팅 수신 동의
             </Link>
-            <span className="text-gray-300">|</span>
+          </div>
+          <div className="hidden text-xs text-gray-500 md:block">
             <button
               type="button"
               className="cursor-pointer hover:text-gray-700 hover:underline"
@@ -62,27 +59,21 @@ export default function AppFooter() {
                 서비스 이용약관
               </Link>
               <span className="text-gray-300">|</span>
-              <Link href="/legal/privacy" className="hover:text-gray-700 hover:underline">
-                개인정보 수집·이용
+              <Link href="/legal/privacy-policy" className="hover:text-gray-700 hover:underline">
+                개인정보처리방침
               </Link>
               <span className="text-gray-300">|</span>
-              <Link href="/legal/third-party" className="hover:text-gray-700 hover:underline">
-                개인정보 처리위탁
-              </Link>
-            </div>
-            <div className="flex items-center justify-center gap-x-2">
               <Link href="/legal/marketing" className="hover:text-gray-700 hover:underline">
                 마케팅 수신 동의
               </Link>
-              <span className="text-gray-300">|</span>
-              <button
-                type="button"
-                className="cursor-pointer hover:text-gray-700 hover:underline"
-                onClick={() => setIsErrorReportModalOpen(true)}
-              >
-                오류 신고
-              </button>
             </div>
+            <button
+              type="button"
+              className="cursor-pointer hover:text-gray-700 hover:underline"
+              onClick={() => setIsErrorReportModalOpen(true)}
+            >
+              오류 신고
+            </button>
           </div>
 
           <p className="text-center text-[11px] text-gray-400">

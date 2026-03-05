@@ -8,7 +8,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useSignOut } from "@/hooks/mutations/auth/use-sign-out";
 import { useCheckDailyGiftBoxStatus } from "@/hooks/mutations/event/use-check-daily-gift-box-status";
 import { useClaimDailyGiftBox } from "@/hooks/mutations/event/use-claim-daily-gift-box";
-import { PanelLeft, PanelLeftClose } from "lucide-react";
+import { PanelLeft } from "lucide-react";
 import { useSidebar } from "../ui/sidebar";
 import AppHeaderProfileMenu from "@/components/common/app-header-profile-menu";
 import GiftEventModal from "@/components/common/gift-event-modal";
@@ -102,7 +102,7 @@ export default function AppHeader() {
           className="md:-ml-3 h-10 w-10 inline-flex items-center justify-center rounded-lg cursor-pointer text-gray-700 hover:bg-gray-100 transition-colors"
           aria-label={isSidebarOpen ? "메뉴 닫기" : "메뉴 열기"}
         >
-          {isSidebarOpen ? <PanelLeftClose className="w-5 h-5" /> : <PanelLeft className="w-5 h-5" />}
+          <PanelLeft className="w-5 h-5" />
         </button>
         <Link href={"/"}>
           <Image
