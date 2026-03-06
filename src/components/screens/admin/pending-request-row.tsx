@@ -33,6 +33,7 @@ export default function PendingRequestRow({ request }: RequestRowProps) {
   );
   const [groupNameInput, setGroupNameInput] = useState("");
   const [crewNameInput, setCrewNameInput] = useState("");
+  const [supporters, setSupporters] = useState("");
   const [birthday, setBirthday] = useState("");
   const [nationality, setNationality] = useState("");
   const [gender, setGender] = useState("");
@@ -95,6 +96,7 @@ export default function PendingRequestRow({ request }: RequestRowProps) {
       platformUrl: platformUrl.trim() || null,
       fancafeUrl: fancafeUrl.trim() || null,
       youtubeUrl: youtubeUrl.trim() || null,
+      supporters: supporters.trim() || null,
     });
   };
 
@@ -178,6 +180,14 @@ export default function PendingRequestRow({ request }: RequestRowProps) {
             value={crewNameInput}
             onChange={(e) => setCrewNameInput(e.target.value)}
             placeholder="소속명 (쉼표로 구분)"
+            className="h-8 min-w-44"
+          />
+        </td>
+        <td className="px-4 py-3 text-sm">
+          <Input
+            value={supporters}
+            onChange={(e) => setSupporters(e.target.value)}
+            placeholder="서포터즈"
             className="h-8 min-w-44"
           />
         </td>

@@ -869,6 +869,7 @@ export type Database = {
           platform_url: string | null
           public_id: string
           soop_id: string | null
+          supporters: string | null
           youtube_url: string | null
         }
         Insert: {
@@ -893,6 +894,7 @@ export type Database = {
           platform_url?: string | null
           public_id?: string
           soop_id?: string | null
+          supporters?: string | null
           youtube_url?: string | null
         }
         Update: {
@@ -917,6 +919,7 @@ export type Database = {
           platform_url?: string | null
           public_id?: string
           soop_id?: string | null
+          supporters?: string | null
           youtube_url?: string | null
         }
         Relationships: []

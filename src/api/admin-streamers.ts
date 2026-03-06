@@ -49,6 +49,7 @@ export async function updateStreamer(
         platform_url?: string | null;
         fancafe_url?: string | null;
         youtube_url?: string | null;
+        supporters?: string | null;
     }
 ) {
     const { data, error } = await supabase
@@ -141,6 +142,7 @@ export async function registerStreamerFromRequest(
         platformUrl: string | null;
         fancafeUrl: string | null;
         youtubeUrl: string | null;
+        supporters: string | null;
     }
 ) {
     const {
@@ -184,6 +186,7 @@ export async function registerStreamerFromRequest(
         platform_url: payload.platformUrl,
         fancafe_url: payload.fancafeUrl,
         youtube_url: payload.youtubeUrl,
+        supporters: payload.supporters,
     };
 
     const { data: insertedStreamer, error: insertError } = await supabase

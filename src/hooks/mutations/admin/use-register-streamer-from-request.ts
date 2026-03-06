@@ -25,6 +25,7 @@ export function useRegisterStreamerFromRequest() {
             platformUrl,
             fancafeUrl,
             youtubeUrl,
+            supporters,
         }: {
             requestId: number;
             nickname: string;
@@ -44,6 +45,7 @@ export function useRegisterStreamerFromRequest() {
             platformUrl: string | null;
             fancafeUrl: string | null;
             youtubeUrl: string | null;
+            supporters: string | null;
         }) =>
             registerStreamerFromRequest(requestId, {
                 nickname,
@@ -63,6 +65,7 @@ export function useRegisterStreamerFromRequest() {
                 platformUrl,
                 fancafeUrl,
                 youtubeUrl,
+                supporters,
             }),
         onSuccess: () => {
             queryClient.invalidateQueries({

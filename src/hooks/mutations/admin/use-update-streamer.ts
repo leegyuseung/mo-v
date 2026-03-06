@@ -30,6 +30,7 @@ export function useUpdateStreamer() {
                 platform_url?: string | null;
                 fancafe_url?: string | null;
                 youtube_url?: string | null;
+                supporters?: string | null;
             };
         }) => updateStreamer(streamerId, updates),
         onSuccess: () => {

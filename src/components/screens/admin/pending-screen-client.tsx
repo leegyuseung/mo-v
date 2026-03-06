@@ -33,7 +33,7 @@ export default function PendingScreen() {
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
-        <table className="min-w-[3400px] text-left">
+        <table className="min-w-[3560px] text-left">
           <thead>
             <tr className="bg-gray-50/80 border-b border-gray-100">
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">플랫폼</th>
@@ -44,6 +44,7 @@ export default function PendingScreen() {
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">SOOP ID</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">그룹명(text[])</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">소속명(text[])</th>
+              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">서포터즈</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">생일</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">국적</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">성별</th>
@@ -63,7 +64,7 @@ export default function PendingScreen() {
             {isLoading ? (
               [...Array(4)].map((_, index) => (
                 <tr key={`pending-streamer-skeleton-${index}`} className="border-b border-gray-100">
-                  <td className="px-4 py-3" colSpan={21}>
+                  <td className="px-4 py-3" colSpan={22}>
                     <Skeleton className="h-5 w-full" />
                   </td>
                 </tr>
@@ -72,7 +73,7 @@ export default function PendingScreen() {
               requests.map((request) => <PendingRequestRow key={request.id} request={request} />)
             ) : (
               <tr>
-                <td colSpan={21} className="px-4 py-14 text-center text-gray-400 text-sm">
+                <td colSpan={22} className="px-4 py-14 text-center text-gray-400 text-sm">
                   등록 대기 요청이 없습니다.
                 </td>
               </tr>

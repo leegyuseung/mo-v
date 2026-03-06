@@ -19,6 +19,7 @@ type StreamerProfileCardProps = {
   streamer: {
     nickname: string | null;
     image_url: string | null;
+    supporters: string | null;
     birthday: string | null;
     nationality: string | null;
     gender: string | null;
@@ -65,6 +66,7 @@ export default function StreamerProfileCard({
 }: StreamerProfileCardProps) {
   const infoRows: Array<{ label: string; value: string }> = [
     { label: "생일", value: streamer.birthday || "-" },
+    { label: "서포터즈", value: streamer.supporters || "-" },
     { label: "국적", value: streamer.nationality || "-" },
     { label: "성별", value: streamer.gender || "-" },
     { label: "장르", value: streamer.genre?.join(", ") || "-" },

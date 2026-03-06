@@ -205,6 +205,7 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
   const [crewNameInput, setCrewNameInput] = useState(
     streamer.crew_name?.join(", ") || ""
   );
+  const [supporters, setSupporters] = useState(streamer.supporters || "");
   const [imageUrl, setImageUrl] = useState(streamer.image_url || "");
   const [birthday, setBirthday] = useState(streamer.birthday || "");
   const [nationality, setNationality] = useState(streamer.nationality || "");
@@ -236,6 +237,7 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
           image_url: imageUrl || null,
           group_name: parseTextArrayInput(groupNameInput),
           crew_name: parseTextArrayInput(crewNameInput),
+          supporters: supporters.trim() || null,
           birthday: birthday || null,
           nationality: nationality || null,
           gender: gender || null,
@@ -260,6 +262,7 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
     setSoopId(streamer.soop_id || "");
     setGroupNameInput(streamer.group_name?.join(", ") || "");
     setCrewNameInput(streamer.crew_name?.join(", ") || "");
+    setSupporters(streamer.supporters || "");
     setImageUrl(streamer.image_url || "");
     setBirthday(streamer.birthday || "");
     setNationality(streamer.nationality || "");
@@ -384,6 +387,21 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
             displayValue={
               <span className="text-gray-500 text-xs">
                 {streamer.crew_name?.join(", ") || "-"}
+              </span>
+            }
+          />
+        </td>
+        {/* 서포터즈 */}
+        <td className="px-4 py-3 text-sm">
+          <EditableCell
+            isEditing={isEditing}
+            value={supporters}
+            onChange={setSupporters}
+            placeholder="서포터즈"
+            className="h-8 text-sm w-44"
+            displayValue={
+              <span className="text-gray-500 text-xs">
+                {streamer.supporters || "-"}
               </span>
             }
           />
@@ -616,7 +634,7 @@ type StreamerTableProps = {
 export function StreamerTable({ streamers, isLoading }: StreamerTableProps) {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto overflow-y-auto max-h-[560px]">
-      <table className="min-w-[2680px] text-left">
+      <table className="min-w-[2820px] text-left">
         <thead>
           <tr className="bg-gray-50/80 border-b border-gray-100">
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">이미지</th>
@@ -626,6 +644,7 @@ export function StreamerTable({ streamers, isLoading }: StreamerTableProps) {
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">SOOP ID</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">그룹명(text[])</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">소속명(text[])</th>
+            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">서포터즈</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">생일</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">국적</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">성별</th>
@@ -642,14 +661,14 @@ export function StreamerTable({ streamers, isLoading }: StreamerTableProps) {
         </thead>
         <tbody>
           {isLoading ? (
-            <TableSkeleton cols={19} />
+            <TableSkeleton cols={20} />
           ) : streamers && streamers.length > 0 ? (
             streamers.map((streamer) => (
               <StreamerRow key={streamer.id} streamer={streamer} />
             ))
           ) : (
             <tr>
-              <td colSpan={19} className="px-4 py-12 text-center text-gray-400 text-sm">
+              <td colSpan={20} className="px-4 py-12 text-center text-gray-400 text-sm">
                 등록된 버츄얼이 없습니다.
               </td>
             </tr>
