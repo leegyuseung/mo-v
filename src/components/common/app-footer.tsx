@@ -32,15 +32,15 @@ export default function AppFooter() {
       <footer className="w-full border-t border-gray-100 py-6">
         <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-center gap-2 px-4">
           <div className="hidden flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-gray-500 md:flex">
-            <Link href="/legal/terms" className="hover:text-gray-700 hover:underline">
+            <Link href="/legal/terms" prefetch={false} className="hover:text-gray-700 hover:underline">
               서비스 이용약관
             </Link>
             <span className="text-gray-300">|</span>
-            <Link href="/legal/privacy-policy" className="hover:text-gray-700 hover:underline">
+            <Link href="/legal/privacy-policy" prefetch={false} className="hover:text-gray-700 hover:underline">
               개인정보처리방침
             </Link>
             <span className="text-gray-300">|</span>
-            <Link href="/legal/marketing" className="hover:text-gray-700 hover:underline">
+            <Link href="/legal/marketing" prefetch={false} className="hover:text-gray-700 hover:underline">
               마케팅 수신 동의
             </Link>
           </div>
@@ -55,15 +55,15 @@ export default function AppFooter() {
           </div>
           <div className="flex flex-col items-center gap-1 text-xs text-gray-500 md:hidden">
             <div className="flex items-center justify-center gap-x-2">
-              <Link href="/legal/terms" className="hover:text-gray-700 hover:underline">
+              <Link href="/legal/terms" prefetch={false} className="hover:text-gray-700 hover:underline">
                 서비스 이용약관
               </Link>
               <span className="text-gray-300">|</span>
-              <Link href="/legal/privacy-policy" className="hover:text-gray-700 hover:underline">
+              <Link href="/legal/privacy-policy" prefetch={false} className="hover:text-gray-700 hover:underline">
                 개인정보처리방침
               </Link>
               <span className="text-gray-300">|</span>
-              <Link href="/legal/marketing" className="hover:text-gray-700 hover:underline">
+              <Link href="/legal/marketing" prefetch={false} className="hover:text-gray-700 hover:underline">
                 마케팅 수신 동의
               </Link>
             </div>

@@ -35,6 +35,7 @@ export default function HomeLiveBoxSection({
           <div className="flex items-center gap-2">
             <Link
               href="/live-box"
+              prefetch={false}
               className="text-xs font-medium text-gray-500 underline-offset-2 hover:text-gray-700 hover:underline"
             >
               전체
@@ -86,6 +87,7 @@ export default function HomeLiveBoxSection({
               <Link
                 key={box.id}
                 href={`/live-box/${box.id}`}
+                prefetch={false}
                 className="group block rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-gray-300 hover:bg-gray-50/40 hover:shadow-[0_14px_28px_-14px_rgba(0,0,0,0.45)]"
               >
                 <div className="mb-2 flex items-start justify-between gap-2">

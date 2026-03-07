@@ -44,6 +44,7 @@ export default function HomeHeartRankSection({ rankCards }: HomeHeartRankSection
               <h3 className="text-sm font-semibold text-gray-800">{card.title}</h3>
               <Link
                 href={`/rank?period=${card.key}`}
+                prefetch={false}
                 className="text-xs font-medium text-gray-500 hover:text-gray-700"
               >
                 전체
@@ -96,6 +97,7 @@ export default function HomeHeartRankSection({ rankCards }: HomeHeartRankSection
                     <Link
                       key={`${card.key}-${item.streamer_id}`}
                       href={`/vlist/${item.public_id ?? item.streamer_id}`}
+                      prefetch={false}
                       className={`group flex items-center gap-3 rounded-xl border px-2 py-1.5 transition hover:border-gray-300 hover:bg-gray-50 ${getTopRankRowClass(
                         index
                       )}`}

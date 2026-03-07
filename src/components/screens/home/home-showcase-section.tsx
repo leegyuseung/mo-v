@@ -128,6 +128,7 @@ export default function HomeShowcaseSection({
             <h3 className="text-sm font-semibold text-gray-800">콘텐츠</h3>
             <Link
               href="/contents"
+              prefetch={false}
               className="text-[11px] font-medium text-gray-500 underline-offset-2 hover:text-gray-700 hover:underline"
             >
               전체
@@ -152,6 +153,7 @@ export default function HomeShowcaseSection({
                 <Link
                   key={`home-showcase-content-${content.id}`}
                   href={`/contents/${content.id}`}
+                  prefetch={false}
                   className="flex items-center justify-between gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700 shadow-sm transition-colors duration-200 hover:border-gray-300 hover:bg-gray-100"
                 >
                   <span className="truncate font-medium">{content.title}</span>

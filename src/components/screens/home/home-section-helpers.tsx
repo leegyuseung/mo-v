@@ -138,6 +138,7 @@ export function ShowcaseStreamerList({
             ) : (
               <Link
                 href={profileUrl}
+                prefetch={false}
                 className={`flex h-full min-w-0 flex-1 items-center gap-3 ${showBirthdayMeta ? "pr-16" : ""}`}
               >
                 {content}

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, CalendarDays, Gift, Mail, Star } from "lucide-react";
+import { CalendarDays, Gift, Star } from "lucide-react";
 
 type AppHeaderActionIconsProps = {
   onClickGiftEvent: () => void;
@@ -17,6 +17,7 @@ export default function AppHeaderActionIcons({
       <div className="group relative">
         <Link
           href="/star"
+          prefetch={false}
           aria-label="즐겨찾기"
           className="h-9 w-9 md:h-10 md:w-10 inline-flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer"
         >
@@ -55,4 +56,3 @@ export default function AppHeaderActionIcons({
     </>
   );
 }
-

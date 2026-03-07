@@ -46,6 +46,7 @@ export default function HomeLiveStarSection({
               </span>
               <Link
                 href="/live"
+                prefetch={false}
                 className="text-xs font-medium text-gray-500 underline-offset-2 hover:text-gray-700 hover:underline"
               >
                 전체
@@ -126,6 +127,7 @@ export default function HomeLiveStarSection({
               </span>
               <Link
                 href="/star"
+                prefetch={false}
                 className="text-xs font-medium text-gray-500 underline-offset-2 hover:text-gray-700 hover:underline"
               >
                 전체
@@ -135,7 +137,7 @@ export default function HomeLiveStarSection({
               <div className="py-8 text-center text-sm text-gray-400">로그인 후 이용해 주세요.</div>
             ) : starredStreamerIds.length === 0 ? (
               <div className="py-8 text-center text-sm text-gray-500">
-                <Link href="/vlist" className="underline underline-offset-2 hover:text-gray-700">
+                <Link href="/vlist" prefetch={false} className="underline underline-offset-2 hover:text-gray-700">
                   즐겨찾기하러가기
                 </Link>
               </div>

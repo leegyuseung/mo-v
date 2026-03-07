@@ -76,7 +76,7 @@ export default function AppSideBar() {
                       tooltip={item.title}
                       className="hover:bg-transparent hover:text-blue-600"
                     >
-                      <Link href={item.url!} onClick={closeSidebarOnMobile}>
+                      <Link href={item.url!} prefetch={false} onClick={closeSidebarOnMobile}>
                         <item.icon className="w-5 h-5" />
                         <span>{item.title}</span>
                       </Link>
@@ -108,7 +108,7 @@ export default function AppSideBar() {
                 tooltip="관리자"
                 className="hover:bg-transparent hover:text-blue-600"
               >
-                <Link href="/admin" onClick={closeSidebarOnMobile}>
+                <Link href="/admin" prefetch={false} onClick={closeSidebarOnMobile}>
                   <Shield className="w-5 h-5" />
                   <span>관리자</span>
                 </Link>
