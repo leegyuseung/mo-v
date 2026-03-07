@@ -1,7 +1,8 @@
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
-import type { LiveStreamer } from "@/types/live";
 import type { LiveBox, LiveBoxParticipantProfile } from "@/types/live-box";
+import type { LiveBoxDetailParticipantLiveStatus } from "@/types/live-box-screen";
+import { getOfficialPlatformLiveMaps } from "@/lib/official-live";
 import { withEffectiveLiveBoxStatus } from "@/utils/live-box-status";
 
 async function trySyncLiveBoxStatuses(supabase: ReturnType<typeof createClient>) {
@@ -20,31 +21,6 @@ async function trySyncLiveBoxStatuses(supabase: ReturnType<typeof createClient>)
       // 함수 미존재/권한 문제 등은 조회 자체를 막지 않는다.
     }
   }
-}
-
-function normalizeBaseUrl(value: string) {
-  return value.endsWith("/") ? value.slice(0, -1) : value;
-}
-
-async function resolveBaseUrl() {
-  const envUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    process.env.SITE_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "");
-
-  if (envUrl) {
-    return normalizeBaseUrl(envUrl);
-  }
-
-  const headerStore = await headers();
-  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
-
-  if (!host) return null;
-
-  const protocol =
-    headerStore.get("x-forwarded-proto") ?? (host.includes("localhost") ? "http" : "https");
-
-  return `${protocol}://${host}`;
 }
 
 /** 서버 컴포넌트에서 공개 라이브박스 목록을 조회한다. */
@@ -93,15 +69,29 @@ export async function fetchLiveBoxParticipantProfilesOnServer(): Promise<LiveBox
   return (data || []) as LiveBoxParticipantProfile[];
 }
 
-/** 서버 컴포넌트에서 현재 라이브 데이터(API route)를 조회한다. */
-export async function fetchLiveStreamersOnServer(): Promise<LiveStreamer[]> {
-  const baseUrl = await resolveBaseUrl();
-  if (!baseUrl) return [];
+/** 라이브박스 상세에서는 참가자 platformId 기준으로 직접 라이브 상태를 만든다. */
+export async function fetchLiveBoxParticipantLiveStatusesOnServer(
+  participantPlatformIds: string[]
+): Promise<LiveBoxDetailParticipantLiveStatus[]> {
+  if (participantPlatformIds.length === 0) return [];
 
-  const response = await fetch(`${baseUrl}/api/live/all`, { cache: "no-store" });
-  if (!response.ok) {
-    throw new Error("Failed to fetch live streamers");
-  }
+  const uniquePlatformIds = Array.from(
+    new Set(participantPlatformIds.map((id) => id.trim()).filter(Boolean))
+  );
+  const { chzzk, soop } = await getOfficialPlatformLiveMaps();
 
-  return (await response.json()) as LiveStreamer[];
+  return uniquePlatformIds.flatMap((platformId) => {
+    const status = chzzk.get(platformId) || soop.get(platformId);
+    if (!status?.isLive || !status.liveUrl) {
+      return [];
+    }
+
+    return [
+      {
+        platformId,
+        liveUrl: status.liveUrl,
+        viewerCount: status.viewerCount ?? null,
+      },
+    ];
+  });
 }

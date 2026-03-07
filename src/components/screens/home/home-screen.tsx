@@ -54,14 +54,14 @@ const HomeLiveBoxSection = dynamic(
     ),
   }
 );
-import { useLiveStreamers } from "@/hooks/queries/live/use-live-streamers";
-import { useLiveStreamerStatuses } from "@/hooks/queries/live/use-live-streamer-statuses";
 import { useLiveBoxes } from "@/hooks/queries/live-box/use-live-boxes";
+import { useLiveStreamers } from "@/hooks/queries/live/use-live-streamers";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useHeartLeaderboard } from "@/hooks/queries/heart/use-heart-leaderboard";
 import { useStarredStreamerIds } from "@/hooks/queries/star/use-starred-streamer-ids";
 import { useHomeShowcaseData } from "@/hooks/queries/home/use-home-showcase-data";
 import type { HomeRankCard } from "@/types/home-screen";
+import type { LiveStatusByStreamerId } from "@/types/live";
 
 export default function HomeScreen() {
   const [isDeferredDataEnabled, setIsDeferredDataEnabled] = useState(false);
@@ -80,19 +80,6 @@ export default function HomeScreen() {
     isLoading: isShowcaseLoading,
     isError: isShowcaseError,
   } = useHomeShowcaseData();
-  const showcaseStreamerIds = useMemo(
-    () =>
-      [
-        ...(showcaseData?.upcomingBirthdays || []).map((streamer) => streamer.id),
-        ...(showcaseData?.recommendedStreamers || []).map((streamer) => streamer.id),
-      ],
-    [showcaseData?.upcomingBirthdays, showcaseData?.recommendedStreamers]
-  );
-  const {
-    data: liveStatusById,
-    isLoading: isLiveStatusLoading,
-    isFetching: isLiveStatusFetching,
-  } = useLiveStreamerStatuses(showcaseStreamerIds);
 
   const {
     data: liveBoxData = [],
@@ -106,7 +93,6 @@ export default function HomeScreen() {
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }, [liveBoxData]);
 
-  const { data: liveData, isLoading: isLiveLoading } = useLiveStreamers(isDeferredDataEnabled);
   const {
     data: allRank = [],
     isLoading: isAllRankLoading,
@@ -127,6 +113,30 @@ export default function HomeScreen() {
     isLoading: isWeeklyRankLoading,
     isError: isWeeklyRankError,
   } = useHeartLeaderboard("weekly", 5, isDeferredDataEnabled);
+  // 첫 페인트 이후 라이브 데이터를 로드해 초기 렌더링 속도를 높인다.
+  const { data: liveData = [], isLoading: isLiveLoading } = useLiveStreamers(isDeferredDataEnabled, true);
+  const liveStatusById = useMemo(
+    (): LiveStatusByStreamerId =>
+      Object.fromEntries(
+        liveData.map((streamer) => [
+          streamer.id,
+          {
+            isLive: streamer.isLive,
+            viewerCount: streamer.viewerCount,
+            liveTitle: streamer.liveTitle,
+            liveThumbnailImageUrl: streamer.liveThumbnailImageUrl,
+            liveUrl: streamer.liveUrl,
+          },
+        ])
+      ),
+    [liveData]
+  );
+
+  const { data: starredStreamerIds = [] } = useStarredStreamerIds(
+    user?.id,
+    [],
+    isDeferredDataEnabled
+  );
 
   const rankCards: HomeRankCard[] = [
     {
@@ -160,8 +170,7 @@ export default function HomeScreen() {
   ];
 
   const topLiveStreamers = useMemo(() => {
-    return (liveData || [])
-      .filter((item) => item.isLive)
+    return [...liveData]
       .sort((a, b) => {
         const diff = (b.viewerCount ?? 0) - (a.viewerCount ?? 0);
         if (diff !== 0) return diff;
@@ -170,14 +179,9 @@ export default function HomeScreen() {
       .slice(0, 4);
   }, [liveData]);
 
-  const { data: starredStreamerIds = [] } = useStarredStreamerIds(
-    user?.id,
-    [],
-    isDeferredDataEnabled
-  );
   const liveFavoriteStreamers = useMemo(() => {
     const idSet = new Set(starredStreamerIds);
-    return (liveData || []).filter((item) => item.isLive && idSet.has(item.id));
+    return liveData.filter((item) => idSet.has(item.id));
   }, [liveData, starredStreamerIds]);
 
   return (
@@ -200,11 +204,11 @@ export default function HomeScreen() {
         isShowcaseLoading={isShowcaseLoading}
         isShowcaseError={isShowcaseError}
         liveStatusById={liveStatusById}
-        isLiveStatusLoading={isLiveStatusLoading || isLiveStatusFetching}
+        isLiveStatusLoading={!isDeferredDataEnabled || isLiveLoading}
       />
 
       <HomeLiveStarSection
-        isLiveLoading={!isDeferredDataEnabled || isLiveLoading}
+        isLiveLoading={isLiveLoading}
         topLiveStreamers={topLiveStreamers}
         isLoggedIn={Boolean(user)}
         starredStreamerIds={starredStreamerIds}

@@ -12,6 +12,7 @@ import { useLiveBoxDetailActions } from "@/hooks/live-box/use-live-box-detail-ac
 import { STREAMER_INFO_EDIT_REQUEST_MODAL_TEXT } from "@/lib/constant";
 import { formatLiveBoxDisplayDate } from "@/utils/live-box-presenter";
 import type {
+  LiveBoxDetailParticipantLiveStatus,
   LiveBoxDetailLiveLookup,
   LiveBoxDetailParticipantProfileLookup,
   LiveBoxDetailScreenProps,
@@ -21,7 +22,7 @@ import type {
 export default function LiveBoxDetailScreenClient({
   liveBox,
   participantProfiles,
-  liveStreamers,
+  participantLiveStatuses,
   hasLiveBoxError = false,
   hasParticipantProfilesError = false,
   hasLiveStreamersError = false,
@@ -54,25 +55,15 @@ export default function LiveBoxDetailScreenClient({
   const liveByPlatformId = useMemo<LiveBoxDetailLiveLookup>(() => {
     const map = new Map();
 
-    liveStreamers.forEach((streamer) => {
-      if (!streamer.isLive || !streamer.liveUrl) return;
-
-      const liveInfo = {
-        liveUrl: streamer.liveUrl,
-        viewerCount: streamer.viewerCount ?? null,
-      };
-
-      if (streamer.chzzk_id) {
-        map.set(streamer.chzzk_id, liveInfo);
-      }
-
-      if (streamer.soop_id) {
-        map.set(streamer.soop_id, liveInfo);
-      }
+    participantLiveStatuses.forEach((status: LiveBoxDetailParticipantLiveStatus) => {
+      map.set(status.platformId, {
+        liveUrl: status.liveUrl,
+        viewerCount: status.viewerCount,
+      });
     });
 
     return map;
-  }, [liveStreamers]);
+  }, [participantLiveStatuses]);
 
   const filteredParticipantIds = useMemo(() => {
     if (!liveBox) return [];

@@ -48,8 +48,7 @@ export async function GET(request: Request) {
 
     // 서버에서만 보관되는 Client-Secret을 사용해 CHZZK Open API를 호출한다.
     const headers: HeadersInit = {};
-    const clientId =
-      process.env.CHZZK_CLIENT_ID || process.env.NEXT_PUBLIC_CHZZK_CLIENT_ID;
+    const clientId = process.env.CHZZK_CLIENT_ID;
 
     if (clientId) {
       headers["Client-Id"] = clientId;

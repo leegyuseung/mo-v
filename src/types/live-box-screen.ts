@@ -1,4 +1,3 @@
-import type { LiveStreamer } from "@/types/live";
 import type { LiveBox, LiveBoxParticipantProfile } from "@/types/live-box";
 
 export type LiveBoxStatusFilter = "all" | "ongoing" | "pending" | "closed";
@@ -28,7 +27,7 @@ export type LiveBoxScreenProps = {
 export type LiveBoxDetailScreenProps = {
   liveBox: LiveBox | null;
   participantProfiles: LiveBoxParticipantProfile[];
-  liveStreamers: LiveStreamer[];
+  participantLiveStatuses: LiveBoxDetailParticipantLiveStatus[];
   hasLiveBoxError?: boolean;
   hasParticipantProfilesError?: boolean;
   hasLiveStreamersError?: boolean;
@@ -68,6 +67,12 @@ export type LiveBoxDetailLiveLookup = Map<
     viewerCount: number | null;
   }
 >;
+
+export type LiveBoxDetailParticipantLiveStatus = {
+  platformId: string;
+  liveUrl: string;
+  viewerCount: number | null;
+};
 
 export type LiveBoxParticipantsPanelProps = {
   liveBox: LiveBox;

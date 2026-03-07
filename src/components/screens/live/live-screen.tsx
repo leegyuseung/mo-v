@@ -1,12 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ExternalLink, Eye, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import Pagination from "@/components/common/pagination";
 import SearchInput from "@/components/common/search-input";
+import LiveStreamerCard from "@/components/screens/live/live-streamer-card";
 import { useLiveStreamers } from "@/hooks/queries/live/use-live-streamers";
 import { useStreamerGenres } from "@/hooks/queries/streamers/use-streamer-genres";
 import { useIdolGroupCodeNames } from "@/hooks/queries/groups/use-idol-group-code-names";
@@ -15,7 +14,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useBrokenImages } from "@/hooks/use-broken-images";
 import type { StreamerPlatform } from "@/types/streamer";
 import type { LiveSortOrder } from "@/types/live";
-import StreamerGroupCrewBadges from "@/components/common/streamer-group-crew-badges";
 
 export default function LiveScreen() {
   const isMobile = useIsMobile();
@@ -27,7 +25,7 @@ export default function LiveScreen() {
   const [sortOrder, setSortOrder] = useState<LiveSortOrder>("name_asc");
   /** 라이브 썸네일 이미지 깨짐 추적 (fallback → 프로필 이미지) */
   const brokenImages = useBrokenImages();
-  const { data, isLoading, isError } = useLiveStreamers();
+  const { data, isLoading, isError } = useLiveStreamers(true, true);
   const { data: genres = [] } = useStreamerGenres();
   const { data: idolGroups } = useIdolGroupCodeNames();
   const { data: crews } = useCrewCodeNames();
@@ -38,7 +36,6 @@ export default function LiveScreen() {
     const keywordLower = keyword.trim().toLowerCase();
 
     return source
-      .filter((item) => item.isLive)
       .filter((item) => {
         if (platform === "all") return true;
         return item.platform === platform;
@@ -221,97 +218,17 @@ export default function LiveScreen() {
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {pagedLiveStreamers.map((streamer, index) => {
-            const liveThumbSrc = streamer.liveThumbnailImageUrl || "";
-            const fallbackSrc = streamer.image_url || "";
-            const hasLiveThumb = Boolean(liveThumbSrc);
-            const useFallback = brokenImages.isBroken(streamer.id);
-            const imageSrc = useFallback
-              ? fallbackSrc
-              : liveThumbSrc || fallbackSrc;
-            const isLiveThumb = hasLiveThumb && !useFallback;
-
-            return (
-              <Link
-                key={streamer.id}
-                href={streamer.liveUrl}
-                target="_blank"
-                rel="noreferrer"
-                className={`group rounded-xl border bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${streamer.platform === "chzzk"
-                  ? "border-green-200"
-                  : "border-blue-200"
-                  }`}
-              >
-                {/* 썸네일: onError fallback이 필요하므로 <img> 유지 */}
-                <div className="relative mb-2 h-28 overflow-hidden rounded-lg bg-gray-100">
-                  {imageSrc ? (
-                    <img
-                      src={imageSrc}
-                      alt={streamer.nickname || "streamer"}
-                      loading={index === 0 ? "eager" : "lazy"}
-                      onError={() => {
-                        if (hasLiveThumb && !useFallback && fallbackSrc) {
-                          brokenImages.markBroken(streamer.id);
-                        }
-                      }}
-                      className="absolute inset-0 h-full w-full object-cover transition group-hover:scale-[1.03]"
-                    />
-                  ) : (
-                    <div className="h-full w-full flex items-center justify-center">
-                      <UserRound className="w-7 h-7 text-gray-300" />
-                    </div>
-                  )}
-
-                  <span className="absolute top-2 left-2 rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-semibold text-white">
-                    LIVE
-                  </span>
-                  {isLiveThumb ? (
-                    <span className="absolute top-2 right-2 rounded-full bg-black/60 px-1.5 py-0.5 text-[9px] font-medium text-white">
-                      LIVE THUMB
-                    </span>
-                  ) : null}
-                </div>
-
-                <div className="mb-1 flex items-center justify-between gap-1">
-                  <p className="truncate text-sm font-semibold text-gray-900">
-                    {streamer.nickname || "이름 미등록"}
-                  </p>
-                  <span
-                    className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${streamer.platform === "chzzk"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-blue-100 text-blue-700"
-                      }`}
-                  >
-                    {streamer.platform?.toUpperCase() || "UNKNOWN"}
-                  </span>
-                </div>
-
-                {streamer.liveTitle ? (
-                  <p className="mb-1 truncate text-[11px] text-gray-500">
-                    {streamer.liveTitle}
-                  </p>
-                ) : null}
-
-                <div className="mb-1 flex items-center justify-between text-[11px] text-gray-500">
-                  <span className="inline-flex items-center gap-1">
-                    <Eye className="w-3.5 h-3.5" />
-                    {(streamer.viewerCount ?? 0).toLocaleString()}명
-                  </span>
-                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full border border-gray-200 text-gray-500">
-                    <ExternalLink className="w-3 h-3" />
-                  </span>
-                </div>
-
-                <StreamerGroupCrewBadges
-                  streamerId={streamer.id}
-                  groupNames={streamer.group_name}
-                  crewNames={streamer.crew_name}
-                  groupNameByCode={groupNameByCode}
-                  crewNameByCode={crewNameByCode}
-                />
-              </Link>
-            );
-          })}
+          {pagedLiveStreamers.map((streamer, index) => (
+            <LiveStreamerCard
+              key={streamer.id}
+              streamer={streamer}
+              eager={index === 0}
+              isBroken={brokenImages.isBroken}
+              markBroken={brokenImages.markBroken}
+              groupNameByCode={groupNameByCode}
+              crewNameByCode={crewNameByCode}
+            />
+          ))}
         </div>
       )}
 

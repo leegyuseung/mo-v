@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
   fetchLiveBoxParticipantProfilesOnServer,
-  fetchLiveStreamersOnServer,
+  fetchLiveBoxParticipantLiveStatusesOnServer,
   fetchPublicLiveBoxByIdOnServer,
 } from "@/api/live-box-server";
 import LiveBoxDetailScreen from "@/components/screens/live-box/live-box-detail-screen";
 import { SITE_DESCRIPTION } from "@/lib/seo";
-import type { LiveStreamer } from "@/types/live";
 import type { LiveBox, LiveBoxParticipantProfile } from "@/types/live-box";
+import type { LiveBoxDetailParticipantLiveStatus } from "@/types/live-box-screen";
 
 type LiveBoxDetailPageProps = {
   params: Promise<{
@@ -53,7 +53,7 @@ export default async function LiveBoxDetailPage({ params }: LiveBoxDetailPagePro
 
   let liveBox: LiveBox | null = null;
   let participantProfiles: LiveBoxParticipantProfile[] = [];
-  let liveStreamers: LiveStreamer[] = [];
+  let participantLiveStatuses: LiveBoxDetailParticipantLiveStatus[] = [];
   let hasLiveBoxError = false;
   let hasParticipantProfilesError = false;
   let hasLiveStreamersError = false;
@@ -75,7 +75,9 @@ export default async function LiveBoxDetailPage({ params }: LiveBoxDetailPagePro
   }
 
   try {
-    liveStreamers = await fetchLiveStreamersOnServer();
+    participantLiveStatuses = await fetchLiveBoxParticipantLiveStatusesOnServer(
+      liveBox?.participant_streamer_ids || []
+    );
   } catch {
     hasLiveStreamersError = true;
   }
@@ -83,7 +85,7 @@ export default async function LiveBoxDetailPage({ params }: LiveBoxDetailPagePro
   return (
     <LiveBoxDetailScreen
       liveBox={liveBox}
-      liveStreamers={liveStreamers}
+      participantLiveStatuses={participantLiveStatuses}
       participantProfiles={participantProfiles}
       hasLiveBoxError={hasLiveBoxError}
       hasParticipantProfilesError={hasParticipantProfilesError}
