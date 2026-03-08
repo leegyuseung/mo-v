@@ -279,11 +279,6 @@ export default function CrewScreen({ initialStarredCrewIds = [] }: CrewScreenPro
         </div>
       ) : null}
 
-      {isFetching && !isLoading ? (
-        <div className="mt-3 flex justify-center">
-          <Spinner className="h-5 w-5 border-2" />
-        </div>
-      ) : null}
     </div>
   );
 }

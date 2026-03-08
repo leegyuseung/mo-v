@@ -1,9 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import Pagination from "@/components/common/pagination";
 import SearchInput from "@/components/common/search-input";
 import LiveStreamerCard from "@/components/screens/live/live-streamer-card";
 import { useLiveStreamers } from "@/hooks/queries/live/use-live-streamers";
@@ -12,13 +11,15 @@ import { useIdolGroupCodeNames } from "@/hooks/queries/groups/use-idol-group-cod
 import { useCrewCodeNames } from "@/hooks/queries/crews/use-crew-code-names";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useBrokenImages } from "@/hooks/use-broken-images";
+import { Spinner } from "@/components/ui/spinner";
+import { useInfiniteScrollTrigger } from "@/hooks/use-infinite-scroll-trigger";
 import type { StreamerPlatform } from "@/types/streamer";
 import type { LiveSortOrder } from "@/types/live";
 
 export default function LiveScreen() {
   const isMobile = useIsMobile();
   const pageSize = isMobile ? 14 : 15;
-  const [page, setPage] = useState(1);
+  const [visiblePageCount, setVisiblePageCount] = useState(1);
   const [platform, setPlatform] = useState<StreamerPlatform>("all");
   const [genre, setGenre] = useState("all");
   const [keyword, setKeyword] = useState("");
@@ -59,10 +60,9 @@ export default function LiveScreen() {
   }, [data, genre, keyword, platform, sortOrder]);
 
   const totalCount = filteredLiveStreamers.length;
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-  const from = (page - 1) * pageSize;
-  const to = from + pageSize;
-  const pagedLiveStreamers = filteredLiveStreamers.slice(from, to);
+  const visibleCount = visiblePageCount * pageSize;
+  const visibleLiveStreamers = filteredLiveStreamers.slice(0, visibleCount);
+  const hasMore = visibleCount < totalCount;
 
   const isNameSort = sortOrder === "name_asc" || sortOrder === "name_desc";
   const isViewerSort = sortOrder === "viewer_desc" || sortOrder === "viewer_asc";
@@ -85,6 +85,17 @@ export default function LiveScreen() {
     return map;
   }, [crews]);
 
+  const onLoadMore = useCallback(() => {
+    setVisiblePageCount((previous) => previous + 1);
+  }, []);
+
+  const sentinelRef = useInfiniteScrollTrigger({
+    hasMore,
+    isLoading: isLoading,
+    onLoadMore,
+    enabled: !isError,
+  });
+
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
@@ -97,7 +108,7 @@ export default function LiveScreen() {
               value={platform}
               onChange={(event) => {
                 setPlatform(event.target.value as StreamerPlatform);
-                setPage(1);
+                setVisiblePageCount(1);
               }}
               className="h-9 w-28 shrink-0 cursor-pointer rounded-md border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none focus:border-gray-300"
             >
@@ -110,7 +121,7 @@ export default function LiveScreen() {
               value={genre}
               onChange={(event) => {
                 setGenre(event.target.value);
-                setPage(1);
+                setVisiblePageCount(1);
               }}
               className="h-9 w-32 shrink-0 cursor-pointer rounded-md border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none focus:border-gray-300 md:w-44"
             >
@@ -134,7 +145,7 @@ export default function LiveScreen() {
                       : prev === "name_desc"
                         ? "name_asc"
                         : "name_asc";
-                  setPage(1);
+                  setVisiblePageCount(1);
                   return next;
                 })
               }
@@ -157,7 +168,7 @@ export default function LiveScreen() {
                       : prev === "viewer_asc"
                         ? "viewer_desc"
                         : "viewer_desc";
-                  setPage(1);
+                  setVisiblePageCount(1);
                   return next;
                 })
               }
@@ -175,7 +186,7 @@ export default function LiveScreen() {
               value={keyword}
               onChange={(value) => {
                 setKeyword(value);
-                setPage(1);
+                setVisiblePageCount(1);
               }}
               placeholder="버츄얼 명을 입력해 주세요"
               containerClassName="w-full md:w-80"
@@ -218,7 +229,7 @@ export default function LiveScreen() {
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {pagedLiveStreamers.map((streamer, index) => (
+          {visibleLiveStreamers.map((streamer, index) => (
             <LiveStreamerCard
               key={streamer.id}
               streamer={streamer}
@@ -232,14 +243,11 @@ export default function LiveScreen() {
         </div>
       )}
 
-      {/* ─── 페이지네이션 (공통 컴포넌트) ─── */}
-      {!isLoading && (
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          onPageChange={setPage}
-        />
-      )}
+      {hasMore && !isLoading ? (
+        <div ref={sentinelRef} className="mt-3 flex h-10 items-center justify-center">
+          <Spinner className="h-5 w-5 border-2" />
+        </div>
+      ) : null}
     </div>
   );
 }

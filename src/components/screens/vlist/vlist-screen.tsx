@@ -60,7 +60,6 @@ export default function VlistScreen({ initialStarredStreamerIds = [] }: VlistScr
   const {
     data,
     isLoading,
-    isFetching,
     isFetchingNextPage,
     fetchNextPage,
     hasNextPage,
@@ -317,12 +316,6 @@ export default function VlistScreen({ initialStarredStreamerIds = [] }: VlistScr
           <Spinner className="h-5 w-5 border-2" />
         </div>
       ) : null}
-
-      {isFetching && !isLoading && (
-        <div className="mt-3 flex justify-center">
-          <Spinner className="h-5 w-5 border-2" />
-        </div>
-      )}
 
     </div>
   );
