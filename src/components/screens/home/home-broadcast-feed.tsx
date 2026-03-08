@@ -1,5 +1,7 @@
 "use client";
 
+import { Trash2 } from "lucide-react";
+import IconTooltipButton from "@/components/common/icon-tooltip-button";
 import UserProfileMenuTrigger from "@/components/common/user-profile-menu-trigger";
 import type { HomeBroadcastFeedProps } from "@/types/home-broadcast-board";
 
@@ -22,6 +24,8 @@ export default function HomeBroadcastFeed({
   nowMs,
   visibleLines,
   collapsedBroadcast,
+  canDeleteBroadcast,
+  onDeleteBroadcast,
 }: HomeBroadcastFeedProps) {
   const collapsedText = isLoading
     ? "불러오는 중..."
@@ -60,6 +64,19 @@ export default function HomeBroadcastFeed({
                       align="right"
                       className="max-w-24 cursor-pointer truncate text-gray-500 hover:text-gray-700"
                     />
+                    {canDeleteBroadcast ? (
+                      <>
+                        <span className="text-gray-300">|</span>
+                        <IconTooltipButton
+                          icon={Trash2}
+                          label="전광판 삭제"
+                          tooltipAlign="right"
+                          iconClassName="h-3.5 w-3.5 text-red-500"
+                          buttonClassName="h-6 w-6 rounded-full text-red-500 hover:bg-red-50"
+                          onClick={() => onDeleteBroadcast(item)}
+                        />
+                      </>
+                    ) : null}
                   </div>
                 </div>
               </div>
@@ -86,6 +103,19 @@ export default function HomeBroadcastFeed({
                   align="right"
                   className="max-w-20 cursor-pointer truncate text-gray-500 hover:text-gray-700"
                 />
+                {canDeleteBroadcast ? (
+                  <>
+                    <span className="text-gray-300">|</span>
+                    <IconTooltipButton
+                      icon={Trash2}
+                      label="전광판 삭제"
+                      tooltipAlign="right"
+                      iconClassName="h-3.5 w-3.5 text-red-500"
+                      buttonClassName="h-6 w-6 rounded-full text-red-500 hover:bg-red-50"
+                      onClick={() => onDeleteBroadcast(collapsedBroadcast)}
+                    />
+                  </>
+                ) : null}
               </div>
             ) : null}
           </div>

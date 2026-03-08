@@ -5,9 +5,7 @@ import { Boxes } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LiveBoxFormPanel from "@/components/screens/admin/live-box-form-panel";
 import LiveBoxesTable from "@/components/screens/admin/live-boxes-table";
-import LiveBoxPendingRequestsTable from "@/components/screens/admin/live-box-pending-requests-table";
 import { useLiveBoxes } from "@/hooks/queries/admin/use-live-boxes";
-import { usePendingLiveBoxRequests } from "@/hooks/queries/admin/use-pending-live-box-requests";
 import { useStreamers } from "@/hooks/queries/admin/use-streamers";
 import { useAdminLiveBoxFormState } from "@/hooks/use-admin-live-box-form-state";
 import type { LiveBoxStatus } from "@/types/live-box";
@@ -23,11 +21,6 @@ const LIVE_BOX_STATUS_FILTERS: Array<{ value: "all" | LiveBoxStatus; label: stri
 /** 관리자 라이브 박스 관리 화면 */
 export default function LiveBoxesScreenClient() {
   const { data: boxes, isLoading, isError } = useLiveBoxes();
-  const {
-    data: pendingLiveBoxRequests,
-    isLoading: isPendingLiveBoxRequestsLoading,
-    isError: isPendingLiveBoxRequestsError,
-  } = usePendingLiveBoxRequests();
   const { data: streamers = [] } = useStreamers();
   const formState = useAdminLiveBoxFormState({ boxes, streamers });
   const [statusFilter, setStatusFilter] = useState<"all" | LiveBoxStatus>("진행중");
@@ -107,20 +100,6 @@ export default function LiveBoxesScreenClient() {
         isLoading={isLoading}
         isError={isError}
         onStartEdit={formState.startEdit}
-      />
-
-      <div className="mt-10 mb-4 flex items-center gap-2">
-        <Boxes className="w-5 h-5 text-cyan-600" />
-        <div>
-          <h2 className="text-xl font-bold text-gray-900">박스 등록 요청 대기</h2>
-          <p className="text-sm text-gray-500">대기 상태(pending) 요청만 표시됩니다.</p>
-        </div>
-      </div>
-
-      <LiveBoxPendingRequestsTable
-        pendingLiveBoxRequests={pendingLiveBoxRequests}
-        isLoading={isPendingLiveBoxRequestsLoading}
-        isError={isPendingLiveBoxRequestsError}
       />
     </div>
   );

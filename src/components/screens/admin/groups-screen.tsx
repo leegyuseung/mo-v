@@ -10,6 +10,7 @@ import { useUploadIdolGroupImage } from "@/hooks/mutations/admin/use-upload-idol
 import type { IdolGroupUpsertInput } from "@/types/group";
 import { UsersRound } from "lucide-react";
 import { toast } from "sonner";
+import SearchInput from "@/components/common/search-input";
 import GroupFormFields from "./group-form-fields";
 import GroupRow from "./group-row";
 
@@ -21,6 +22,7 @@ export default function GroupsScreen() {
   const { mutateAsync: uploadIdolGroupImage, isPending: isUploadingImage } =
     useUploadIdolGroupImage();
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [searchKeyword, setSearchKeyword] = useState("");
   const [memberEtcInput, setMemberEtcInput] = useState("");
   const [form, setForm] = useState<IdolGroupUpsertInput>({
     group_code: "",
@@ -161,25 +163,47 @@ export default function GroupsScreen() {
     return map;
   }, [groups, streamers]);
 
+  const filteredGroups = useMemo(() => {
+    if (!groups) return groups;
+    const normalizedKeyword = searchKeyword.trim().toLowerCase();
+
+    if (!normalizedKeyword) {
+      return groups;
+    }
+
+    return groups.filter((group) =>
+      (group.name || "").toLowerCase().includes(normalizedKeyword)
+    );
+  }, [groups, searchKeyword]);
+
   return (
     <div className="p-6 md:p-10 max-w-7xl mx-auto">
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <UsersRound className="w-5 h-5 text-indigo-500" />
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">그룹 관리</h1>
-            <p className="text-sm text-gray-500">
-              그룹 정보 CRUD 및 버츄얼 그룹코드 기반 멤버 자동 매칭
-            </p>
+      <div className="mb-6 flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <UsersRound className="w-5 h-5 text-indigo-500" />
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">그룹 관리</h1>
+              <p className="text-sm text-gray-500">
+                그룹 정보 CRUD 및 버츄얼 그룹코드 기반 멤버 자동 매칭
+              </p>
+            </div>
           </div>
+          <Button
+            type="button"
+            onClick={() => setIsAddOpen((prev) => !prev)}
+            className="cursor-pointer bg-gray-800 hover:bg-gray-900 text-white"
+          >
+            {isAddOpen ? "추가 닫기" : "그룹 추가"}
+          </Button>
         </div>
-        <Button
-          type="button"
-          onClick={() => setIsAddOpen((prev) => !prev)}
-          className="cursor-pointer bg-gray-800 hover:bg-gray-900 text-white"
-        >
-          {isAddOpen ? "추가 닫기" : "그룹 추가"}
-        </Button>
+        <SearchInput
+          value={searchKeyword}
+          onChange={setSearchKeyword}
+          placeholder="그룹 이름 검색"
+          inputClassName="h-9 w-full md:w-72"
+          containerClassName="w-full md:w-72"
+        />
       </div>
 
       {isAddOpen ? (
@@ -216,17 +240,17 @@ export default function GroupsScreen() {
         </div>
       ) : null}
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
+      <div className="max-h-[720px] overflow-auto rounded-2xl border border-gray-100 bg-white shadow-sm">
         <table className="w-full min-w-[980px] text-left whitespace-nowrap">
           <thead>
             <tr className="bg-gray-50/80 border-b border-gray-100">
+              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-24">관리</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">이름</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">식별코드</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">멤버</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">리더</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">팬덤명</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">소속</th>
-              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-24">수정</th>
             </tr>
           </thead>
           <tbody>
@@ -244,8 +268,8 @@ export default function GroupsScreen() {
                   그룹 목록을 불러오지 못했습니다.
                 </td>
               </tr>
-            ) : groups && groups.length > 0 ? (
-              groups.map((group) => (
+            ) : filteredGroups && filteredGroups.length > 0 ? (
+              filteredGroups.map((group) => (
                 <GroupRow
                   key={group.id}
                   group={group}
@@ -257,7 +281,7 @@ export default function GroupsScreen() {
             ) : (
               <tr>
                 <td colSpan={7} className="px-4 py-12 text-center text-gray-400 text-sm">
-                  등록된 그룹이 없습니다.
+                  표시할 그룹이 없습니다.
                 </td>
               </tr>
             )}

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { ShieldAlert } from "lucide-react";
 import { useAllUserSanctions } from "@/hooks/queries/admin/use-all-user-sanctions";
-import { Input } from "@/components/ui/input";
+import SearchInput from "@/components/common/search-input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import type { UserSanctionSummary } from "@/types/profile";
@@ -182,18 +182,19 @@ export default function UserSanctionsScreen() {
                 key={item.value}
                 type="button"
                 variant={actionFilter === item.value ? "default" : "outline"}
-                className="h-9"
+                className="h-9 cursor-pointer"
                 onClick={() => setActionFilter(item.value as ActionFilter)}
               >
                 {item.label}
               </Button>
             ))}
           </div>
-          <Input
+          <SearchInput
             value={keyword}
-            onChange={(event) => setKeyword(event.target.value)}
+            onChange={setKeyword}
             placeholder="유저/사유/처리자 검색"
-            className="h-9 w-full md:w-72"
+            inputClassName="h-9 w-full md:w-72"
+            containerClassName="w-full md:w-72"
           />
         </div>
       </div>
@@ -212,9 +213,9 @@ export default function UserSanctionsScreen() {
             <span>처리 시각</span>
           </div>
           <div className="divide-y divide-gray-100">
-            {filteredSanctions.map((sanction, index) => (
+            {filteredSanctions.map((sanction) => (
               <SanctionRow
-                key={`${sanction.user_id}-${sanction.created_at}-${index}`}
+                key={sanction.id ?? `${sanction.user_id}-${sanction.created_at}`}
                 sanction={sanction}
               />
             ))}

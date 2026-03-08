@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { fetchUserAgreementStatus, updateMarketingAgreement } from "@/api/user-agreement";
-import type { User } from "@supabase/supabase-js";
+import type { AppUser } from "@/types/auth";
 
 /**
  * 프로필 설정 화면의 마케팅 수신 동의 상태 관리를 캡슐화한다.
@@ -9,7 +9,7 @@ import type { User } from "@supabase/supabase-js";
  * 마케팅 동의는 약관 동의와 별개로 사용자가 언제든 변경할 수 있어야 하므로,
  * 조회(GET)·변경(PATCH)을 하나의 훅으로 묶어 optimistic update 패턴을 적용했다.
  */
-export function useMarketingAgreement(user: User | null) {
+export function useMarketingAgreement(user: AppUser | null) {
   const [isAgreementLoading, setIsAgreementLoading] = useState(true);
   const [isSavingMarketing, setIsSavingMarketing] = useState(false);
   const [marketingAccepted, setMarketingAccepted] = useState(false);

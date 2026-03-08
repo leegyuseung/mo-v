@@ -1,10 +1,19 @@
 export const ACCOUNT_RESTRICTED_STORAGE_KEY = "account_restricted_redirect";
+export const ACCOUNT_RESTRICTED_COOKIE_KEY = "account_restricted_payload";
 
 export type AccountRestrictedPayload = {
   reason?: string;
   status?: string;
   suspended_until?: string;
 };
+
+export function parseAccountRestrictedPayload(raw: string) {
+  try {
+    return JSON.parse(decodeURIComponent(raw)) as AccountRestrictedPayload;
+  } catch {
+    return null;
+  }
+}
 
 export function getAccountRestrictedDescription(
   status?: string,
@@ -35,30 +44,49 @@ export function getAccountRestrictedDescription(
 export function writeAccountRestrictedPayload(payload: AccountRestrictedPayload) {
   if (typeof window === "undefined") return;
 
+  const serialized = JSON.stringify({
+    status: payload.status || "",
+    suspended_until: payload.suspended_until || "",
+    reason: payload.reason || "",
+  });
+
   sessionStorage.setItem(
     ACCOUNT_RESTRICTED_STORAGE_KEY,
-    JSON.stringify({
-      status: payload.status || "",
-      suspended_until: payload.suspended_until || "",
-      reason: payload.reason || "",
-    })
+    serialized
   );
+
+  document.cookie = `${ACCOUNT_RESTRICTED_COOKIE_KEY}=${encodeURIComponent(
+    serialized
+  )}; path=/; max-age=300; samesite=lax`;
 }
 
 export function readAccountRestrictedPayload(): AccountRestrictedPayload | null {
+  const raw = readAccountRestrictedPayloadSnapshot();
+  return raw ? parseAccountRestrictedPayload(raw) : null;
+}
+
+export function readAccountRestrictedPayloadSnapshot(): string | null {
   if (typeof window === "undefined") return null;
 
   const raw = sessionStorage.getItem(ACCOUNT_RESTRICTED_STORAGE_KEY);
-  if (!raw) return null;
+  if (raw) {
+    return raw;
+  }
 
-  try {
-    return JSON.parse(raw) as AccountRestrictedPayload;
-  } catch {
+  const cookieValue = document.cookie
+    .split("; ")
+    .find((value) => value.startsWith(`${ACCOUNT_RESTRICTED_COOKIE_KEY}=`))
+    ?.slice(`${ACCOUNT_RESTRICTED_COOKIE_KEY}=`.length);
+
+  if (!cookieValue) {
     return null;
   }
+
+  return cookieValue;
 }
 
 export function clearAccountRestrictedPayload() {
   if (typeof window === "undefined") return;
   sessionStorage.removeItem(ACCOUNT_RESTRICTED_STORAGE_KEY);
+  document.cookie = `${ACCOUNT_RESTRICTED_COOKIE_KEY}=; path=/; max-age=0; samesite=lax`;
 }

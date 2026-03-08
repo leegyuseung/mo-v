@@ -1,6 +1,8 @@
 import type {
   CreateHomeBroadcastPayload,
   CreateHomeBroadcastResponse,
+  DeleteHomeBroadcastPayload,
+  DeleteHomeBroadcastResponse,
   HomeBroadcastListResponse,
 } from "@/types/home-broadcast";
 
@@ -45,3 +47,25 @@ export async function createHomeBroadcast(
   return body as CreateHomeBroadcastResponse;
 }
 
+export async function deleteHomeBroadcast(
+  payload: DeleteHomeBroadcastPayload
+): Promise<DeleteHomeBroadcastResponse> {
+  const response = await fetch("/api/home/broadcasts", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const body = (await response.json().catch(() => null)) as
+    | DeleteHomeBroadcastResponse
+    | { message?: string }
+    | null;
+
+  if (!response.ok) {
+    throw new Error((body as { message?: string } | null)?.message || "전광판 삭제에 실패했습니다.");
+  }
+
+  return body as DeleteHomeBroadcastResponse;
+}

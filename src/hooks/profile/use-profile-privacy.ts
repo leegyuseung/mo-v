@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { fetchMyProfilePrivacy, updateMyProfilePrivacy } from "@/api/profile-privacy";
-import type { User } from "@supabase/supabase-js";
+import type { AppUser } from "@/types/auth";
 
-export function useProfilePrivacy(user: User | null) {
+export function useProfilePrivacy(user: AppUser | null) {
   const [isPrivacyLoading, setIsPrivacyLoading] = useState(true);
   const [isSavingPrivacy, setIsSavingPrivacy] = useState(false);
   const [showAccountInfo, setShowAccountInfo] = useState(true);

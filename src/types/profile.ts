@@ -6,6 +6,7 @@ export type Profile = Tables<"profiles"> & {
 };
 
 export type UserSanctionSummary = {
+  id?: number;
   account_status?: string;
   action_type: string;
   created_by_email?: string | null;

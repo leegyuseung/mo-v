@@ -20,7 +20,8 @@ export type DashboardStats = {
   totalLiveBoxes: number;
   totalContents: number;
   pendingStreamerRequests: number;
-  pendingInfoEditRequests: number;
+  pendingStreamerInfoEditRequests: number;
+  pendingDataInfoEditRequests: number;
   pendingReportRequests: number;
   pendingHomepageErrorReports: number;
   pendingLiveBoxRequests: number;

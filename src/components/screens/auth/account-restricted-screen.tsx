@@ -1,17 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useSyncExternalStore } from "react";
 import {
   clearAccountRestrictedPayload,
   getAccountRestrictedDescription,
-  readAccountRestrictedPayload,
-  type AccountRestrictedPayload,
+  parseAccountRestrictedPayload,
+  readAccountRestrictedPayloadSnapshot,
 } from "@/lib/account-restricted";
 
+function subscribeAccountRestrictedPayload() {
+  return () => undefined;
+}
+
 export default function AccountRestrictedScreen() {
-  const [payload] = useState<AccountRestrictedPayload | null>(() =>
-    readAccountRestrictedPayload()
+  const payloadSnapshot = useSyncExternalStore(
+    subscribeAccountRestrictedPayload,
+    readAccountRestrictedPayloadSnapshot,
+    () => null
+  );
+  const payload = useMemo(
+    () => (payloadSnapshot ? parseAccountRestrictedPayload(payloadSnapshot) : null),
+    [payloadSnapshot]
   );
 
   useEffect(() => {

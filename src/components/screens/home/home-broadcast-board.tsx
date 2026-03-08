@@ -3,12 +3,17 @@
 import { useEffect, useState } from "react";
 import { ChevronDown, Megaphone } from "lucide-react";
 import { toast } from "sonner";
+import ConfirmAlert from "@/components/common/confirm-alert";
 import { useAuthStore } from "@/store/useAuthStore";
 import { HOME_BROADCAST_COST_POINT } from "@/lib/constant";
+import { hasAdminAccess } from "@/utils/role";
 import { useHomeBroadcasts } from "@/hooks/queries/home/use-home-broadcasts";
 import { useCreateHomeBroadcast } from "@/hooks/mutations/home/use-create-home-broadcast";
+import { useDeleteHomeBroadcast } from "@/hooks/mutations/home/use-delete-home-broadcast";
+import { Textarea } from "@/components/ui/textarea";
 import HomeBroadcastCreateModal from "@/components/screens/home/home-broadcast-create-modal";
 import HomeBroadcastFeed from "@/components/screens/home/home-broadcast-feed";
+import type { HomeBroadcastItem } from "@/types/home-broadcast";
 
 const HOME_BROADCAST_COLLAPSED_ROTATE_MS = 3000;
 
@@ -18,19 +23,23 @@ const HOME_BROADCAST_COLLAPSED_ROTATE_MS = 3000;
  * - 펼침: 진행중 메시지 개수만큼 확장
 */
 export default function HomeBroadcastBoard() {
-  const { user, heartPoints, setHeartPoints } = useAuthStore();
+  const { user, profile, heartPoints, setHeartPoints } = useAuthStore();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [contentInput, setContentInput] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<HomeBroadcastItem | null>(null);
+  const [deleteReason, setDeleteReason] = useState("");
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [collapsedIndex, setCollapsedIndex] = useState(0);
   const { data, isLoading, isError } = useHomeBroadcasts();
   const { mutateAsync: createBroadcast, isPending: isCreating } = useCreateHomeBroadcast();
+  const { mutateAsync: deleteBroadcast, isPending: isDeleting } = useDeleteHomeBroadcast();
 
   const broadcasts = data?.data || [];
   const activeBroadcasts = broadcasts.filter((item) => item.status === "active");
   const currentPoint = heartPoints?.point || 0;
   const isPointInsufficient = currentPoint < HOME_BROADCAST_COST_POINT;
+  const canDeleteBroadcast = hasAdminAccess(profile?.role);
   const collapsedBroadcast =
     activeBroadcasts.length > 0
       ? activeBroadcasts[collapsedIndex % activeBroadcasts.length]
@@ -102,6 +111,41 @@ export default function HomeBroadcastBoard() {
     }
   };
 
+  const handleDeleteClick = (broadcast: HomeBroadcastItem) => {
+    if (!canDeleteBroadcast) return;
+    setDeleteTarget(broadcast);
+    setDeleteReason("");
+  };
+
+  const handleCloseDeleteAlert = () => {
+    if (isDeleting) return;
+    setDeleteTarget(null);
+    setDeleteReason("");
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+
+    const trimmedReason = deleteReason.trim();
+    if (!trimmedReason) {
+      toast.error("삭제 사유를 입력해 주세요.");
+      return;
+    }
+
+    try {
+      await deleteBroadcast({
+        id: deleteTarget.id,
+        reason: trimmedReason,
+      });
+      toast.success("전광판을 삭제했습니다.");
+      handleCloseDeleteAlert();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "전광판 삭제에 실패했습니다.";
+      toast.error(message);
+    }
+  };
+
   return (
     <>
       <section className="px-4 pt-2 md:px-6">
@@ -128,6 +172,8 @@ export default function HomeBroadcastBoard() {
               nowMs={nowMs}
               visibleLines={visibleLines}
               collapsedBroadcast={collapsedBroadcast}
+              canDeleteBroadcast={canDeleteBroadcast}
+              onDeleteBroadcast={handleDeleteClick}
             />
 
             <div className="flex shrink-0 items-center gap-1">
@@ -157,6 +203,27 @@ export default function HomeBroadcastBoard() {
         onClose={handleCloseCreateModal}
         onSubmit={handleSubmit}
       />
+
+      <ConfirmAlert
+        open={deleteTarget !== null}
+        title="전광판 삭제"
+        description="삭제 사유를 남기면 전광판을 숨기고 관리자 이력으로 보관합니다."
+        confirmText="삭제"
+        confirmVariant="danger"
+        isPending={isDeleting}
+        confirmDisabled={!deleteReason.trim()}
+        onCancel={handleCloseDeleteAlert}
+        onConfirm={handleDeleteConfirm}
+      >
+        <Textarea
+          value={deleteReason}
+          onChange={(event) => setDeleteReason(event.target.value)}
+          placeholder="삭제 사유를 입력해 주세요."
+          className="min-h-[96px] resize-none"
+          maxLength={200}
+        />
+        <p className="mt-2 text-xs text-gray-400">{deleteReason.trim().length}/200</p>
+      </ConfirmAlert>
     </>
   );
 }

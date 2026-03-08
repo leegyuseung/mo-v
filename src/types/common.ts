@@ -6,6 +6,8 @@ export type IconTooltipButtonProps = {
     icon: LucideIcon;
     /** 아이콘 추가 className (색상 등) */
     iconClassName?: string;
+    /** 버튼 추가 className */
+    buttonClassName?: string;
     /** 툴팁에 표시할 레이블 텍스트 */
     label: string;
     /** 툴팁 위치. left: 왼쪽 정렬, right: 오른쪽 정렬 */
@@ -14,6 +16,8 @@ export type IconTooltipButtonProps = {
     onClick?: () => void;
     /** 비활성 상태 */
     disabled?: boolean;
+    /** 접근성 라벨. 기본값은 label */
+    ariaLabel?: string;
 };
 
 /** Pagination 컴포넌트에 전달하는 props */

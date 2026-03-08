@@ -123,3 +123,9 @@ export async function updateLiveBox(
   if (error) throw error;
   return data;
 }
+
+/** 라이브 박스를 삭제한다. */
+export async function deleteLiveBox(liveBoxId: number): Promise<void> {
+  const { error } = await supabase.from("live_box").delete().eq("id", liveBoxId);
+  if (error) throw error;
+}

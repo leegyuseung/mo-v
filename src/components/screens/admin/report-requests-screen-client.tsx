@@ -102,7 +102,7 @@ function ReportRequestRow({ request }: ReportRequestRowProps) {
   );
 }
 
-/** 관리자 신고 관리 화면 — 신고 목록 조회 및 확인/거절 처리 */
+/** 관리자 데이터 신고 관리 화면 — 신고 목록 조회 및 확인/거절 처리 */
 export default function ReportRequestsScreen() {
   const { data: requests, isLoading } = useEntityReportRequests();
 
@@ -111,9 +111,9 @@ export default function ReportRequestsScreen() {
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-1">
           <Siren className="w-5 h-5 text-red-500" />
-          <h1 className="text-2xl font-bold text-gray-900">정보 신고 관리</h1>
+          <h1 className="text-2xl font-bold text-gray-900">데이터 신고 관리</h1>
         </div>
-        <p className="text-sm text-gray-500">유저가 보낸 신고 목록입니다.</p>
+        <p className="text-sm text-gray-500">유저가 보낸 데이터 신고 목록입니다.</p>
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">

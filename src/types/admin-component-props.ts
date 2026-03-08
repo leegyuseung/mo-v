@@ -9,6 +9,11 @@ export type SectionTitleProps = {
   description: string;
 };
 
+export type DashboardSectionTitleProps = SectionTitleProps & {
+  isOpen: boolean;
+  onToggle: () => void;
+};
+
 /** 대시보드 통계 카드 props */
 export type StatCardProps = {
   title: string;

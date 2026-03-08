@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import ConfirmAlert from "@/components/common/confirm-alert";
 import { useUpdateCrew } from "@/hooks/mutations/admin/use-update-crew";
 import { useDeleteCrew } from "@/hooks/mutations/admin/use-delete-crew";
@@ -9,6 +8,7 @@ import { useUploadCrewImage } from "@/hooks/mutations/admin/use-upload-crew-imag
 import type { Crew, CrewUpsertInput } from "@/types/crew";
 import { Pencil, Check, X, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import IconTooltipButton from "@/components/common/icon-tooltip-button";
 import CrewFormFields from "./crew-form-fields";
 
 /** 크루 테이블의 개별 행 — 인라인 수정 및 삭제 기능 포함 */
@@ -123,6 +123,24 @@ export default function CrewRow({
     return (
         <>
             <tr className="border-b border-gray-100 align-top">
+                <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
+                    <div className="flex gap-1">
+                        <IconTooltipButton
+                            icon={Pencil}
+                            label={isEditing ? "닫기" : "수정"}
+                            onClick={() => setIsEditing((prev) => !prev)}
+                            buttonClassName="h-7 w-7 p-0 text-gray-400 hover:text-gray-600"
+                            iconClassName="h-3.5 w-3.5"
+                        />
+                        <IconTooltipButton
+                            icon={Trash2}
+                            label="삭제"
+                            onClick={() => setIsDeleteAlertOpen(true)}
+                            buttonClassName="h-7 w-7 p-0 text-red-500 hover:bg-red-50 hover:text-red-600"
+                            iconClassName="h-3.5 w-3.5"
+                        />
+                    </div>
+                </td>
                 <td className="px-4 py-3 text-sm font-medium text-gray-800 whitespace-nowrap">
                     {crew.name}
                 </td>
@@ -144,63 +162,52 @@ export default function CrewRow({
                 <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
                     {crew.debut_at || "-"}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
-                    <div className="flex gap-1">
-                        {isEditing ? (
-                            <>
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={handleSave}
-                                    disabled={isUpdating}
-                                    className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 cursor-pointer"
-                                >
-                                    <Check className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => setIsEditing(false)}
-                                    className="h-7 w-7 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 cursor-pointer"
-                                >
-                                    <X className="w-4 h-4" />
-                                </Button>
-                            </>
-                        ) : (
-                            <>
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => setIsEditing(true)}
-                                    className="h-7 w-7 p-0 text-gray-400 hover:text-gray-600 cursor-pointer"
-                                >
-                                    <Pencil className="w-3.5 h-3.5" />
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => setIsDeleteAlertOpen(true)}
-                                    className="h-7 w-7 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 cursor-pointer"
-                                >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                </Button>
-                            </>
-                        )}
-                    </div>
-                </td>
             </tr>
 
             {isEditing ? (
                 <tr className="border-b border-gray-100 bg-gray-50/60">
                     <td colSpan={7} className="px-4 py-3">
-                        <CrewFormFields
-                            form={form}
-                            memberEtcValue={memberEtcInput}
-                            onChange={setField}
-                            onChangeMemberEtc={setMemberEtcInput}
-                            onUploadImage={handleUploadImage}
-                            isUploadingImage={isUploadingImage}
-                        />
+                        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                            <div className="mb-3 flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-semibold text-gray-900">소속 관리</p>
+                                    <p className="text-xs text-gray-400">
+                                        아래에서 소속 정보를 수정할 수 있습니다.
+                                    </p>
+                                </div>
+                                <div className="flex gap-1">
+                                    <IconTooltipButton
+                                        icon={Check}
+                                        label="저장"
+                                        onClick={handleSave}
+                                        disabled={isUpdating}
+                                        buttonClassName="h-8 w-8 p-0 text-green-600 hover:bg-green-50 hover:text-green-700"
+                                        iconClassName="h-4 w-4"
+                                    />
+                                    <IconTooltipButton
+                                        icon={X}
+                                        label="취소"
+                                        onClick={() => setIsEditing(false)}
+                                        buttonClassName="h-8 w-8 p-0 text-red-500 hover:bg-red-50 hover:text-red-600"
+                                        iconClassName="h-4 w-4"
+                                    />
+                                </div>
+                            </div>
+                            <CrewFormFields
+                                form={form}
+                                memberEtcValue={memberEtcInput}
+                                onChange={setField}
+                                onChangeMemberEtc={setMemberEtcInput}
+                                onUploadImage={handleUploadImage}
+                                isUploadingImage={isUploadingImage}
+                            />
+                            <div className="mt-4 space-y-1">
+                                <label className="text-xs font-medium text-gray-500">매칭 멤버</label>
+                                <div className="flex min-h-10 items-center rounded-md border border-gray-200 bg-gray-50 px-3 text-sm text-gray-600">
+                                    {matchedMembers.length > 0 ? matchedMembers.join(", ") : "-"}
+                                </div>
+                            </div>
+                        </div>
                     </td>
                 </tr>
             ) : null}

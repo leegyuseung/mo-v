@@ -10,6 +10,10 @@ import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import { sanitizeAgreementNextPath } from "@/lib/user-agreement";
 import { getAccountRestrictionMessage } from "@/utils/account-status";
+import {
+  ACCOUNT_RESTRICTED_COOKIE_KEY,
+  type AccountRestrictedPayload,
+} from "@/lib/account-restricted";
 
 /**
  * 팝업 완료 시 부모 창에 postMessage를 보내고 자신을 닫는 HTML을 생성한다.
@@ -19,21 +23,35 @@ function createPopupCompleteResponse({
   origin,
   messageType,
   nextPath,
+  restrictedPayload,
 }: {
   origin: string;
   messageType: "oauth-popup-complete" | "oauth-popup-agreements";
   nextPath: string;
+  restrictedPayload?: AccountRestrictedPayload | null;
 }) {
   const safeOrigin = JSON.stringify(origin);
   const safeType = JSON.stringify(messageType);
   const safeNextPath = JSON.stringify(nextPath);
   const fallbackUrl = JSON.stringify(`${origin}${nextPath}`);
+  const cookieScript = restrictedPayload
+    ? `document.cookie = ${JSON.stringify(
+        `${ACCOUNT_RESTRICTED_COOKIE_KEY}=${encodeURIComponent(
+          JSON.stringify({
+            status: restrictedPayload.status || "",
+            suspended_until: restrictedPayload.suspended_until || "",
+            reason: restrictedPayload.reason || "",
+          })
+        )}; path=/; max-age=300; samesite=lax`
+      )};`
+    : "";
   const html = `<!doctype html>
 <html>
   <head><meta charset="utf-8" /></head>
   <body>
     <script>
       try {
+        ${cookieScript}
         if (window.opener && !window.opener.closed) {
           window.opener.postMessage({ type: ${safeType}, nextPath: ${safeNextPath} }, ${safeOrigin});
         } else {
@@ -76,21 +94,34 @@ export async function GET(request: Request) {
                 const restrictionMessage = getAccountRestrictionMessage(profile);
                 if (restrictionMessage) {
                     await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
-                    const loginUrl = new URL("/login", origin);
-                    loginUrl.searchParams.set("account_status", profile?.account_status || "suspended");
-                    if (profile?.suspended_until) {
-                        loginUrl.searchParams.set("suspended_until", profile.suspended_until);
-                    }
+                    const restrictedPayload = {
+                        status: profile?.account_status || "suspended",
+                        suspended_until: profile?.suspended_until || "",
+                        reason: profile?.suspension_reason || "",
+                    };
+                    const restrictedUrl = new URL("/account-restricted", origin);
 
                     if (isPopup) {
                         return createPopupCompleteResponse({
                             origin,
                             messageType: "oauth-popup-complete",
-                            nextPath: `${loginUrl.pathname}${loginUrl.search}`,
+                            nextPath: restrictedUrl.pathname,
+                            restrictedPayload,
                         });
                     }
 
-                    return NextResponse.redirect(loginUrl);
+                    const response = NextResponse.redirect(restrictedUrl);
+                    response.cookies.set(
+                        ACCOUNT_RESTRICTED_COOKIE_KEY,
+                        encodeURIComponent(JSON.stringify(restrictedPayload)),
+                        {
+                            httpOnly: false,
+                            maxAge: 60 * 5,
+                            path: "/",
+                            sameSite: "lax",
+                        }
+                    );
+                    return response;
                 }
 
                 const { data: agreement } = await supabase

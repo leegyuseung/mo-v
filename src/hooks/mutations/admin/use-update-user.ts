@@ -12,7 +12,7 @@ export function useUpdateUser() {
             updates,
         }: {
             userId: string;
-            updates: { nickname?: string; role?: AppRole; bio?: string };
+            updates: { role?: AppRole; bio?: string };
         }) => updateUser(userId, updates),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["admin", "users"] });

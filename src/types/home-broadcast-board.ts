@@ -19,4 +19,6 @@ export type HomeBroadcastFeedProps = {
   nowMs: number;
   visibleLines: HomeBroadcastItem[];
   collapsedBroadcast: HomeBroadcastItem | null;
+  canDeleteBroadcast: boolean;
+  onDeleteBroadcast: (broadcast: HomeBroadcastItem) => void;
 };

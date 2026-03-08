@@ -32,6 +32,10 @@ type SanctionProfileSummary = {
     role?: string | null;
 };
 
+function coerceUserSanctions(data: unknown): UserSanctionSummary[] {
+    return (data || []) as unknown as UserSanctionSummary[];
+}
+
 async function fetchProfilesByIds(userIds: string[]) {
     if (userIds.length === 0) {
         return new Map<string, SanctionProfileSummary>();
@@ -224,8 +228,8 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
         totalLiveBoxes: totalLiveBoxes || 0,
         totalContents: totalContents || 0,
         pendingStreamerRequests: pendingStreamerRequests || 0,
-        pendingInfoEditRequests:
-            (pendingStreamerInfoEditRequests || 0) + (pendingEntityInfoEditRequests || 0),
+        pendingStreamerInfoEditRequests: pendingStreamerInfoEditRequests || 0,
+        pendingDataInfoEditRequests: pendingEntityInfoEditRequests || 0,
         pendingReportRequests: pendingReportRequests || 0,
         pendingHomepageErrorReports: pendingHomepageErrorReports || 0,
         pendingLiveBoxRequests: pendingLiveBoxRequests || 0,
@@ -236,58 +240,24 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
 
 /** 전체 유저 목록을 최신 가입순으로 조회한다 */
 export async function fetchUsers(): Promise<AdminUserProfile[]> {
-    const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .order("created_at", { ascending: false });
+    const response = await fetch("/api/admin/users", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+    });
 
-    if (error) throw error;
-    const users = (data || []) as AdminUserProfile[];
-    const userIds = users.map((user) => user.id);
+    const body = await response.json().catch(() => ([]));
 
-    if (userIds.length === 0) {
-        return users;
+    if (!response.ok) {
+        throw new Error(body.message || "유저 목록 조회에 실패했습니다.");
     }
 
-    const { data: sanctionRows, error: sanctionError } = await supabase
-        .from("user_sanctions")
-        .select("user_id,action_type,reason,internal_note,created_at,created_by,suspended_until")
-        .in("user_id", userIds)
-        .order("created_at", { ascending: false });
-
-    if (sanctionError) {
-        return users;
-    }
-
-    const sanctionCreatorIds = Array.from(
-        new Set((sanctionRows || []).map((row) => row.created_by).filter(Boolean))
-    );
-    const sanctionCreatorsById = await fetchProfilesByIds(sanctionCreatorIds);
-
-    const latestSanctionByUserId = new Map<string, NonNullable<AdminUserProfile["latest_sanction"]>>();
-    for (const row of sanctionRows || []) {
-        if (!latestSanctionByUserId.has(row.user_id)) {
-            latestSanctionByUserId.set(row.user_id, {
-                ...row,
-                created_by_name: formatSanctionActorLabel(
-                    sanctionCreatorsById.get(row.created_by)
-                ),
-                created_by_email: sanctionCreatorsById.get(row.created_by)?.email || null,
-                created_by_role: sanctionCreatorsById.get(row.created_by)?.role || null,
-            });
-        }
-    }
-
-    return users.map((user) => ({
-        ...user,
-        latest_sanction: latestSanctionByUserId.get(user.id) || null,
-    }));
+    return (body || []) as AdminUserProfile[];
 }
 
-/** 유저 정보(닉네임, 역할, 소개)를 수정한다. 서버 API를 통해 권한 검증 후 처리된다. */
+/** 유저 정보(역할, 소개)를 수정한다. 서버 API를 통해 권한 검증 후 처리된다. */
 export async function updateUser(
     userId: string,
-    updates: { nickname?: string; role?: AppRole; bio?: string }
+    updates: { role?: AppRole; bio?: string }
 ) {
     const response = await fetch(`/api/admin/users/${userId}`, {
         method: "PATCH",
@@ -345,8 +315,8 @@ export async function fetchUserSanctions(userId: string): Promise<UserSanctionSu
     const operatorRole = await fetchCurrentOperatorRole();
     const sanctionSelectColumns =
         operatorRole === "admin"
-            ? "user_id,account_status,action_type,duration_days,reason,internal_note,created_at,created_by,suspended_until"
-            : "user_id,account_status,action_type,duration_days,reason,created_at,created_by,suspended_until";
+            ? "id,user_id,account_status,action_type,duration_days,reason,internal_note,created_at,created_by,suspended_until"
+            : "id,user_id,account_status,action_type,duration_days,reason,created_at,created_by,suspended_until";
 
     const { data, error } = await supabase
         .from("user_sanctions")
@@ -356,7 +326,7 @@ export async function fetchUserSanctions(userId: string): Promise<UserSanctionSu
         .limit(20);
 
     if (error) throw error;
-    const sanctions = (data || []) as UserSanctionSummary[];
+    const sanctions = coerceUserSanctions(data);
     const creatorIds = Array.from(new Set(sanctions.map((sanction) => sanction.created_by).filter(Boolean)));
 
     if (creatorIds.length === 0) {
@@ -380,8 +350,8 @@ export async function fetchAllUserSanctions(): Promise<UserSanctionSummary[]> {
     const operatorRole = await fetchCurrentOperatorRole();
     const sanctionSelectColumns =
         operatorRole === "admin"
-            ? "user_id,account_status,action_type,duration_days,reason,internal_note,created_at,created_by,suspended_until"
-            : "user_id,account_status,action_type,duration_days,reason,created_at,created_by,suspended_until";
+            ? "id,user_id,account_status,action_type,duration_days,reason,internal_note,created_at,created_by,suspended_until"
+            : "id,user_id,account_status,action_type,duration_days,reason,created_at,created_by,suspended_until";
 
     const { data, error } = await supabase
         .from("user_sanctions")
@@ -391,7 +361,7 @@ export async function fetchAllUserSanctions(): Promise<UserSanctionSummary[]> {
 
     if (error) throw error;
 
-    const sanctions = (data || []) as UserSanctionSummary[];
+    const sanctions = coerceUserSanctions(data);
     const relatedUserIds = Array.from(
         new Set(
             sanctions

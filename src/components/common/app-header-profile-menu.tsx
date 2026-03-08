@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
+import type { AppUser } from "@/types/auth";
 import type { HeartPoints, Profile } from "@/types/profile";
 import { ChevronRight, Heart, LogOut, UserRound } from "lucide-react";
 
 type AppHeaderProfileMenuProps = {
-  user: SupabaseUser;
+  user: AppUser;
   profile: Profile | null;
   heartPoints: HeartPoints | null;
   isSigningOut: boolean;

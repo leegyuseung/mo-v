@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useDashboardStats } from "@/hooks/queries/admin/use-dashboard-stats";
 import {
   Users,
@@ -15,19 +16,36 @@ import {
   Pencil,
   Siren,
   Bug,
+  ChevronRight,
+  ChevronDown,
 } from "lucide-react";
 import { StatCard, StatCardSkeleton } from "@/components/screens/admin/stat-card";
-import SignupTrendChart, {
-  SignupTrendChartSkeleton,
-} from "@/components/screens/admin/signup-trend-chart";
-import type { SectionTitleProps } from "@/types/admin-component-props";
+import type { DashboardSectionTitleProps } from "@/types/admin-component-props";
 
 /** 대시보드 내 섹션 구분 제목 + 설명을 표시한다 */
-function SectionTitle({ title, description }: SectionTitleProps) {
+function SectionTitle({
+  title,
+  description,
+  isOpen,
+  onToggle,
+}: DashboardSectionTitleProps) {
   return (
     <div className="mb-4">
-      <h2 className="text-base font-semibold text-gray-900">{title}</h2>
-      <p className="mt-0.5 text-xs text-gray-500">{description}</p>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full cursor-pointer items-start justify-between gap-3 rounded-lg px-1 py-1 text-left transition-colors hover:bg-gray-50"
+      >
+        <div>
+          <h2 className="text-base font-semibold text-gray-900">{title}</h2>
+          <p className="mt-0.5 text-xs text-gray-500">{description}</p>
+        </div>
+        {isOpen ? (
+          <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-gray-500" />
+        ) : (
+          <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-gray-500" />
+        )}
+      </button>
     </div>
   );
 }
@@ -35,6 +53,9 @@ function SectionTitle({ title, description }: SectionTitleProps) {
 /** 관리자 대시보드 화면 — 유저 통계, 등록 자산, 요청 대기 현황을 카드와 차트로 표시 */
 export default function DashboardScreen() {
   const { data: stats, isLoading } = useDashboardStats();
+  const [isUsersSectionOpen, setIsUsersSectionOpen] = useState(false);
+  const [isEntitiesSectionOpen, setIsEntitiesSectionOpen] = useState(false);
+  const [isPendingSectionOpen, setIsPendingSectionOpen] = useState(false);
 
   /** 가입자 현황 카드 데이터 (유저 수 · 가입 방식 분포) */
   const userCards = stats
@@ -153,7 +174,8 @@ export default function DashboardScreen() {
   const pendingBase = stats
     ? Math.max(
       stats.pendingStreamerRequests,
-      stats.pendingInfoEditRequests,
+      stats.pendingStreamerInfoEditRequests,
+      stats.pendingDataInfoEditRequests,
       stats.pendingReportRequests,
       stats.pendingHomepageErrorReports,
       stats.pendingLiveBoxRequests,
@@ -175,8 +197,8 @@ export default function DashboardScreen() {
         unit: "건",
       },
       {
-        title: "정보 수정 요청(버츄얼+그룹/크루/콘텐츠)",
-        value: stats.pendingInfoEditRequests,
+        title: "버츄얼 정보수정요청",
+        value: stats.pendingStreamerInfoEditRequests,
         icon: Pencil,
         color: "from-orange-500 to-orange-600",
         bgLight: "bg-orange-50",
@@ -185,7 +207,17 @@ export default function DashboardScreen() {
         unit: "건",
       },
       {
-        title: "신고 관리",
+        title: "데이터 정보 수정 요청",
+        value: stats.pendingDataInfoEditRequests,
+        icon: Pencil,
+        color: "from-orange-500 to-orange-600",
+        bgLight: "bg-orange-50",
+        textColor: "text-orange-600",
+        ratioBase: pendingBase,
+        unit: "건",
+      },
+      {
+        title: "데이터 신고 관리",
         value: stats.pendingReportRequests,
         icon: Siren,
         color: "from-rose-500 to-rose-600",
@@ -238,22 +270,19 @@ export default function DashboardScreen() {
       <section>
         <SectionTitle
           title="가입자 현황"
-          description="전체 유저 및 가입 방식 분포와 최근 가입자 변화입니다."
+          description="전체 유저 및 가입 방식 분포입니다."
+          isOpen={isUsersSectionOpen}
+          onToggle={() => setIsUsersSectionOpen((prev) => !prev)}
         />
-        {isLoading ? (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+        {isUsersSectionOpen ? (
+          isLoading ? (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
               {[...Array(4)].map((_, index) => (
                 <StatCardSkeleton key={`user-card-skeleton-${index}`} />
               ))}
             </div>
-            <div className="mt-5">
-              <SignupTrendChartSkeleton />
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+          ) : (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
               {userCards.map((card) => (
                 <StatCard
                   key={card.title}
@@ -268,11 +297,8 @@ export default function DashboardScreen() {
                 />
               ))}
             </div>
-            <div className="mt-5">
-              <SignupTrendChart data={stats?.signupTrend || []} />
-            </div>
-          </>
-        )}
+          )
+        ) : null}
       </section>
 
       {/* ─── 등록 자산 섹션 ─── */}
@@ -280,61 +306,69 @@ export default function DashboardScreen() {
         <SectionTitle
           title="등록 자산"
           description="서비스에 등록된 버츄얼, 그룹, 소속, 박스, 콘텐츠 수입니다."
+          isOpen={isEntitiesSectionOpen}
+          onToggle={() => setIsEntitiesSectionOpen((prev) => !prev)}
         />
-        {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-            {[...Array(5)].map((_, index) => (
-              <StatCardSkeleton key={`entity-card-skeleton-${index}`} />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-            {entityCards.map((card) => (
-              <StatCard
-                key={card.title}
-                title={card.title}
-                value={card.value}
-                icon={card.icon}
-                color={card.color}
-                bgLight={card.bgLight}
-                textColor={card.textColor}
-                ratioBase={card.ratioBase}
-                unit={card.unit}
-              />
-            ))}
-          </div>
-        )}
+        {isEntitiesSectionOpen ? (
+          isLoading ? (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+              {[...Array(5)].map((_, index) => (
+                <StatCardSkeleton key={`entity-card-skeleton-${index}`} />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+              {entityCards.map((card) => (
+                <StatCard
+                  key={card.title}
+                  title={card.title}
+                  value={card.value}
+                  icon={card.icon}
+                  color={card.color}
+                  bgLight={card.bgLight}
+                  textColor={card.textColor}
+                  ratioBase={card.ratioBase}
+                  unit={card.unit}
+                />
+              ))}
+            </div>
+          )
+        ) : null}
       </section>
 
       {/* ─── 요청 대기 섹션 ─── */}
       <section>
         <SectionTitle
           title="요청 대기"
-          description="관리자 처리 대상인 등록 대기, 정보 수정 요청, 정보 신고/오류 신고, 박스/콘텐츠 등록 요청 수입니다."
+          description="관리자 처리 대상인 등록 대기, 버츄얼/데이터 정보 수정 요청, 데이터 신고/오류 신고, 박스/콘텐츠 등록 요청 수입니다."
+          isOpen={isPendingSectionOpen}
+          onToggle={() => setIsPendingSectionOpen((prev) => !prev)}
         />
-        {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-            {[...Array(6)].map((_, index) => (
-              <StatCardSkeleton key={`pending-card-skeleton-${index}`} />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-            {pendingCards.map((card) => (
-              <StatCard
-                key={card.title}
-                title={card.title}
-                value={card.value}
-                icon={card.icon}
-                color={card.color}
-                bgLight={card.bgLight}
-                textColor={card.textColor}
-                ratioBase={card.ratioBase}
-                unit={card.unit}
-              />
-            ))}
-          </div>
-        )}
+        {isPendingSectionOpen ? (
+          isLoading ? (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+              {[...Array(7)].map((_, index) => (
+                <StatCardSkeleton key={`pending-card-skeleton-${index}`} />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+              {pendingCards.map((card) => (
+                <StatCard
+                  key={card.title}
+                  title={card.title}
+                  value={card.value}
+                  icon={card.icon}
+                  color={card.color}
+                  bgLight={card.bgLight}
+                  textColor={card.textColor}
+                  ratioBase={card.ratioBase}
+                  unit={card.unit}
+                />
+              ))}
+            </div>
+          )
+        ) : null}
       </section>
     </div>
   );

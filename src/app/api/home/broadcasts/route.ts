@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { getUserAccountAccessResult } from "@/utils/server-account-status";
 import { consumeRouteRateLimit, getRequestClientIp } from "@/utils/route-rate-limit";
+import { hasAdminAccess } from "@/utils/role";
+import { getEffectiveHomeBroadcastStatus } from "@/utils/home-broadcast";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 function resolveCreateBroadcastError(
   error: { code?: string | null; message?: string | null } | null
@@ -51,9 +55,17 @@ export async function GET() {
     },
   });
 
+  try {
+    await supabase.rpc("sync_expired_home_broadcasts");
+  } catch (error) {
+    // status 동기화 RPC가 실패해도 화면 상태는 expires_at 기반 fallback으로 계속 계산한다.
+    console.error("sync_expired_home_broadcasts failed", error);
+  }
+
   const { data, error } = await supabase
     .from("home_broadcasts")
-    .select("id,content,author_id,author_nickname,created_at,expires_at")
+    .select("id,content,author_id,author_nickname,created_at,expires_at,status,deleted_at,deleted_by,deleted_reason")
+    .neq("status", "deleted")
     .order("created_at", { ascending: false })
     .limit(20);
 
@@ -67,22 +79,13 @@ export async function GET() {
     return NextResponse.json({ message: "전광판 조회에 실패했습니다." }, { status: 500 });
   }
 
-  // 조회 후 만료 정리 (응답은 요청 시점 스냅샷 유지)
-  try {
-    await supabase.rpc("cleanup_expired_home_broadcasts");
-  } catch {
-    // noop
-  }
-
-  const nowMs = Date.now();
-  const mapped = (data || []).map((row) => {
-    const expiresAtMs = new Date(row.expires_at).getTime();
-    return {
+  const mapped = (data || [])
+    .map((row) => ({
       ...row,
       author_public_id: null as string | null,
-      status: Number.isFinite(expiresAtMs) && expiresAtMs > nowMs ? "active" : "ended",
-    };
-  });
+      status: getEffectiveHomeBroadcastStatus(row),
+    }))
+    .filter((row) => row.status !== "deleted");
 
   const authorIds = Array.from(
     new Set(
@@ -196,4 +199,119 @@ export async function POST(request: Request) {
     created_at: row.out_created_at ?? row.created_at,
     after_point: row.out_after_point ?? row.after_point,
   });
+}
+
+export async function DELETE(request: Request) {
+  if (!supabaseUrl || !supabaseAnonKey || !serviceRoleKey) {
+    return NextResponse.json({ message: "서버 설정이 올바르지 않습니다." }, { status: 500 });
+  }
+
+  let broadcastId = 0;
+  let reason = "";
+  try {
+    const body = (await request.json()) as { id?: number; reason?: string };
+    broadcastId = Number(body.id);
+    reason = typeof body.reason === "string" ? body.reason.trim() : "";
+  } catch {
+    return NextResponse.json({ message: "잘못된 요청 본문입니다." }, { status: 400 });
+  }
+
+  if (!Number.isInteger(broadcastId) || broadcastId <= 0) {
+    return NextResponse.json({ message: "삭제할 전광판을 확인할 수 없습니다." }, { status: 400 });
+  }
+
+  if (!reason) {
+    return NextResponse.json({ message: "삭제 사유를 입력해 주세요." }, { status: 400 });
+  }
+
+  if (reason.length > 200) {
+    return NextResponse.json({ message: "삭제 사유는 200자 이하여야 합니다." }, { status: 400 });
+  }
+
+  const cookieStore = await cookies();
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value, options }) =>
+          cookieStore.set(name, value, options)
+        );
+      },
+    },
+  });
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return NextResponse.json({ message: "로그인이 필요합니다." }, { status: 401 });
+  }
+
+  const rateLimit = consumeRouteRateLimit({
+    key: `home-broadcast-delete:${user.id}:${getRequestClientIp(request)}`,
+    limit: 10,
+    windowMs: 60 * 1000,
+  });
+
+  if (!rateLimit.ok) {
+    return NextResponse.json(
+      { message: "요청이 많습니다. 잠시 후 다시 시도해 주세요." },
+      { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds) } }
+    );
+  }
+
+  const access = await getUserAccountAccessResult(supabase, user.id);
+  if (!access.ok) {
+    return NextResponse.json({ message: access.message }, { status: access.status });
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profileError || !profile || !hasAdminAccess(profile.role)) {
+    return NextResponse.json({ message: "삭제 권한이 없습니다." }, { status: 403 });
+  }
+
+  const admin = createAdminClient(supabaseUrl, serviceRoleKey);
+  const deletedAt = new Date().toISOString();
+  const { data, error } = await admin
+    .from("home_broadcasts")
+    .update({
+      status: "deleted",
+      deleted_at: deletedAt,
+      deleted_by: user.id,
+      deleted_reason: reason,
+    })
+    .eq("id", broadcastId)
+    .is("deleted_at", null)
+    .select("id,deleted_at,deleted_by,deleted_reason")
+    .maybeSingle();
+
+  if (error) {
+    console.error("home_broadcasts delete failed", {
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+      message: error.message,
+      userId: user.id,
+      broadcastId,
+    });
+    return NextResponse.json({ message: "전광판 삭제에 실패했습니다." }, { status: 500 });
+  }
+
+  if (!data) {
+    return NextResponse.json(
+      { message: "이미 삭제되었거나 존재하지 않는 전광판입니다." },
+      { status: 404 }
+    );
+  }
+
+  return NextResponse.json(data);
 }

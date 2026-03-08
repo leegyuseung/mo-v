@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useUpdateUser } from "@/hooks/mutations/admin/use-update-user";
 import { useManageUserSanction } from "@/hooks/mutations/admin/use-manage-user-sanction";
 import { useUserSanctions } from "@/hooks/queries/admin/use-user-sanctions";
@@ -12,10 +12,11 @@ import type { AccountStatus } from "@/types/account-status";
 import type { AppRole } from "@/types/app-role";
 import type { Streamer } from "@/types/streamer";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Pencil, Check, X, Trash2, UserLock } from "lucide-react";
+import { Pencil, Check, X, Trash2, UserLock, TextSearch } from "lucide-react";
 import ConfirmAlert from "@/components/common/confirm-alert";
-import { EditableCell } from "@/components/screens/admin/editable-cell";
+import IconTooltipButton from "@/components/common/icon-tooltip-button";
 import { useAuthStore } from "@/store/useAuthStore";
 import {
   getAccountStatusBadgeClassName,
@@ -35,6 +36,7 @@ const ROLE_OPTIONS: Array<{ value: AppRole; label: AppRole }> = [
   { value: "manager", label: "manager" },
   { value: "admin", label: "admin" },
 ];
+const STREAMER_EDIT_FIELD_CLASS_NAME = "h-9 w-full md:w-[35%]";
 
 function getRoleBadgeClassName(role?: string | null) {
   if (role === "admin") {
@@ -87,6 +89,43 @@ function TruncatedUrlDisplay({ url }: { url: string | null }) {
   );
 }
 
+function AdminEditSection({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-gray-50/60 p-4">
+      <div className="mb-3">
+        <p className="text-sm font-semibold text-gray-900">{title}</p>
+        {description ? (
+          <p className="text-xs text-gray-400">{description}</p>
+        ) : null}
+      </div>
+      <div className="grid gap-3 md:grid-cols-2">{children}</div>
+    </div>
+  );
+}
+
+function AdminEditField({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="space-y-1">
+      <label className="text-xs font-medium text-gray-500">{label}</label>
+      {children}
+    </div>
+  );
+}
+
 function UserRow({ user }: { user: AdminUserProfile }) {
   const { profile: currentProfile } = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
@@ -94,7 +133,6 @@ function UserRow({ user }: { user: AdminUserProfile }) {
   const [isSuspendAlertOpen, setIsSuspendAlertOpen] = useState(false);
   const [isUnsuspendAlertOpen, setIsUnsuspendAlertOpen] = useState(false);
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
-  const [nickname, setNickname] = useState(user.nickname || "");
   const [role, setRole] = useState<AppRole>(
     user.role === "admin" || user.role === "manager" ? user.role : "user"
   );
@@ -110,6 +148,8 @@ function UserRow({ user }: { user: AdminUserProfile }) {
     isHistoryDialogOpen
   );
   const currentRole = currentProfile?.role || "user";
+  const isCurrentAdmin = currentRole === "admin";
+  const showSensitiveColumns = currentRole !== "manager";
   const effectiveStatus = getEffectiveAccountStatus(user);
   const isCurrentManager = currentRole === "manager";
   const isTargetAdmin = user.role === "admin";
@@ -134,13 +174,12 @@ function UserRow({ user }: { user: AdminUserProfile }) {
 
   const handleSave = () => {
     updateUser(
-      { userId: user.id, updates: { nickname, role } },
+      { userId: user.id, updates: { role } },
       { onSuccess: () => setIsEditing(false) }
     );
   };
 
   const handleCancel = () => {
-    setNickname(user.nickname || "");
     setRole(user.role === "admin" || user.role === "manager" ? user.role : "user");
     setIsEditing(false);
   };
@@ -198,14 +237,73 @@ function UserRow({ user }: { user: AdminUserProfile }) {
     user.suspended_until && effectiveStatus !== "active"
       ? new Date(user.suspended_until).toLocaleString("ko-KR")
       : "-";
+  const visibleColumnCount = showSensitiveColumns ? 10 : 8;
+  const nicknameDisplay = user.nickname
+    ? user.nickname_code
+      ? `${user.nickname} #${user.nickname_code}`
+      : user.nickname
+    : "-";
 
   return (
     <>
       <tr className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
-        <td className="px-4 py-3 text-sm text-gray-500 font-mono text-xs">
-          {user.id.slice(0, 8)}...
+        <td className="px-4 py-3">
+          <div className="flex gap-1">
+            {canManageSanction ? (
+              effectiveStatus === "active" ? (
+                <IconTooltipButton
+                  icon={UserLock}
+                  label="정지"
+                  onClick={() => setIsSuspendAlertOpen(true)}
+                  buttonClassName="h-7 w-7 p-0 text-amber-600 hover:bg-amber-50 hover:text-amber-700"
+                  iconClassName="h-3.5 w-3.5"
+                />
+              ) : (
+                <IconTooltipButton
+                  icon={Check}
+                  label="해제"
+                  onClick={() => setIsUnsuspendAlertOpen(true)}
+                  buttonClassName="h-7 w-7 p-0 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
+                  iconClassName="h-3.5 w-3.5"
+                />
+              )
+            ) : null}
+            <IconTooltipButton
+              icon={TextSearch}
+              label="이력 보기"
+              onClick={() => setIsHistoryDialogOpen(true)}
+              buttonClassName="h-7 w-7 p-0 text-slate-600 hover:bg-slate-100 hover:text-slate-700"
+              iconClassName="h-3.5 w-3.5"
+            />
+            {isCurrentAdmin ? (
+              <>
+                <IconTooltipButton
+                  icon={Pencil}
+                  label={isEditing ? "닫기" : "유저관리"}
+                  onClick={() => (isEditing ? handleCancel() : setIsEditing(true))}
+                  buttonClassName="h-7 w-7 p-0 text-gray-400 hover:text-gray-600"
+                  iconClassName="h-3.5 w-3.5"
+                />
+                <IconTooltipButton
+                  icon={Trash2}
+                  label="삭제"
+                  onClick={() => setIsDeleteAlertOpen(true)}
+                  disabled={isDeleting}
+                  buttonClassName="h-7 w-7 p-0 text-red-500 hover:bg-red-50 hover:text-red-600"
+                  iconClassName="h-3.5 w-3.5"
+                />
+              </>
+            ) : null}
+          </div>
         </td>
-        <td className="px-4 py-3 text-sm text-gray-700">{user.email || "-"}</td>
+        {showSensitiveColumns ? (
+          <td className="px-4 py-3 text-sm text-gray-500 font-mono text-xs">
+            {user.id.slice(0, 8)}...
+          </td>
+        ) : null}
+        {showSensitiveColumns ? (
+          <td className="px-4 py-3 text-sm text-gray-700">{user.email || "-"}</td>
+        ) : null}
         <td className="px-4 py-3 text-sm">
           <span
             className={`px-2 py-0.5 rounded-full text-xs font-medium ${user.provider === "google"
@@ -218,34 +316,22 @@ function UserRow({ user }: { user: AdminUserProfile }) {
             {user.provider || "email"}
           </span>
         </td>
-        {/* 닉네임 편집 셀 */}
         <td className="px-4 py-3 text-sm">
-          <EditableCell
-            isEditing={isEditing}
-            value={nickname}
-            onChange={setNickname}
-            className="h-8 text-sm w-32"
-            displayValue={<span className="text-gray-700">{user.nickname || "-"}</span>}
-          />
+          <div className="flex flex-col">
+            <span className="text-gray-700">{nicknameDisplay}</span>
+            <span className="text-xs text-gray-400">
+              코드: {user.nickname_code || "-"}
+            </span>
+          </div>
         </td>
-        {/* 역할 편집 셀 */}
         <td className="px-4 py-3 text-sm">
-          <EditableCell
-            isEditing={isEditing}
-            value={role}
-            onChange={(value) => setRole(value as AppRole)}
-            type="select"
-            options={ROLE_OPTIONS}
-            displayValue={
-              <span
-                className={`px-2 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeClassName(
-                  user.role
-                )}`}
-              >
-                {user.role}
-              </span>
-            }
-          />
+          <span
+            className={`px-2 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeClassName(
+              user.role
+            )}`}
+          >
+            {user.role}
+          </span>
         </td>
         <td className="px-4 py-3 text-sm text-gray-400">
           {new Date(user.created_at).toLocaleDateString("ko-KR")}
@@ -265,80 +351,62 @@ function UserRow({ user }: { user: AdminUserProfile }) {
         <td className="px-4 py-3 text-xs text-gray-500">
           {user.latest_sanction?.reason || "-"}
         </td>
-        <td className="px-4 py-3">
-          {isEditing ? (
-            <div className="flex gap-1">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={handleSave}
-                disabled={isPending}
-                className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 cursor-pointer"
-              >
-                <Check className="w-4 h-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={handleCancel}
-                className="h-7 w-7 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          ) : (
-            <div className="flex gap-1">
-              {canManageSanction ? (
-                effectiveStatus === "active" ? (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setIsSuspendAlertOpen(true)}
-                    className="h-7 w-7 p-0 text-amber-600 hover:text-amber-700 hover:bg-amber-50 cursor-pointer"
-                    title="정지"
-                  >
-                    <UserLock className="w-3.5 h-3.5" />
-                  </Button>
-                ) : (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setIsUnsuspendAlertOpen(true)}
-                    className="h-7 px-2 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 cursor-pointer"
-                  >
-                    해제
-                  </Button>
-                )
-              ) : null}
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setIsHistoryDialogOpen(true)}
-                className="h-7 px-2 text-slate-600 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
-              >
-                이력
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setIsEditing(true)}
-                className="h-7 w-7 p-0 text-gray-400 hover:text-gray-600 cursor-pointer"
-              >
-                <Pencil className="w-3.5 h-3.5" />
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setIsDeleteAlertOpen(true)}
-                disabled={isDeleting}
-                className="h-7 w-7 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 cursor-pointer"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </Button>
-            </div>
-          )}
-        </td>
       </tr>
+      {isEditing ? (
+        <tr className="border-b border-gray-100 bg-gray-50/70">
+          <td colSpan={visibleColumnCount} className="px-4 py-4">
+            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+              <div className="mb-3 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">유저관리</p>
+                  <p className="text-xs text-gray-400">역할만 아래에서 수정할 수 있습니다.</p>
+                </div>
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleSave}
+                    disabled={isPending}
+                    className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 cursor-pointer"
+                  >
+                    <Check className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleCancel}
+                    className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-gray-500">현재 닉네임</label>
+                  <div className="flex h-9 items-center rounded-md border border-gray-200 bg-gray-50 px-3 text-sm text-gray-600">
+                    {nicknameDisplay}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-gray-500">역할</label>
+                  <select
+                    value={role}
+                    onChange={(event) => setRole(event.target.value as AppRole)}
+                    className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    {ROLE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      ) : null}
 
       <ConfirmAlert
         open={isDeleteAlertOpen}
@@ -569,293 +637,253 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
   return (
     <>
       <tr className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
-        {/* 이미지 URL - 비편집 모드에서 존재 여부만 표시하는 특수 케이스 */}
         <td className="px-4 py-3 text-sm">
-          <EditableCell
-            isEditing={isEditing}
-            value={imageUrl}
-            onChange={setImageUrl}
-            placeholder="이미지 URL"
-            className="h-8 text-sm w-36"
-            displayValue={
-              <span className="text-gray-400 text-xs">
-                {streamer.image_url ? "숨김" : "없음"}
-              </span>
-            }
-          />
+          <div className="flex gap-1">
+            <IconTooltipButton
+              icon={Pencil}
+              label={isEditing ? "닫기" : "수정"}
+              onClick={() => (isEditing ? handleCancel() : setIsEditing(true))}
+              buttonClassName="h-7 w-7 p-0 text-gray-400 hover:text-gray-600"
+              iconClassName="h-3.5 w-3.5"
+            />
+            <IconTooltipButton
+              icon={Trash2}
+              label="삭제"
+              onClick={() => setIsDeleteAlertOpen(true)}
+              disabled={isDeleting}
+              buttonClassName="h-7 w-7 p-0 text-red-500 hover:bg-red-50 hover:text-red-600"
+              iconClassName="h-3.5 w-3.5"
+            />
+          </div>
         </td>
-        {/* 닉네임 */}
+        <td className="px-4 py-3 text-sm text-gray-700 font-medium">{streamer.nickname || "-"}</td>
         <td className="px-4 py-3 text-sm">
-          <EditableCell
-            isEditing={isEditing}
-            value={nickname}
-            onChange={setNickname}
-            className="h-8 text-sm w-28"
-            displayValue={
-              <span className="text-gray-700 font-medium">{streamer.nickname || "-"}</span>
-            }
-          />
+          <span
+            className={`px-2 py-0.5 rounded-full text-xs font-medium ${streamer.platform === "chzzk"
+                ? "bg-green-100 text-green-700"
+                : "bg-blue-100 text-blue-700"
+              }`}
+          >
+            {streamer.platform}
+          </span>
         </td>
-        {/* 플랫폼 - select 타입, 뱃지 스타일 표시 */}
+        <td className="px-4 py-3 text-sm text-gray-500 text-xs font-mono">
+          {streamer.chzzk_id ? `${streamer.chzzk_id.slice(0, 12)}...` : "-"}
+        </td>
+        <td className="px-4 py-3 text-sm text-gray-500">{streamer.soop_id || "-"}</td>
+        <td className="px-4 py-3 text-sm text-gray-500">{streamer.group_name?.join(", ") || "-"}</td>
+        <td className="px-4 py-3 text-sm text-gray-500">{streamer.crew_name?.join(", ") || "-"}</td>
+        <td className="px-4 py-3 text-sm text-gray-500">{streamer.supporters || "-"}</td>
+        <td className="px-4 py-3 text-sm text-gray-500">{streamer.birthday || "-"}</td>
+        <td className="px-4 py-3 text-sm text-gray-500">{streamer.nationality || "-"}</td>
+        <td className="px-4 py-3 text-sm text-gray-500">{streamer.gender || "-"}</td>
+        <td className="px-4 py-3 text-sm text-gray-500">{streamer.genre?.join(", ") || "-"}</td>
+        <td className="px-4 py-3 text-sm text-gray-500">{streamer.first_stream_date || "-"}</td>
+        <td className="px-4 py-3 text-sm text-gray-500">{streamer.fandom_name || "-"}</td>
+        <td className="px-4 py-3 text-sm text-gray-500">{streamer.mbti || "-"}</td>
+        <td className="px-4 py-3 text-sm text-gray-500">{streamer.alias?.join(", ") || "-"}</td>
         <td className="px-4 py-3 text-sm">
-          <EditableCell
-            isEditing={isEditing}
-            value={platform}
-            onChange={setPlatform}
-            type="select"
-            options={[
-              { value: "chzzk", label: "chzzk" },
-              { value: "soop", label: "soop" },
-            ]}
-            displayValue={
-              <span
-                className={`px-2 py-0.5 rounded-full text-xs font-medium ${streamer.platform === "chzzk"
-                    ? "bg-green-100 text-green-700"
-                    : "bg-blue-100 text-blue-700"
-                  }`}
-              >
-                {streamer.platform}
-              </span>
-            }
-          />
+          <TruncatedUrlDisplay url={streamer.platform_url} />
         </td>
-        {/* 치지직 ID - 비편집 모드에서 잘린 형태로 표시 */}
         <td className="px-4 py-3 text-sm">
-          <EditableCell
-            isEditing={isEditing}
-            value={chzzkId}
-            onChange={setChzzkId}
-            placeholder="chzzk ID"
-            className="h-8 text-sm w-36"
-            displayValue={
-              <span className="text-gray-500 text-xs font-mono">
-                {streamer.chzzk_id ? `${streamer.chzzk_id.slice(0, 12)}...` : "-"}
-              </span>
-            }
-          />
+          <TruncatedUrlDisplay url={streamer.fancafe_url} />
         </td>
-        {/* SOOP ID */}
         <td className="px-4 py-3 text-sm">
-          <EditableCell
-            isEditing={isEditing}
-            value={soopId}
-            onChange={setSoopId}
-            placeholder="soop ID"
-            className="h-8 text-sm w-28"
-          />
-        </td>
-        {/* 그룹명 (text[]) */}
-        <td className="px-4 py-3 text-sm">
-          <EditableCell
-            isEditing={isEditing}
-            value={groupNameInput}
-            onChange={setGroupNameInput}
-            placeholder="그룹명 (쉼표로 구분)"
-            className="h-8 text-sm w-44"
-            displayValue={
-              <span className="text-gray-500 text-xs">
-                {streamer.group_name?.join(", ") || "-"}
-              </span>
-            }
-          />
-        </td>
-        {/* 소속명 (text[]) */}
-        <td className="px-4 py-3 text-sm">
-          <EditableCell
-            isEditing={isEditing}
-            value={crewNameInput}
-            onChange={setCrewNameInput}
-            placeholder="소속명 (쉼표로 구분)"
-            className="h-8 text-sm w-44"
-            displayValue={
-              <span className="text-gray-500 text-xs">
-                {streamer.crew_name?.join(", ") || "-"}
-              </span>
-            }
-          />
-        </td>
-        {/* 서포터즈 */}
-        <td className="px-4 py-3 text-sm">
-          <EditableCell
-            isEditing={isEditing}
-            value={supporters}
-            onChange={setSupporters}
-            placeholder="서포터즈"
-            className="h-8 text-sm w-44"
-            displayValue={
-              <span className="text-gray-500 text-xs">
-                {streamer.supporters || "-"}
-              </span>
-            }
-          />
-        </td>
-        {/* 생일 */}
-        <td className="px-4 py-3 text-sm">
-          <EditableCell
-            isEditing={isEditing}
-            value={birthday}
-            onChange={setBirthday}
-            placeholder="생일 (예: 1월 15일)"
-            className="h-8 text-sm w-44"
-          />
-        </td>
-        {/* 국적 */}
-        <td className="px-4 py-3 text-sm">
-          <EditableCell
-            isEditing={isEditing}
-            value={nationality}
-            onChange={setNationality}
-            placeholder="국적"
-            className="h-8 text-sm w-28"
-          />
-        </td>
-        {/* 성별 */}
-        <td className="px-4 py-3 text-sm">
-          <EditableCell
-            isEditing={isEditing}
-            value={gender}
-            onChange={setGender}
-            placeholder="성별"
-            className="h-8 text-sm w-24"
-          />
-        </td>
-        {/* 장르 (text[]) */}
-        <td className="px-4 py-3 text-sm">
-          <EditableCell
-            isEditing={isEditing}
-            value={genreInput}
-            onChange={setGenreInput}
-            placeholder="장르 (쉼표로 구분)"
-            className="h-8 text-sm w-44"
-            displayValue={
-              <span className="text-gray-500 text-xs">
-                {streamer.genre?.join(", ") || "-"}
-              </span>
-            }
-          />
-        </td>
-        {/* 첫 방송일 */}
-        <td className="px-4 py-3 text-sm">
-          <EditableCell
-            isEditing={isEditing}
-            value={firstStreamDate}
-            onChange={setFirstStreamDate}
-            placeholder="첫 방송일 (예: 2023년 5월)"
-            className="h-8 text-sm w-44"
-          />
-        </td>
-        {/* 팬덤명 */}
-        <td className="px-4 py-3 text-sm">
-          <EditableCell
-            isEditing={isEditing}
-            value={fandomName}
-            onChange={setFandomName}
-            placeholder="팬덤명"
-            className="h-8 text-sm w-28"
-          />
-        </td>
-        {/* MBTI */}
-        <td className="px-4 py-3 text-sm">
-          <EditableCell
-            isEditing={isEditing}
-            value={mbti}
-            onChange={setMbti}
-            placeholder="MBTI"
-            className="h-8 text-sm w-24"
-          />
-        </td>
-        {/* 별명 (text[]) */}
-        <td className="px-4 py-3 text-sm">
-          <EditableCell
-            isEditing={isEditing}
-            value={aliasInput}
-            onChange={setAliasInput}
-            placeholder="별명 (쉼표로 구분)"
-            className="h-8 text-sm w-44"
-            displayValue={
-              <span className="text-gray-500 text-xs">
-                {streamer.alias?.join(", ") || "-"}
-              </span>
-            }
-          />
-        </td>
-        {/* 플랫폼 주소 - URL truncate 표시 */}
-        <td className="px-4 py-3 text-sm">
-          <EditableCell
-            isEditing={isEditing}
-            value={platformUrl}
-            onChange={setPlatformUrl}
-            placeholder="플랫폼 주소"
-            className="h-8 text-sm w-52"
-            displayValue={<TruncatedUrlDisplay url={streamer.platform_url} />}
-          />
-        </td>
-        {/* 팬카페 주소 - URL truncate 표시 */}
-        <td className="px-4 py-3 text-sm">
-          <EditableCell
-            isEditing={isEditing}
-            value={fancafeUrl}
-            onChange={setFancafeUrl}
-            placeholder="팬카페 주소"
-            className="h-8 text-sm w-52"
-            displayValue={<TruncatedUrlDisplay url={streamer.fancafe_url} />}
-          />
-        </td>
-        {/* 유튜브 주소 - URL truncate 표시 */}
-        <td className="px-4 py-3 text-sm">
-          <EditableCell
-            isEditing={isEditing}
-            value={youtubeUrl}
-            onChange={setYoutubeUrl}
-            placeholder="유튜브 주소"
-            className="h-8 text-sm w-52"
-            displayValue={<TruncatedUrlDisplay url={streamer.youtube_url} />}
-          />
-        </td>
-        <td className="px-4 py-3">
-          {isEditing ? (
-            <div className="flex gap-1">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={handleSave}
-                disabled={isPending}
-                className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 cursor-pointer"
-              >
-                <Check className="w-4 h-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={handleCancel}
-                className="h-7 w-7 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          ) : (
-            <div className="flex gap-1">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setIsEditing(true)}
-                className="h-7 w-7 p-0 text-gray-400 hover:text-gray-600 cursor-pointer"
-              >
-                <Pencil className="w-3.5 h-3.5" />
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setIsDeleteAlertOpen(true)}
-                disabled={isDeleting}
-                className="h-7 w-7 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 cursor-pointer"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </Button>
-            </div>
-          )}
+          <TruncatedUrlDisplay url={streamer.youtube_url} />
         </td>
       </tr>
+      {isEditing ? (
+        <tr className="border-b border-gray-100 bg-gray-50/70">
+          <td colSpan={19} className="px-4 py-4">
+            <div className="max-w-6xl rounded-xl border border-gray-200 bg-white p-3 shadow-sm md:p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">버츄얼 관리</p>
+                  <p className="text-xs text-gray-400">아래에서 버츄얼 정보를 수정할 수 있습니다.</p>
+                </div>
+                <div className="flex gap-1">
+                  <IconTooltipButton
+                    icon={Check}
+                    label="저장"
+                    onClick={handleSave}
+                    disabled={isPending}
+                    buttonClassName="h-8 w-8 p-0 text-green-600 hover:bg-green-50 hover:text-green-700"
+                    iconClassName="h-4 w-4"
+                  />
+                  <IconTooltipButton
+                    icon={X}
+                    label="취소"
+                    onClick={handleCancel}
+                    buttonClassName="h-8 w-8 p-0 text-red-500 hover:bg-red-50 hover:text-red-600"
+                    iconClassName="h-4 w-4"
+                  />
+                </div>
+              </div>
+              <div className="space-y-4">
+                <AdminEditSection
+                  title="기본 정보"
+                  description="플랫폼과 식별자, 기본 소개 정보를 수정합니다."
+                >
+                  <AdminEditField label="닉네임">
+                    <Input
+                      value={nickname}
+                      onChange={(event) => setNickname(event.target.value)}
+                      className={STREAMER_EDIT_FIELD_CLASS_NAME}
+                    />
+                  </AdminEditField>
+                  <AdminEditField label="플랫폼">
+                    <select
+                      value={platform}
+                      onChange={(event) => setPlatform(event.target.value)}
+                      className={`${STREAMER_EDIT_FIELD_CLASS_NAME} rounded-md border border-input bg-background px-3 text-sm`}
+                    >
+                      <option value="chzzk">chzzk</option>
+                      <option value="soop">soop</option>
+                    </select>
+                  </AdminEditField>
+                  <AdminEditField label="치지직 ID">
+                    <Input
+                      value={chzzkId}
+                      onChange={(event) => setChzzkId(event.target.value)}
+                      className={STREAMER_EDIT_FIELD_CLASS_NAME}
+                    />
+                  </AdminEditField>
+                  <AdminEditField label="SOOP ID">
+                    <Input
+                      value={soopId}
+                      onChange={(event) => setSoopId(event.target.value)}
+                      className={STREAMER_EDIT_FIELD_CLASS_NAME}
+                    />
+                  </AdminEditField>
+                  <AdminEditField label="이미지 URL">
+                    <Input
+                      value={imageUrl}
+                      onChange={(event) => setImageUrl(event.target.value)}
+                      className={STREAMER_EDIT_FIELD_CLASS_NAME}
+                    />
+                  </AdminEditField>
+                  <AdminEditField label="서포터즈">
+                    <Input
+                      value={supporters}
+                      onChange={(event) => setSupporters(event.target.value)}
+                      className={STREAMER_EDIT_FIELD_CLASS_NAME}
+                    />
+                  </AdminEditField>
+                </AdminEditSection>
+
+                <AdminEditSection
+                  title="소속 및 분류"
+                  description="그룹/소속/장르/별명처럼 다중 값 항목은 쉼표로 구분합니다."
+                >
+                  <AdminEditField label="그룹명">
+                    <Input
+                      value={groupNameInput}
+                      onChange={(event) => setGroupNameInput(event.target.value)}
+                      className={STREAMER_EDIT_FIELD_CLASS_NAME}
+                    />
+                  </AdminEditField>
+                  <AdminEditField label="소속명">
+                    <Input
+                      value={crewNameInput}
+                      onChange={(event) => setCrewNameInput(event.target.value)}
+                      className={STREAMER_EDIT_FIELD_CLASS_NAME}
+                    />
+                  </AdminEditField>
+                  <AdminEditField label="장르">
+                    <Input
+                      value={genreInput}
+                      onChange={(event) => setGenreInput(event.target.value)}
+                      className={STREAMER_EDIT_FIELD_CLASS_NAME}
+                    />
+                  </AdminEditField>
+                  <AdminEditField label="별명">
+                    <Input
+                      value={aliasInput}
+                      onChange={(event) => setAliasInput(event.target.value)}
+                      className={STREAMER_EDIT_FIELD_CLASS_NAME}
+                    />
+                  </AdminEditField>
+                </AdminEditSection>
+
+                <AdminEditSection
+                  title="프로필 정보"
+                  description="생일, 국적, 성별, 방송 관련 메타데이터를 관리합니다."
+                >
+                  <AdminEditField label="생일">
+                    <Input
+                      value={birthday}
+                      onChange={(event) => setBirthday(event.target.value)}
+                      className={STREAMER_EDIT_FIELD_CLASS_NAME}
+                    />
+                  </AdminEditField>
+                  <AdminEditField label="국적">
+                    <Input
+                      value={nationality}
+                      onChange={(event) => setNationality(event.target.value)}
+                      className={STREAMER_EDIT_FIELD_CLASS_NAME}
+                    />
+                  </AdminEditField>
+                  <AdminEditField label="성별">
+                    <Input
+                      value={gender}
+                      onChange={(event) => setGender(event.target.value)}
+                      className={STREAMER_EDIT_FIELD_CLASS_NAME}
+                    />
+                  </AdminEditField>
+                  <AdminEditField label="첫 방송일">
+                    <Input
+                      value={firstStreamDate}
+                      onChange={(event) => setFirstStreamDate(event.target.value)}
+                      className={STREAMER_EDIT_FIELD_CLASS_NAME}
+                    />
+                  </AdminEditField>
+                  <AdminEditField label="팬덤명">
+                    <Input
+                      value={fandomName}
+                      onChange={(event) => setFandomName(event.target.value)}
+                      className={STREAMER_EDIT_FIELD_CLASS_NAME}
+                    />
+                  </AdminEditField>
+                  <AdminEditField label="MBTI">
+                    <Input
+                      value={mbti}
+                      onChange={(event) => setMbti(event.target.value)}
+                      className={STREAMER_EDIT_FIELD_CLASS_NAME}
+                    />
+                  </AdminEditField>
+                </AdminEditSection>
+
+                <AdminEditSection
+                  title="외부 링크"
+                  description="플랫폼, 팬카페, 유튜브 링크를 관리합니다."
+                >
+                  <AdminEditField label="플랫폼 주소">
+                    <Input
+                      value={platformUrl}
+                      onChange={(event) => setPlatformUrl(event.target.value)}
+                      className={STREAMER_EDIT_FIELD_CLASS_NAME}
+                    />
+                  </AdminEditField>
+                  <AdminEditField label="팬카페 주소">
+                    <Input
+                      value={fancafeUrl}
+                      onChange={(event) => setFancafeUrl(event.target.value)}
+                      className={STREAMER_EDIT_FIELD_CLASS_NAME}
+                    />
+                  </AdminEditField>
+                  <AdminEditField label="유튜브 주소">
+                    <Input
+                      value={youtubeUrl}
+                      onChange={(event) => setYoutubeUrl(event.target.value)}
+                      className={STREAMER_EDIT_FIELD_CLASS_NAME}
+                    />
+                  </AdminEditField>
+                </AdminEditSection>
+              </div>
+            </div>
+          </td>
+        </tr>
+      ) : null}
 
       <ConfirmAlert
         open={isDeleteAlertOpen}
@@ -877,31 +905,39 @@ type UserTableProps = {
 };
 
 export function UserTable({ users, isLoading }: UserTableProps) {
+  const { profile } = useAuthStore();
+  const showSensitiveColumns = profile?.role !== "manager";
+  const columnCount = showSensitiveColumns ? 10 : 8;
+
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto overflow-y-auto max-h-[560px]">
       <table className="w-full text-left">
         <thead>
           <tr className="bg-gray-50/80 border-b border-gray-100">
-            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">ID</th>
-            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">이메일</th>
+            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-32">유저관리</th>
+            {showSensitiveColumns ? (
+              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">ID</th>
+            ) : null}
+            {showSensitiveColumns ? (
+              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">이메일</th>
+            ) : null}
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">가입 방식</th>
-            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">닉네임</th>
+            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">닉네임 / 코드</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">역할</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">가입일</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">상태</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">제한 종료</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">최근 제재 사유</th>
-            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-32">수정</th>
           </tr>
         </thead>
         <tbody>
           {isLoading ? (
-            <TableSkeleton cols={10} />
+            <TableSkeleton cols={columnCount} />
           ) : users && users.length > 0 ? (
             users.map((user) => <UserRow key={user.id} user={user} />)
           ) : (
             <tr>
-              <td colSpan={10} className="px-4 py-12 text-center text-gray-400 text-sm">
+              <td colSpan={columnCount} className="px-4 py-12 text-center text-gray-400 text-sm">
                 등록된 유저가 없습니다.
               </td>
             </tr>
@@ -919,11 +955,11 @@ type StreamerTableProps = {
 
 export function StreamerTable({ streamers, isLoading }: StreamerTableProps) {
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto overflow-y-auto max-h-[560px]">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto overflow-y-auto max-h-[720px]">
       <table className="min-w-[2820px] text-left">
         <thead>
           <tr className="bg-gray-50/80 border-b border-gray-100">
-            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">이미지</th>
+            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-20">관리</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">닉네임</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">플랫폼</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">치지직 ID</th>
@@ -942,19 +978,18 @@ export function StreamerTable({ streamers, isLoading }: StreamerTableProps) {
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">플랫폼 주소</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">팬카페 주소</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">유튜브 주소</th>
-            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-20">수정</th>
           </tr>
         </thead>
         <tbody>
           {isLoading ? (
-            <TableSkeleton cols={20} />
+            <TableSkeleton cols={19} />
           ) : streamers && streamers.length > 0 ? (
             streamers.map((streamer) => (
               <StreamerRow key={streamer.id} streamer={streamer} />
             ))
           ) : (
             <tr>
-              <td colSpan={20} className="px-4 py-12 text-center text-gray-400 text-sm">
+              <td colSpan={19} className="px-4 py-12 text-center text-gray-400 text-sm">
                 등록된 버츄얼이 없습니다.
               </td>
             </tr>

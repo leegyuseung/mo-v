@@ -4,7 +4,7 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { deleteUserCompletely } from "@/utils/user-cleanup";
 import { hasAdminAccess, isAdminRole, isAppRole } from "@/utils/role";
-import { isValidUUID, validateNicknameInput } from "@/utils/validate";
+import { isValidUUID } from "@/utils/validate";
 import type { AppRole } from "@/types/app-role";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -92,7 +92,7 @@ export async function DELETE(
 
 /**
  * Admin 전용 유저 정보 수정 API.
- * nickname, role, bio를 서버 사이드에서 권한 검증 후 업데이트한다.
+ * role, bio를 서버 사이드에서 권한 검증 후 업데이트한다.
  * role 변경은 admin만 가능하며, 자기 자신의 role은 변경할 수 없다.
  */
 export async function PATCH(
@@ -113,14 +113,9 @@ export async function PATCH(
   }
 
   /* 필드별 검증 */
-  let validatedNickname: string | undefined;
-  try {
-    validatedNickname = validateNicknameInput(
-      typeof body.nickname === "string" ? body.nickname : undefined
-    );
-  } catch (e) {
+  if (body.nickname !== undefined) {
     return NextResponse.json(
-      { message: e instanceof Error ? e.message : "닉네임이 올바르지 않습니다." },
+      { message: "유저관리에서는 닉네임을 변경할 수 없습니다." },
       { status: 400 }
     );
   }
@@ -143,19 +138,8 @@ export async function PATCH(
 
   const validatedBio = typeof body.bio === "string" ? body.bio : undefined;
 
-  if (validatedNickname === undefined && validatedRole === undefined && validatedBio === undefined) {
+  if (validatedRole === undefined && validatedBio === undefined) {
     return NextResponse.json({ message: "변경할 항목이 없습니다." }, { status: 400 });
-  }
-
-  /* nickname 변경: RPC로 닉네임 코드 자동 할당 */
-  if (validatedNickname !== undefined) {
-    const { error: nicknameError } = await auth.admin.rpc("assign_profile_nickname_code", {
-      p_user_id: param.userId,
-      p_nickname: validatedNickname,
-    });
-    if (nicknameError) {
-      return NextResponse.json({ message: "닉네임 변경에 실패했습니다." }, { status: 500 });
-    }
   }
 
   /* role/bio 변경 */
