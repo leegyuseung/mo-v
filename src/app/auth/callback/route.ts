@@ -9,6 +9,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import { sanitizeAgreementNextPath } from "@/lib/user-agreement";
+import { getAccountRestrictionMessage } from "@/utils/account-status";
 
 /**
  * 팝업 완료 시 부모 창에 postMessage를 보내고 자신을 닫는 HTML을 생성한다.
@@ -66,6 +67,32 @@ export async function GET(request: Request) {
 
             let isRequiredAgreementAccepted = false;
             if (user) {
+                const { data: profile } = await supabase
+                    .from("profiles")
+                    .select("account_status,suspended_until,suspension_reason")
+                    .eq("id", user.id)
+                    .maybeSingle();
+
+                const restrictionMessage = getAccountRestrictionMessage(profile);
+                if (restrictionMessage) {
+                    await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
+                    const loginUrl = new URL("/login", origin);
+                    loginUrl.searchParams.set("account_status", profile?.account_status || "suspended");
+                    if (profile?.suspended_until) {
+                        loginUrl.searchParams.set("suspended_until", profile.suspended_until);
+                    }
+
+                    if (isPopup) {
+                        return createPopupCompleteResponse({
+                            origin,
+                            messageType: "oauth-popup-complete",
+                            nextPath: `${loginUrl.pathname}${loginUrl.search}`,
+                        });
+                    }
+
+                    return NextResponse.redirect(loginUrl);
+                }
+
                 const { data: agreement } = await supabase
                     .from("user_agreements")
                     .select("terms_accepted,privacy_accepted,third_party_accepted")

@@ -10,8 +10,26 @@ import {
   STREAMER_REQUEST_TABLE,
   STREAMER_TABLE,
 } from "@/lib/constant";
+import { getAccountRestrictionMessage } from "@/utils/account-status";
 
 const supabase = createClient();
+
+async function assertStreamerRequestAllowed(userId: string) {
+  const { data: profileStatus, error: profileStatusError } = await supabase
+    .from("profiles")
+    .select("account_status,suspended_until")
+    .eq("id", userId)
+    .single();
+
+  if (profileStatusError) {
+    throw profileStatusError;
+  }
+
+  const restrictionMessage = getAccountRestrictionMessage(profileStatus);
+  if (restrictionMessage) {
+    throw new Error(restrictionMessage);
+  }
+}
 
 /** 버츄얼 목록을 플랫폼·정렬·키워드 필터로 페이징 조회한다. 하트순 정렬 시 랭킹 뷰를 사용한다 */
 export async function fetchStreamers({
@@ -249,6 +267,8 @@ export async function createStreamerRegistrationRequest({
   platformStreamerId,
   platformStreamerUrl,
 }: CreateStreamerRequestInput) {
+  await assertStreamerRequestAllowed(requesterId);
+
   // 이미 등록된 버츄얼인지 먼저 확인한다.
   const { data: existingStreamer, error: existingStreamerError } = await supabase
     .from(STREAMER_TABLE)
@@ -300,6 +320,8 @@ export async function createStreamerInfoEditRequest({
   requesterId,
   requesterNickname,
 }: CreateStreamerInfoEditRequestInput) {
+  await assertStreamerRequestAllowed(requesterId);
+
   const trimmedContent = content.trim();
   if (!trimmedContent) {
     throw new Error("수정 요청 내용을 입력해 주세요.");

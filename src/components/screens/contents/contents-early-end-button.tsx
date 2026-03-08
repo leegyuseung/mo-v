@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useEarlyEndContent } from "@/hooks/mutations/contents/use-early-end-content";
 import { useAuthStore } from "@/store/useAuthStore";
 import type { ContentsEarlyEndButtonProps } from "@/types/contents-detail";
+import { hasAdminAccess } from "@/utils/role";
 
 /** 작성자 또는 관리자만 콘텐츠를 조기마감 처리할 수 있는 버튼 */
 export default function ContentsEarlyEndButton({
@@ -17,7 +18,7 @@ export default function ContentsEarlyEndButton({
   const { user, profile, isLoading } = useAuthStore();
 
   const isAuthor = Boolean(user?.id && authorId && user.id === authorId);
-  const isAdmin = (profile?.role || "").trim().toLowerCase() === "admin";
+  const isAdmin = hasAdminAccess(profile?.role);
   const canManage = isAuthor || isAdmin;
   const canEarlyEnd = canManage && status === "approved";
 

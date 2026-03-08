@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import type { UserProfilePrivacy } from "@/types/user-profile-privacy";
+import { getUserAccountAccessResult } from "@/utils/server-account-status";
 
 const DEFAULT_PRIVACY: UserProfilePrivacy = {
   show_account_info: true,
@@ -23,6 +24,11 @@ export async function GET() {
   } = await supabase.auth.getUser();
 
   if (!user) return createUnauthorizedResponse();
+
+  const access = await getUserAccountAccessResult(supabase, user.id);
+  if (!access.ok) {
+    return NextResponse.json({ message: access.message }, { status: access.status });
+  }
 
   const { data, error } = await supabase
     .from("user_profile_privacy")
@@ -118,6 +124,11 @@ export async function PATCH(request: Request) {
   } = await supabase.auth.getUser();
 
   if (!user) return createUnauthorizedResponse();
+
+  const access = await getUserAccountAccessResult(supabase, user.id);
+  if (!access.ok) {
+    return NextResponse.json({ message: access.message }, { status: access.status });
+  }
 
   const { data: current, error: currentError } = await supabase
     .from("user_profile_privacy")

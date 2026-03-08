@@ -1,11 +1,69 @@
 import { createClient } from "@/utils/supabase/client";
 import type { DashboardSignupTrendPoint, DashboardStats } from "@/types/admin-dashboard";
-import type { Profile } from "@/types/profile";
-import { validateNicknameInput } from "@/utils/validate";
+import type { ManageUserSanctionPayload } from "@/types/account-status";
+import type { AppRole } from "@/types/app-role";
+import type { AdminUserProfile, Profile, UserSanctionSummary } from "@/types/profile";
+import { normalizeRole } from "@/utils/role";
 
 export type { DashboardStats, Profile };
 
 const supabase = createClient();
+
+function formatSanctionActorLabel(profile?: {
+    nickname?: string | null;
+    nickname_code?: string | null;
+    email?: string | null;
+} | null) {
+    if (!profile) return null;
+
+    if (profile.nickname) {
+        return profile.nickname_code
+            ? `${profile.nickname} #${profile.nickname_code}`
+            : profile.nickname;
+    }
+
+    return profile.email || null;
+}
+
+type SanctionProfileSummary = {
+    email: string | null;
+    nickname: string | null;
+    nickname_code: string | null;
+    role?: string | null;
+};
+
+async function fetchProfilesByIds(userIds: string[]) {
+    if (userIds.length === 0) {
+        return new Map<string, SanctionProfileSummary>();
+    }
+
+    const { data } = await supabase
+        .from("profiles")
+        .select("id,nickname,nickname_code,email,role")
+        .in("id", userIds);
+
+    return new Map(
+        (data || []).map((profile) => [profile.id, profile] as const)
+    );
+}
+
+async function fetchCurrentOperatorRole() {
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+        return null;
+    }
+
+    const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+
+    return normalizeRole(profile?.role);
+}
 
 function buildSignupTrend(
     rows: Array<{ created_at: string; provider: string | null }> | null,
@@ -177,57 +235,73 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
 }
 
 /** 전체 유저 목록을 최신 가입순으로 조회한다 */
-export async function fetchUsers(): Promise<Profile[]> {
+export async function fetchUsers(): Promise<AdminUserProfile[]> {
     const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    const users = (data || []) as AdminUserProfile[];
+    const userIds = users.map((user) => user.id);
+
+    if (userIds.length === 0) {
+        return users;
+    }
+
+    const { data: sanctionRows, error: sanctionError } = await supabase
+        .from("user_sanctions")
+        .select("user_id,action_type,reason,internal_note,created_at,created_by,suspended_until")
+        .in("user_id", userIds)
+        .order("created_at", { ascending: false });
+
+    if (sanctionError) {
+        return users;
+    }
+
+    const sanctionCreatorIds = Array.from(
+        new Set((sanctionRows || []).map((row) => row.created_by).filter(Boolean))
+    );
+    const sanctionCreatorsById = await fetchProfilesByIds(sanctionCreatorIds);
+
+    const latestSanctionByUserId = new Map<string, NonNullable<AdminUserProfile["latest_sanction"]>>();
+    for (const row of sanctionRows || []) {
+        if (!latestSanctionByUserId.has(row.user_id)) {
+            latestSanctionByUserId.set(row.user_id, {
+                ...row,
+                created_by_name: formatSanctionActorLabel(
+                    sanctionCreatorsById.get(row.created_by)
+                ),
+                created_by_email: sanctionCreatorsById.get(row.created_by)?.email || null,
+                created_by_role: sanctionCreatorsById.get(row.created_by)?.role || null,
+            });
+        }
+    }
+
+    return users.map((user) => ({
+        ...user,
+        latest_sanction: latestSanctionByUserId.get(user.id) || null,
+    }));
 }
 
-/** 유저 정보(닉네임, 역할, 소개)를 수정한다 */
+/** 유저 정보(닉네임, 역할, 소개)를 수정한다. 서버 API를 통해 권한 검증 후 처리된다. */
 export async function updateUser(
     userId: string,
-    updates: { nickname?: string; role?: string; bio?: string }
+    updates: { nickname?: string; role?: AppRole; bio?: string }
 ) {
-    const validatedNickname = validateNicknameInput(updates.nickname);
+    const response = await fetch(`/api/admin/users/${userId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+    });
 
-    if (validatedNickname !== undefined) {
-        const { error: nicknameError } = await supabase.rpc("assign_profile_nickname_code", {
-            p_user_id: userId,
-            p_nickname: validatedNickname,
-        });
-        if (nicknameError) throw nicknameError;
+    const body = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+        throw new Error(body.message || "유저 정보 수정에 실패했습니다.");
     }
 
-    const updatePayload: { role?: string; bio?: string; updated_at: string } = {
-        updated_at: new Date().toISOString(),
-    };
-
-    if (updates.role !== undefined) updatePayload.role = updates.role;
-    if (updates.bio !== undefined) updatePayload.bio = updates.bio;
-
-    const shouldUpdateProfileColumns =
-        updates.role !== undefined || updates.bio !== undefined;
-
-    if (shouldUpdateProfileColumns) {
-        const { error: updateError } = await supabase
-            .from("profiles")
-            .update(updatePayload)
-            .eq("id", userId);
-        if (updateError) throw updateError;
-    }
-
-    const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
-
-    if (error) throw error;
-    return data;
+    return body;
 }
 
 /** 유저를 삭제한다 (서버 API를 통해 참조 데이터 정리 + Auth 삭제) */
@@ -240,4 +314,102 @@ export async function deleteUser(userId: string) {
         const body = await response.json().catch(() => ({}));
         throw new Error(body.message || "회원 삭제에 실패했습니다.");
     }
+}
+
+/** 유저 정지/해제를 처리한다 */
+export async function manageUserSanction(
+    userId: string,
+    payload: ManageUserSanctionPayload
+) {
+    const response = await fetch(`/api/admin/users/${userId}/sanction`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+    });
+
+    const body = (await response.json().catch(() => null)) as
+        Record<string, unknown> | null;
+
+    if (!response.ok) {
+        const message = typeof body?.message === "string" ? body.message : "유저 제재 처리에 실패했습니다.";
+        throw new Error(message);
+    }
+
+    return body;
+}
+
+/** 특정 유저의 최근 제재 이력을 조회한다 */
+export async function fetchUserSanctions(userId: string): Promise<UserSanctionSummary[]> {
+    const operatorRole = await fetchCurrentOperatorRole();
+    const sanctionSelectColumns =
+        operatorRole === "admin"
+            ? "user_id,account_status,action_type,duration_days,reason,internal_note,created_at,created_by,suspended_until"
+            : "user_id,account_status,action_type,duration_days,reason,created_at,created_by,suspended_until";
+
+    const { data, error } = await supabase
+        .from("user_sanctions")
+        .select(sanctionSelectColumns)
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+    if (error) throw error;
+    const sanctions = (data || []) as UserSanctionSummary[];
+    const creatorIds = Array.from(new Set(sanctions.map((sanction) => sanction.created_by).filter(Boolean)));
+
+    if (creatorIds.length === 0) {
+        return sanctions;
+    }
+
+    const creatorsById = await fetchProfilesByIds(creatorIds);
+
+    return sanctions.map((sanction) => ({
+        ...sanction,
+        created_by_name: formatSanctionActorLabel(
+            creatorsById.get(sanction.created_by)
+        ),
+        created_by_email: creatorsById.get(sanction.created_by)?.email || null,
+        created_by_role: creatorsById.get(sanction.created_by)?.role || null,
+    }));
+}
+
+/** 전체 유저 제재 이력을 최근순으로 조회한다 */
+export async function fetchAllUserSanctions(): Promise<UserSanctionSummary[]> {
+    const operatorRole = await fetchCurrentOperatorRole();
+    const sanctionSelectColumns =
+        operatorRole === "admin"
+            ? "user_id,account_status,action_type,duration_days,reason,internal_note,created_at,created_by,suspended_until"
+            : "user_id,account_status,action_type,duration_days,reason,created_at,created_by,suspended_until";
+
+    const { data, error } = await supabase
+        .from("user_sanctions")
+        .select(sanctionSelectColumns)
+        .order("created_at", { ascending: false })
+        .limit(200);
+
+    if (error) throw error;
+
+    const sanctions = (data || []) as UserSanctionSummary[];
+    const relatedUserIds = Array.from(
+        new Set(
+            sanctions
+                .flatMap((sanction) => [sanction.user_id, sanction.created_by])
+                .filter((id): id is string => Boolean(id))
+        )
+    );
+    const profilesById = await fetchProfilesByIds(relatedUserIds);
+
+    return sanctions.map((sanction) => ({
+        ...sanction,
+        user_name: formatSanctionActorLabel(profilesById.get(sanction.user_id || "")),
+        user_email: profilesById.get(sanction.user_id || "")?.email || null,
+        user_role: profilesById.get(sanction.user_id || "")?.role || null,
+        created_by_name: formatSanctionActorLabel(
+            profilesById.get(sanction.created_by)
+        ),
+        created_by_email: profilesById.get(sanction.created_by)?.email || null,
+        created_by_role: profilesById.get(sanction.created_by)?.role || null,
+    }));
 }

@@ -1,3 +1,10 @@
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** UUID 형식인지 검증한다 */
+export function isValidUUID(value: string): boolean {
+    return UUID_REGEX.test(value);
+}
+
 const NICKNAME_REGEX = /^[0-9A-Za-z가-힣_]+$/;
 export const NICKNAME_ADMIN_KEYWORD_FORBIDDEN_MESSAGE =
     '"관리자"가 포함된 닉네임을 사용할 수 없습니다.';

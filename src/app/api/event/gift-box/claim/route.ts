@@ -4,6 +4,8 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { creditHeartPointsAtomic } from "@/utils/credit-heart-points";
 import { getCurrentKstGiftBoxWindow } from "@/utils/gift-box-window";
+import { getUserAccountAccessResult } from "@/utils/server-account-status";
+import { consumeRouteRateLimit, getRequestClientIp } from "@/utils/route-rate-limit";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
@@ -23,7 +25,7 @@ function randomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-export async function POST() {
+export async function POST(request: Request) {
   if (!supabaseUrl || !supabaseAnonKey || !serviceRoleKey) {
     return NextResponse.json({ message: "서버 설정이 올바르지 않습니다." }, { status: 500 });
   }
@@ -49,6 +51,24 @@ export async function POST() {
 
   if (userError || !user) {
     return NextResponse.json({ message: "로그인이 필요합니다." }, { status: 401 });
+  }
+
+  const rateLimit = consumeRouteRateLimit({
+    key: `gift-box-claim:${user.id}:${getRequestClientIp(request)}`,
+    limit: 10,
+    windowMs: 60 * 1000,
+  });
+
+  if (!rateLimit.ok) {
+    return NextResponse.json(
+      { message: "요청이 많습니다. 잠시 후 다시 시도해 주세요." },
+      { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds) } }
+    );
+  }
+
+  const access = await getUserAccountAccessResult(supabase, user.id);
+  if (!access.ok) {
+    return NextResponse.json({ message: access.message }, { status: access.status });
   }
 
   const admin = createAdminClient(supabaseUrl, serviceRoleKey);

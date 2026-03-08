@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Shield } from "lucide-react";
+import { hasAdminAccess } from "@/utils/role";
 
 export default function AdminAuthGuard({
     children,
@@ -12,22 +13,16 @@ export default function AdminAuthGuard({
 }) {
     const router = useRouter();
     const { user, profile, isLoading, isInitialized } = useAuthStore();
-    const [checked, setChecked] = useState(false);
+    const canAccess = Boolean(user) && hasAdminAccess(profile?.role);
 
     useEffect(() => {
         if (!isInitialized || isLoading) return;
-
-        const normalizedRole = (profile?.role || "").trim().toLowerCase();
-        const isAdmin = normalizedRole === "admin";
-
-        if (!user || !isAdmin) {
+        if (!canAccess) {
             router.replace("/login");
-        } else {
-            setChecked(true);
         }
-    }, [user, profile, isLoading, isInitialized, router]);
+    }, [canAccess, isLoading, isInitialized, router]);
 
-    if (!checked) {
+    if (!isInitialized || isLoading || !canAccess) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-gray-50">
                 <div className="flex flex-col items-center gap-3">

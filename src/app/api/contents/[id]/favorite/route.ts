@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { getUserAccountAccessResult } from "@/utils/server-account-status";
+import { consumeRouteRateLimit, getRequestClientIp } from "@/utils/route-rate-limit";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
@@ -51,6 +53,24 @@ export async function POST(
     return NextResponse.json({ message: "로그인이 필요합니다." }, { status: 401 });
   }
 
+  const rateLimit = consumeRouteRateLimit({
+    key: `content-favorite:${user.id}:${contentId}:${getRequestClientIp(_request)}`,
+    limit: 30,
+    windowMs: 60 * 1000,
+  });
+
+  if (!rateLimit.ok) {
+    return NextResponse.json(
+      { message: "요청이 많습니다. 잠시 후 다시 시도해 주세요." },
+      { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds) } }
+    );
+  }
+
+  const access = await getUserAccountAccessResult(supabase, user.id);
+  if (!access.ok) {
+    return NextResponse.json({ message: access.message }, { status: access.status });
+  }
+
   const admin = createAdminClient(supabaseUrl, serviceRoleKey);
 
   const { data: content, error: contentError } = await admin
@@ -95,56 +115,8 @@ export async function POST(
     return NextResponse.json({ message: "좋아요 처리에 실패했습니다." }, { status: 500 });
   }
 
-  // RPC 미적용 환경 fallback
-  const { data: existingFavorite, error: existingFavoriteError } = await admin
-    .from("content_favorites")
-    .select("content_id")
-    .eq("content_id", contentId)
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (existingFavoriteError) {
-    return NextResponse.json({ message: "좋아요 상태 확인에 실패했습니다." }, { status: 500 });
-  }
-
-  let liked = false;
-
-  if (existingFavorite) {
-    const { error: deleteError } = await admin
-      .from("content_favorites")
-      .delete()
-      .eq("content_id", contentId)
-      .eq("user_id", user.id);
-
-    if (deleteError) {
-      return NextResponse.json({ message: "좋아요 취소에 실패했습니다." }, { status: 500 });
-    }
-  } else {
-    const { error: insertError } = await admin
-      .from("content_favorites")
-      .insert({
-        content_id: contentId,
-        user_id: user.id,
-      });
-
-    if (insertError) {
-      return NextResponse.json({ message: "좋아요 등록에 실패했습니다." }, { status: 500 });
-    }
-
-    liked = true;
-  }
-
-  const { count, error: countError } = await admin
-    .from("content_favorites")
-    .select("*", { count: "exact", head: true })
-    .eq("content_id", contentId);
-
-  if (countError) {
-    return NextResponse.json({ message: "좋아요 수 조회에 실패했습니다." }, { status: 500 });
-  }
-
-  return NextResponse.json({
-    liked,
-    favorite_count: count || 0,
-  });
+  return NextResponse.json(
+    { message: "좋아요 기능 설정이 올바르지 않습니다. 관리자에게 문의해 주세요." },
+    { status: 503 }
+  );
 }

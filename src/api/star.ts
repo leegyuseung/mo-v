@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/client";
+import { getAccountRestrictionMessage } from "@/utils/account-status";
 import type {
   MyStars,
   StarTargetType,
@@ -9,18 +10,26 @@ import type {
 
 const supabase = createClient();
 
-// ─── 테이블·컬럼 매핑 ──────────────────────────────────────────────
-const STAR_TABLE = {
-  streamer: "user_star_streamers",
-  group: "user_star_groups",
-  crew: "user_star_crews",
-} as const;
-
 const STAR_FK = {
   streamer: "streamer_id",
   group: "group_id",
   crew: "crew_id",
 } as const;
+
+async function assertStarActionAllowed(userId: string) {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("account_status,suspended_until")
+    .eq("id", userId)
+    .single();
+
+  if (error) throw error;
+
+  const restrictionMessage = getAccountRestrictionMessage(data);
+  if (restrictionMessage) {
+    throw new Error(restrictionMessage);
+  }
+}
 
 // ─── 즐겨찾기 ID 목록 조회 ──────────────────────────────────────────
 
@@ -40,12 +49,14 @@ export async function fetchStarredCrewIds(userId: string): Promise<number[]> {
 }
 
 async function fetchStarredIds(userId: string, type: StarTargetType): Promise<number[]> {
-  const table = STAR_TABLE[type];
   const fk = STAR_FK[type];
-  const { data, error } = await (supabase as any)
-    .from(table)
-    .select(fk)
-    .eq("user_id", userId);
+  const query =
+    type === "streamer"
+      ? supabase.from("user_star_streamers").select(fk)
+      : type === "group"
+        ? supabase.from("user_star_groups").select(fk)
+        : supabase.from("user_star_crews").select(fk);
+  const { data, error } = await query.eq("user_id", userId);
   if (error) throw error;
   return (data || [])
     .map((row: Record<string, number | null>) => row[fk])
@@ -60,13 +71,14 @@ export async function isStarred(
   targetId: number,
   type: StarTargetType,
 ): Promise<boolean> {
-  const table = STAR_TABLE[type];
   const fk = STAR_FK[type];
-  const { count, error } = await (supabase as any)
-    .from(table)
-    .select("user_id", { count: "exact", head: true })
-    .eq("user_id", userId)
-    .eq(fk, targetId);
+  const query =
+    type === "streamer"
+      ? supabase.from("user_star_streamers").select("user_id", { count: "exact", head: true })
+      : type === "group"
+        ? supabase.from("user_star_groups").select("user_id", { count: "exact", head: true })
+        : supabase.from("user_star_crews").select("user_id", { count: "exact", head: true });
+  const { count, error } = await query.eq("user_id", userId).eq(fk, targetId);
   if (error) throw error;
   return (count || 0) > 0;
 }
@@ -79,12 +91,20 @@ export async function addStar(
   targetId: number,
   type: StarTargetType,
 ): Promise<void> {
-  const table = STAR_TABLE[type];
-  const fk = STAR_FK[type];
-  const { error } = await (supabase as any).from(table).insert({
-    user_id: userId,
-    [fk]: targetId,
-  });
+  await assertStarActionAllowed(userId);
+  const payload =
+    type === "streamer"
+      ? { user_id: userId, streamer_id: targetId }
+      : type === "group"
+        ? { user_id: userId, group_id: targetId }
+        : { user_id: userId, crew_id: targetId };
+  const query =
+    type === "streamer"
+      ? supabase.from("user_star_streamers")
+      : type === "group"
+        ? supabase.from("user_star_groups")
+        : supabase.from("user_star_crews");
+  const { error } = await query.insert(payload);
   if (error) throw error;
 }
 
@@ -94,36 +114,33 @@ export async function removeStar(
   targetId: number,
   type: StarTargetType,
 ): Promise<void> {
-  const table = STAR_TABLE[type];
+  await assertStarActionAllowed(userId);
   const fk = STAR_FK[type];
-  const { error } = await (supabase as any)
-    .from(table)
-    .delete()
-    .eq("user_id", userId)
-    .eq(fk, targetId);
+  const query =
+    type === "streamer"
+      ? supabase.from("user_star_streamers")
+      : type === "group"
+        ? supabase.from("user_star_groups")
+        : supabase.from("user_star_crews");
+  const { error } = await query.delete().eq("user_id", userId).eq(fk, targetId);
   if (error) throw error;
 }
 
 // ─── 즐겨찾기 수 조회 ────────────────────────────────────────────────
-
-const STAR_STATS_TABLE = {
-  streamer: "streamer_star_stats",
-  group: "group_star_stats",
-  crew: "crew_star_stats",
-} as const;
 
 /** 대상의 즐겨찾기 수를 조회한다 */
 export async function fetchStarCount(
   targetId: number,
   type: StarTargetType,
 ): Promise<number> {
-  const table = STAR_STATS_TABLE[type];
   const fk = STAR_FK[type];
-  const { data, error } = await (supabase as any)
-    .from(table)
-    .select("star_count")
-    .eq(fk, targetId)
-    .maybeSingle();
+  const query =
+    type === "streamer"
+      ? supabase.from("streamer_star_stats")
+      : type === "group"
+        ? supabase.from("group_star_stats")
+        : supabase.from("crew_star_stats");
+  const { data, error } = await query.select("star_count").eq(fk, targetId).maybeSingle();
   if (error) throw error;
   return data?.star_count ?? 0;
 }
@@ -133,17 +150,17 @@ export async function fetchStarCount(
 /** 유저의 전체 즐겨찾기(버츄얼·그룹·크루)를 조회한다 */
 export async function fetchMyStars(userId: string): Promise<MyStars> {
   const [streamerStarResult, groupStarResult, crewStarResult] = await Promise.all([
-    (supabase as any)
+    supabase
       .from("user_star_streamers")
       .select("streamer_id,created_at")
       .eq("user_id", userId)
       .order("created_at", { ascending: false }),
-    (supabase as any)
+    supabase
       .from("user_star_groups")
       .select("group_id,created_at")
       .eq("user_id", userId)
       .order("created_at", { ascending: false }),
-    (supabase as any)
+    supabase
       .from("user_star_crews")
       .select("crew_id,created_at")
       .eq("user_id", userId)
@@ -166,19 +183,19 @@ export async function fetchMyStars(userId: string): Promise<MyStars> {
 
   const [streamerResult, groupResult, crewResult] = await Promise.all([
     streamerIds.length > 0
-      ? (supabase as any)
+      ? supabase
         .from("streamers")
         .select("id,public_id,nickname,image_url,platform")
         .in("id", streamerIds)
       : { data: [] as StarredStreamer[], error: null },
     groupIds.length > 0
-      ? (supabase as any)
+      ? supabase
         .from("idol_groups")
         .select("id,group_code,name,image_url")
         .in("id", groupIds)
       : { data: [] as StarredGroup[], error: null },
     crewIds.length > 0
-      ? (supabase as any)
+      ? supabase
         .from("crews")
         .select("id,crew_code,name,image_url")
         .in("id", crewIds)

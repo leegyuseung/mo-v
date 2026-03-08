@@ -30,7 +30,7 @@ export function useWithdrawAccount() {
     const [isWithdrawing, setIsWithdrawing] = useState(false);
 
     // 이메일 가입 사용자 여부
-    const isEmailProvider = user?.app_metadata?.provider === "email";
+    const isEmailProvider = user?.provider === "email";
 
     /** 탈퇴 폼 초기화 */
     const resetWithdrawForm = () => {
@@ -73,7 +73,7 @@ export function useWithdrawAccount() {
         setIsWithdrawing(true);
         try {
             await deleteMyAccount({
-                provider: user.app_metadata?.provider,
+                provider: user.provider,
                 email: profile?.email || undefined,
                 password: isEmailProvider ? withdrawPassword : undefined,
             });

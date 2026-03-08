@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/client";
 import { ENTITY_INFO_EDIT_REQUEST_TABLE } from "@/lib/constant";
+import { getAccountRestrictionMessage } from "@/utils/account-status";
 import type {
   CreateLiveBoxInfoEditRequestInput,
   LiveBox,
@@ -104,6 +105,19 @@ export async function createLiveBoxInfoEditRequest({
 
   if (userError || !user) {
     throw new Error("로그인 후 정보 수정 요청이 가능합니다.");
+  }
+
+  const { data: profileStatus, error: profileStatusError } = await supabase
+    .from("profiles")
+    .select("account_status,suspended_until")
+    .eq("id", user.id)
+    .single();
+
+  if (profileStatusError) throw profileStatusError;
+
+  const restrictionMessage = getAccountRestrictionMessage(profileStatus);
+  if (restrictionMessage) {
+    throw new Error(restrictionMessage);
   }
 
   const { error } = await supabase.from(ENTITY_INFO_EDIT_REQUEST_TABLE).insert({

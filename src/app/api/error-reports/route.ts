@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { getUserAccountAccessResult } from "@/utils/server-account-status";
+import { consumeRouteRateLimit, getRequestClientIp } from "@/utils/route-rate-limit";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
@@ -58,6 +60,26 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  if (user) {
+    const rateLimit = consumeRouteRateLimit({
+      key: `error-report:${user.id}:${getRequestClientIp(request)}`,
+      limit: 10,
+      windowMs: 60 * 1000,
+    });
+
+    if (!rateLimit.ok) {
+      return NextResponse.json(
+        { message: "요청이 많습니다. 잠시 후 다시 시도해 주세요." },
+        { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds) } }
+      );
+    }
+
+    const access = await getUserAccountAccessResult(supabase, user.id);
+    if (!access.ok) {
+      return NextResponse.json({ message: access.message }, { status: access.status });
+    }
+  }
+
   const admin = createAdminClient(supabaseUrl, serviceRoleKey);
 
   const { data, error } = await admin
@@ -71,12 +93,6 @@ export async function POST(request: Request) {
     .single();
 
   if (error) {
-    if (error.code === "42P01") {
-      return NextResponse.json(
-        { message: "오류 신고 테이블이 아직 생성되지 않았습니다. SQL을 먼저 적용해 주세요." },
-        { status: 500 }
-      );
-    }
     return NextResponse.json({ message: "오류 신고 접수에 실패했습니다." }, { status: 500 });
   }
 

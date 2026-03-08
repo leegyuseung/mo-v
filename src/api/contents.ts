@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/client";
 import { ENTITY_INFO_EDIT_REQUEST_TABLE } from "@/lib/constant";
+import { getAccountRestrictionMessage } from "@/utils/account-status";
 import type { CreateContentInfoEditRequestInput } from "@/types/content";
 import type {
   EarlyEndContentResponse,
@@ -10,6 +11,23 @@ import type {
 
 const supabase = createClient();
 
+async function assertContentRequestAllowed(userId: string) {
+  const { data: profileStatus, error: profileStatusError } = await supabase
+    .from("profiles")
+    .select("account_status,suspended_until")
+    .eq("id", userId)
+    .single();
+
+  if (profileStatusError) {
+    throw profileStatusError;
+  }
+
+  const restrictionMessage = getAccountRestrictionMessage(profileStatus);
+  if (restrictionMessage) {
+    throw new Error(restrictionMessage);
+  }
+}
+
 export async function createContentInfoEditRequest({
   content,
   contentId,
@@ -17,6 +35,8 @@ export async function createContentInfoEditRequest({
   requesterId,
   requesterNickname,
 }: CreateContentInfoEditRequestInput) {
+  await assertContentRequestAllowed(requesterId);
+
   const trimmedContent = content.trim();
   if (!trimmedContent) {
     throw new Error("수정 요청 내용을 입력해 주세요.");

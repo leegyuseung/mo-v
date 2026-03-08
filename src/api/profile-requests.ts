@@ -1,9 +1,27 @@
 import { createClient } from "@/utils/supabase/client";
+import { getAccountRestrictionMessage } from "@/utils/account-status";
 import type { CombinedRequest, MyRequestHistory } from "@/types/profile";
 
 const supabase = createClient();
 
 type MyRequestKind = CombinedRequest["kind"];
+
+async function assertRequestActionAllowed(userId: string) {
+  const { data: profileStatus, error: profileStatusError } = await supabase
+    .from("profiles")
+    .select("account_status,suspended_until")
+    .eq("id", userId)
+    .single();
+
+  if (profileStatusError) {
+    throw profileStatusError;
+  }
+
+  const restrictionMessage = getAccountRestrictionMessage(profileStatus);
+  if (restrictionMessage) {
+    throw new Error(restrictionMessage);
+  }
+}
 
 async function fetchMyErrorReports(userId: string) {
   const withReviewNoteResult = await supabase
@@ -130,6 +148,8 @@ export async function cancelMyRequest({
   infoEditSource?: "streamer" | "entity";
   userId: string;
 }) {
+  await assertRequestActionAllowed(userId);
+
   const payload = {
     status: "cancelled",
     reviewed_at: new Date().toISOString(),

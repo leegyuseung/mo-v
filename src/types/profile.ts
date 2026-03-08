@@ -1,6 +1,31 @@
 import { Tables } from "@/types/database.types";
+import type { AccountStatus } from "@/types/account-status";
 
-export type Profile = Tables<"profiles">;
+export type Profile = Tables<"profiles"> & {
+  account_status: AccountStatus;
+};
+
+export type UserSanctionSummary = {
+  account_status?: string;
+  action_type: string;
+  created_by_email?: string | null;
+  reason: string;
+  internal_note: string | null;
+  created_at: string;
+  created_by: string;
+  created_by_name?: string | null;
+  created_by_role?: string | null;
+  duration_days?: number | null;
+  suspended_until: string | null;
+  user_email?: string | null;
+  user_id?: string;
+  user_name?: string | null;
+  user_role?: string | null;
+};
+
+export type AdminUserProfile = Profile & {
+  latest_sanction?: UserSanctionSummary | null;
+};
 export type HeartPoints = Tables<"heart_points">;
 export type HeartPointHistory = Tables<"heart_point_history">;
 export type StreamerHearts = Tables<"streamer_hearts">;

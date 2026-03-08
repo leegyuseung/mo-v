@@ -3,6 +3,8 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { creditHeartPointsAtomic } from "@/utils/credit-heart-points";
+import { getUserAccountAccessResult } from "@/utils/server-account-status";
+import { consumeRouteRateLimit, getRequestClientIp } from "@/utils/route-rate-limit";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
@@ -21,7 +23,7 @@ function isDuplicateSignupBonusHistoryError(error: unknown) {
   return code === "23505" && message.includes("signup_bonus");
 }
 
-export async function POST() {
+export async function POST(request: Request) {
   if (!supabaseUrl || !supabaseAnonKey || !serviceRoleKey) {
     return NextResponse.json({ message: "서버 설정이 올바르지 않습니다." }, { status: 500 });
   }
@@ -44,6 +46,27 @@ export async function POST() {
   } = await supabase.auth.getUser();
   if (userError || !user) {
     return NextResponse.json({ message: "로그인이 필요합니다." }, { status: 401 });
+  }
+
+  const rateLimit = consumeRouteRateLimit({
+    key: `signup-bonus:${user.id}:${getRequestClientIp(request)}`,
+    limit: 5,
+    windowMs: 60 * 1000,
+  });
+
+  if (!rateLimit.ok) {
+    return NextResponse.json(
+      { message: "요청이 많습니다. 잠시 후 다시 시도해 주세요." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(rateLimit.retryAfterSeconds) },
+      }
+    );
+  }
+
+  const access = await getUserAccountAccessResult(supabase, user.id);
+  if (!access.ok) {
+    return NextResponse.json({ message: access.message }, { status: access.status });
   }
 
   const { data: agreement, error: agreementError } = await supabase
@@ -76,10 +99,8 @@ export async function POST() {
 
     if (insertError) {
       if (insertError.code === "42P01") {
-        return NextResponse.json(
-          { message: "signup_bonus_claims 테이블이 없습니다. SQL 마이그레이션을 먼저 적용해주세요." },
-          { status: 500 }
-        );
+        console.error("signup_bonus_claims table missing");
+        return NextResponse.json({ message: "회원가입 보너스 설정이 올바르지 않습니다." }, { status: 500 });
       }
 
       if (insertError.code === "23505") {
@@ -142,8 +163,10 @@ export async function POST() {
 
     return NextResponse.json({ ok: true, granted: false, afterPoint });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "회원가입 보너스 지급 처리에 실패했습니다.";
-    return NextResponse.json({ message }, { status: 500 });
+    console.error("signup bonus failed", error);
+    return NextResponse.json(
+      { message: "회원가입 보너스 지급 처리에 실패했습니다." },
+      { status: 500 }
+    );
   }
 }

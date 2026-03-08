@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useSignInWithPassword } from "@/hooks/mutations/auth/use-sign-in-with-password";
 import { useSignInWithProvider } from "@/hooks/mutations/auth/use-sign-in-with-provider";
 import { useLoginMethodStore } from "@/store/useLoginMethodStore";
@@ -35,6 +35,32 @@ export default function LoginScreen() {
     const [showEmailConfirmHelp, setShowEmailConfirmHelp] = useState(false);
     const [isResendingConfirmEmail, setIsResendingConfirmEmail] = useState(false);
 
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const params = new URLSearchParams(window.location.search);
+        const status = params.get("account_status");
+        const suspendedUntil = params.get("suspended_until");
+        const toastKey = `${status || ""}:${suspendedUntil || ""}`;
+
+        if (!status) return;
+        if (sessionStorage.getItem("login_account_status_toast") === toastKey) return;
+
+        if (status === "banned") {
+            toast.error("운영정책 위반으로 계정이 정지되었습니다.");
+        } else if (status === "suspended") {
+            if (suspendedUntil) {
+                toast.error(
+                    `${new Date(suspendedUntil).toLocaleString("ko-KR")}까지 계정 이용이 제한되었습니다.`
+                );
+            } else {
+                toast.error("현재 계정 이용이 제한되었습니다.");
+            }
+        }
+
+        sessionStorage.setItem("login_account_status_toast", toastKey);
+    }, []);
+
     const { mutate: signIn, isPending: isSigningIn } = useSignInWithPassword({
         onError: (error) => {
             if (isEmailNotConfirmedError(error)) {
@@ -42,7 +68,7 @@ export default function LoginScreen() {
                 toast.error("이메일 인증이 완료되지 않았습니다. 메일함에서 인증 링크를 먼저 눌러주세요.");
                 return;
             }
-            toast.error("로그인에 실패했습니다.");
+            toast.error(error.message || "로그인에 실패했습니다.");
         },
     });
     const { mutateAsync: signInWithProvider, isPending: isSocialSigningIn } =

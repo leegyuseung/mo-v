@@ -19,7 +19,8 @@ export default function UsersScreen() {
     const keyword = userKeyword.trim().toLowerCase();
     if (!keyword) return users;
     return users.filter((user) =>
-      (user.nickname || "").toLowerCase().includes(keyword)
+      (user.nickname || "").toLowerCase().includes(keyword) ||
+      (user.latest_sanction?.reason || "").toLowerCase().includes(keyword)
     );
   }, [users, userKeyword]);
 

@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/client";
+import { getAccountRestrictionMessage } from "@/utils/account-status";
 import type {
   CrewCodeName,
   CreateCrewInfoEditRequestInput,
@@ -11,6 +12,23 @@ import type {
 import { ENTITY_INFO_EDIT_REQUEST_TABLE } from "@/lib/constant";
 
 const supabase = createClient();
+
+async function assertCrewRequestAllowed(userId: string) {
+  const { data: profileStatus, error: profileStatusError } = await supabase
+    .from("profiles")
+    .select("account_status,suspended_until")
+    .eq("id", userId)
+    .single();
+
+  if (profileStatusError) {
+    throw profileStatusError;
+  }
+
+  const restrictionMessage = getAccountRestrictionMessage(profileStatus);
+  if (restrictionMessage) {
+    throw new Error(restrictionMessage);
+  }
+}
 
 /** 크루 코드-이름 쌍 목록을 이름순으로 조회한다 (드롭다운 등에 사용) */
 export async function fetchCrewCodeNames(): Promise<CrewCodeName[]> {
@@ -149,6 +167,8 @@ export async function createCrewInfoEditRequest({
   requesterId,
   requesterNickname,
 }: CreateCrewInfoEditRequestInput) {
+  await assertCrewRequestAllowed(requesterId);
+
   const trimmedContent = content.trim();
   if (!trimmedContent) {
     throw new Error("수정 요청 내용을 입력해 주세요.");

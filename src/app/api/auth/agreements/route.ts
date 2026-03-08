@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { hasRequiredUserAgreements, USER_AGREEMENT_VERSION } from "@/lib/user-agreement";
 import type { UserAgreementState } from "@/types/user-agreement";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getUserAccountAccessResult } from "@/utils/server-account-status";
 
 function createUnauthorizedResponse() {
   return NextResponse.json({ message: "로그인이 필요합니다." }, { status: 401 });
@@ -24,6 +25,11 @@ export async function GET() {
 
   const user = await getAuthenticatedUser(supabase);
   if (!user) return createUnauthorizedResponse();
+
+  const access = await getUserAccountAccessResult(supabase, user.id);
+  if (!access.ok) {
+    return NextResponse.json({ message: access.message }, { status: access.status });
+  }
 
   const { data, error } = await supabase
     .from("user_agreements")
@@ -83,6 +89,11 @@ export async function POST(request: Request) {
 
   const user = await getAuthenticatedUser(supabase);
   if (!user) return createUnauthorizedResponse();
+
+  const access = await getUserAccountAccessResult(supabase, user.id);
+  if (!access.ok) {
+    return NextResponse.json({ message: access.message }, { status: access.status });
+  }
 
   const agreedAt = new Date().toISOString();
   const { error } = await supabase.from("user_agreements").upsert(

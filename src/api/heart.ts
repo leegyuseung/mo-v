@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/client";
+import { getAccountRestrictionMessage } from "@/utils/account-status";
 import type {
     GiftHeartToStreamerResult,
     DonorPeriod,
@@ -25,6 +26,21 @@ function getSeoulCurrentYear() {
             year: "numeric",
         }).format(now)
     );
+}
+
+async function assertHeartActionAllowed(userId: string) {
+    const { data, error } = await getDefaultClient()
+        .from("profiles")
+        .select("account_status,suspended_until")
+        .eq("id", userId)
+        .single();
+
+    if (error) throw error;
+
+    const restrictionMessage = getAccountRestrictionMessage(data);
+    if (restrictionMessage) {
+        throw new Error(restrictionMessage);
+    }
 }
 
 async function fetchYearlyHeartLeaderboardFromSnapshots(
@@ -339,6 +355,8 @@ export async function giftHeartToStreamer(
     if (!Number.isFinite(amount) || amount <= 0) {
         throw new Error("선물 하트 수량은 1 이상이어야 합니다.");
     }
+
+    await assertHeartActionAllowed(fromUserId);
 
     const { data, error } = await getDefaultClient().rpc("gift_heart_to_streamer", {
         p_from_user_id: fromUserId,

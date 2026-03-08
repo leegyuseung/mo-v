@@ -5,11 +5,12 @@ import type { AuthState, AuthActions } from "@/types/auth";
 import { ensureSignUpBonusClaimedOncePerSession } from "@/lib/auth/ensure-signup-bonus";
 import { useLoginMethodStore } from "@/store/useLoginMethodStore";
 import type { LoginProvider } from "@/store/useLoginMethodStore";
+import { getAccountRestrictionMessage } from "@/utils/account-status";
+import { writeAccountRestrictedPayload } from "@/lib/account-restricted";
 
 export type { Profile, HeartPoints };
 
 const supabase = createClient();
-
 export const useAuthStore = create<AuthState & AuthActions>((set) => ({
     // State
     user: null,
@@ -88,6 +89,30 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
                     .eq("id", session.user.id)
                     .single();
 
+                const restrictionMessage = getAccountRestrictionMessage(profile);
+                if (restrictionMessage) {
+                    await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
+                    if (typeof window !== "undefined") {
+                        writeAccountRestrictedPayload({
+                            status: profile?.account_status || "suspended",
+                            suspended_until: profile?.suspended_until || "",
+                            reason: profile?.suspension_reason || "",
+                        });
+                    }
+                    set({
+                        user: null,
+                        profile: null,
+                        heartPoints: null,
+                    });
+                    return;
+                }
+
+                const authUser = {
+                    email: session.user.email || null,
+                    id: session.user.id,
+                    provider: (session.user.app_metadata?.provider as string | undefined) || null,
+                };
+
                 // 하트 포인트 조회
                 const { data: heartPoints } = await supabase
                     .from("heart_points")
@@ -96,13 +121,13 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
                     .single();
 
                 set({
-                    user: session.user,
+                    user: authUser,
                     profile: profile || null,
                     heartPoints: heartPoints || null,
                 });
 
                 // 세션의 provider 정보를 읽어 마지막 로그인 방식을 저장한다
-                const provider = session.user.app_metadata?.provider as string | undefined;
+                const provider = authUser.provider || undefined;
                 const validProviders: LoginProvider[] = ["email", "google", "kakao"];
                 if (provider && validProviders.includes(provider as LoginProvider)) {
                     useLoginMethodStore.getState().setLastProvider(provider as LoginProvider);

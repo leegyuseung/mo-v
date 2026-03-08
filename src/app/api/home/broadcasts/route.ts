@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
+import { getUserAccountAccessResult } from "@/utils/server-account-status";
+import { consumeRouteRateLimit, getRequestClientIp } from "@/utils/route-rate-limit";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
@@ -149,6 +151,24 @@ export async function POST(request: Request) {
 
   if (userError || !user) {
     return NextResponse.json({ message: "로그인이 필요합니다." }, { status: 401 });
+  }
+
+  const rateLimit = consumeRouteRateLimit({
+    key: `home-broadcast:${user.id}:${getRequestClientIp(request)}`,
+    limit: 5,
+    windowMs: 60 * 1000,
+  });
+
+  if (!rateLimit.ok) {
+    return NextResponse.json(
+      { message: "요청이 많습니다. 잠시 후 다시 시도해 주세요." },
+      { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds) } }
+    );
+  }
+
+  const access = await getUserAccountAccessResult(supabase, user.id);
+  if (!access.ok) {
+    return NextResponse.json({ message: access.message }, { status: access.status });
   }
 
   const { data, error } = await supabase.rpc("create_home_broadcast", {

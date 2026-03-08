@@ -406,6 +406,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_status: string
           avatar_url: string | null
           bio: string | null
           created_at: string
@@ -417,9 +418,15 @@ export type Database = {
           public_id: string | null
           provider: string | null
           role: string
+          suspended_at: string | null
+          suspended_by: string | null
+          suspended_until: string | null
+          suspension_internal_note: string | null
+          suspension_reason: string | null
           updated_at: string | null
         }
         Insert: {
+          account_status?: string
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
@@ -431,9 +438,15 @@ export type Database = {
           public_id?: string | null
           provider?: string | null
           role?: string
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspended_until?: string | null
+          suspension_internal_note?: string | null
+          suspension_reason?: string | null
           updated_at?: string | null
         }
         Update: {
+          account_status?: string
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
@@ -445,9 +458,76 @@ export type Database = {
           public_id?: string | null
           provider?: string | null
           role?: string
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspended_until?: string | null
+          suspension_internal_note?: string | null
+          suspension_reason?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_suspended_by_fkey"
+            columns: ["suspended_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_sanctions: {
+        Row: {
+          account_status: string
+          action_type: string
+          created_at: string
+          created_by: string
+          duration_days: number | null
+          id: number
+          internal_note: string | null
+          reason: string
+          suspended_until: string | null
+          user_id: string
+        }
+        Insert: {
+          account_status: string
+          action_type: string
+          created_at?: string
+          created_by: string
+          duration_days?: number | null
+          id?: number
+          internal_note?: string | null
+          reason: string
+          suspended_until?: string | null
+          user_id: string
+        }
+        Update: {
+          account_status?: string
+          action_type?: string
+          created_at?: string
+          created_by?: string
+          duration_days?: number | null
+          id?: number
+          internal_note?: string | null
+          reason?: string
+          suspended_until?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_sanctions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_sanctions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_agreements: {
         Row: {

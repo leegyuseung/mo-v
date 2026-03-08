@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateUser } from "@/api/admin";
 import { toast } from "sonner";
+import type { AppRole } from "@/types/app-role";
 
 export function useUpdateUser() {
     const queryClient = useQueryClient();
@@ -11,7 +12,7 @@ export function useUpdateUser() {
             updates,
         }: {
             userId: string;
-            updates: { nickname?: string; role?: string; bio?: string };
+            updates: { nickname?: string; role?: AppRole; bio?: string };
         }) => updateUser(userId, updates),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["admin", "users"] });

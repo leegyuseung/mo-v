@@ -22,6 +22,7 @@ import {
   containsAdminKeyword,
   NICKNAME_ADMIN_KEYWORD_FORBIDDEN_MESSAGE,
 } from "@/utils/validate";
+import { isAdminRole } from "@/utils/role";
 
 type ProfileScreenProps = {
   embedded?: boolean;
@@ -114,7 +115,7 @@ export default function ProfileScreen({ embedded = false }: ProfileScreenProps) 
 
   const onSubmit = (data: ProfileFormValues) => {
     if (!user) return;
-    if (profile?.role !== "admin" && containsAdminKeyword(data.nickname)) {
+    if (!isAdminRole(profile?.role) && containsAdminKeyword(data.nickname)) {
       setError("nickname", {
         type: "manual",
         message: NICKNAME_ADMIN_KEYWORD_FORBIDDEN_MESSAGE,
@@ -171,7 +172,7 @@ export default function ProfileScreen({ embedded = false }: ProfileScreenProps) 
         />
 
         <ProfilePasswordPanel
-          enabled={user.app_metadata?.provider === "email"}
+          enabled={user?.provider === "email"}
           currentPw={currentPw}
           setCurrentPw={setCurrentPw}
           newPw={newPw}

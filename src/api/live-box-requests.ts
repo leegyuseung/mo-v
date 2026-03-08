@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/client";
+import { getAccountRestrictionMessage } from "@/utils/account-status";
 import { LIVE_BOX_REQUEST_MODAL_TEXT, LIVE_BOX_REQUEST_TABLE } from "@/lib/constant";
 import type { CreateLiveBoxRequestInput } from "@/types/live-box-request";
 
@@ -25,6 +26,21 @@ export async function createLiveBoxRequest({
   topic,
   relatedSite,
 }: CreateLiveBoxRequestInput) {
+  const { data: profileStatus, error: profileStatusError } = await supabase
+    .from("profiles")
+    .select("account_status,suspended_until")
+    .eq("id", requesterId)
+    .single();
+
+  if (profileStatusError) {
+    throw profileStatusError;
+  }
+
+  const restrictionMessage = getAccountRestrictionMessage(profileStatus);
+  if (restrictionMessage) {
+    throw new Error(restrictionMessage);
+  }
+
   const trimmedTopic = topic.trim();
   if (!trimmedTopic) {
     throw new Error(LIVE_BOX_REQUEST_MODAL_TEXT.topicRequired);

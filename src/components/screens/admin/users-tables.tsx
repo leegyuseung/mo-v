@@ -2,16 +2,51 @@
 
 import { useState } from "react";
 import { useUpdateUser } from "@/hooks/mutations/admin/use-update-user";
+import { useManageUserSanction } from "@/hooks/mutations/admin/use-manage-user-sanction";
+import { useUserSanctions } from "@/hooks/queries/admin/use-user-sanctions";
 import { useUpdateStreamer } from "@/hooks/mutations/admin/use-update-streamer";
 import { useDeleteUser } from "@/hooks/mutations/admin/use-delete-user";
 import { useDeleteStreamer } from "@/hooks/mutations/admin/use-delete-streamer";
-import type { Profile } from "@/types/profile";
+import type { AdminUserProfile } from "@/types/profile";
+import type { AccountStatus } from "@/types/account-status";
+import type { AppRole } from "@/types/app-role";
 import type { Streamer } from "@/types/streamer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Pencil, Check, X, Trash2 } from "lucide-react";
+import { Pencil, Check, X, Trash2, UserLock } from "lucide-react";
 import ConfirmAlert from "@/components/common/confirm-alert";
 import { EditableCell } from "@/components/screens/admin/editable-cell";
+import { useAuthStore } from "@/store/useAuthStore";
+import {
+  getAccountStatusBadgeClassName,
+  getAccountStatusLabel,
+  getEffectiveAccountStatus,
+} from "@/utils/account-status";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+const ROLE_OPTIONS: Array<{ value: AppRole; label: AppRole }> = [
+  { value: "user", label: "user" },
+  { value: "manager", label: "manager" },
+  { value: "admin", label: "admin" },
+];
+
+function getRoleBadgeClassName(role?: string | null) {
+  if (role === "admin") {
+    return "bg-indigo-100 text-indigo-700";
+  }
+
+  if (role === "manager") {
+    return "bg-sky-100 text-sky-700";
+  }
+
+  return "bg-gray-100 text-gray-600";
+}
 
 /** 테이블 로딩 시 표시되는 스켈레톤 */
 function TableSkeleton({ cols }: { cols: number }) {
@@ -52,13 +87,50 @@ function TruncatedUrlDisplay({ url }: { url: string | null }) {
   );
 }
 
-function UserRow({ user }: { user: Profile }) {
+function UserRow({ user }: { user: AdminUserProfile }) {
+  const { profile: currentProfile } = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const [isSuspendAlertOpen, setIsSuspendAlertOpen] = useState(false);
+  const [isUnsuspendAlertOpen, setIsUnsuspendAlertOpen] = useState(false);
+  const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
   const [nickname, setNickname] = useState(user.nickname || "");
-  const [role, setRole] = useState(user.role || "user");
+  const [role, setRole] = useState<AppRole>(
+    user.role === "admin" || user.role === "manager" ? user.role : "user"
+  );
+  const [suspendDuration, setSuspendDuration] = useState("1");
+  const [suspendReason, setSuspendReason] = useState("");
+  const [suspendInternalNote, setSuspendInternalNote] = useState("");
   const { mutate: updateUser, isPending } = useUpdateUser();
   const { mutate: deleteUserMutate, isPending: isDeleting } = useDeleteUser();
+  const { mutate: manageUserSanction, isPending: isManagingSanction } =
+    useManageUserSanction();
+  const { data: sanctions = [], isLoading: isSanctionsLoading } = useUserSanctions(
+    user.id,
+    isHistoryDialogOpen
+  );
+  const currentRole = currentProfile?.role || "user";
+  const effectiveStatus = getEffectiveAccountStatus(user);
+  const isCurrentManager = currentRole === "manager";
+  const isTargetAdmin = user.role === "admin";
+  const isTargetManager = user.role === "manager";
+  const canManageSanction =
+    !isTargetAdmin && !(isCurrentManager && isTargetManager) && currentProfile?.id !== user.id;
+  const sanctionOptions = isCurrentManager
+    ? [{ value: "1", label: "1일" }, { value: "3", label: "3일" }, { value: "7", label: "7일" }]
+    : [
+        { value: "1", label: "1일" },
+        { value: "3", label: "3일" },
+        { value: "7", label: "7일" },
+        { value: "30", label: "30일" },
+        { value: "permanent", label: "영구" },
+      ];
+
+  const resetSanctionForm = () => {
+    setSuspendDuration("1");
+    setSuspendReason("");
+    setSuspendInternalNote("");
+  };
 
   const handleSave = () => {
     updateUser(
@@ -69,7 +141,7 @@ function UserRow({ user }: { user: Profile }) {
 
   const handleCancel = () => {
     setNickname(user.nickname || "");
-    setRole(user.role || "user");
+    setRole(user.role === "admin" || user.role === "manager" ? user.role : "user");
     setIsEditing(false);
   };
 
@@ -77,6 +149,55 @@ function UserRow({ user }: { user: Profile }) {
     deleteUserMutate(user.id);
     setIsDeleteAlertOpen(false);
   };
+
+  const handleSuspend = () => {
+    const payload =
+      suspendDuration === "permanent"
+        ? {
+            action: "suspend" as const,
+            durationDays: null,
+            reason: suspendReason,
+            internalNote: suspendInternalNote,
+          }
+        : {
+            action: "suspend" as const,
+            durationDays: Number(suspendDuration),
+            reason: suspendReason,
+            internalNote: suspendInternalNote,
+          };
+
+    manageUserSanction(
+      { userId: user.id, payload },
+      {
+        onSuccess: () => {
+          setIsSuspendAlertOpen(false);
+          resetSanctionForm();
+        },
+      }
+    );
+  };
+
+  const handleUnsuspend = () => {
+    manageUserSanction(
+      {
+        userId: user.id,
+        payload: {
+          action: "unsuspend",
+          reason: "관리자 해제",
+        },
+      },
+      {
+        onSuccess: () => {
+          setIsUnsuspendAlertOpen(false);
+        },
+      }
+    );
+  };
+
+  const suspendedUntilText =
+    user.suspended_until && effectiveStatus !== "active"
+      ? new Date(user.suspended_until).toLocaleString("ko-KR")
+      : "-";
 
   return (
     <>
@@ -112,18 +233,14 @@ function UserRow({ user }: { user: Profile }) {
           <EditableCell
             isEditing={isEditing}
             value={role}
-            onChange={setRole}
+            onChange={(value) => setRole(value as AppRole)}
             type="select"
-            options={[
-              { value: "user", label: "user" },
-              { value: "admin", label: "admin" },
-            ]}
+            options={ROLE_OPTIONS}
             displayValue={
               <span
-                className={`px-2 py-0.5 rounded-full text-xs font-medium ${user.role === "admin"
-                    ? "bg-indigo-100 text-indigo-700"
-                    : "bg-gray-100 text-gray-600"
-                  }`}
+                className={`px-2 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeClassName(
+                  user.role
+                )}`}
               >
                 {user.role}
               </span>
@@ -132,6 +249,21 @@ function UserRow({ user }: { user: Profile }) {
         </td>
         <td className="px-4 py-3 text-sm text-gray-400">
           {new Date(user.created_at).toLocaleDateString("ko-KR")}
+        </td>
+        <td className="px-4 py-3 text-sm">
+          <span
+            className={`px-2 py-0.5 rounded-full text-xs font-medium ${getAccountStatusBadgeClassName(
+              effectiveStatus as AccountStatus
+            )}`}
+          >
+            {getAccountStatusLabel(effectiveStatus as AccountStatus)}
+          </span>
+        </td>
+        <td className="px-4 py-3 text-xs text-gray-500">
+          {suspendedUntilText}
+        </td>
+        <td className="px-4 py-3 text-xs text-gray-500">
+          {user.latest_sanction?.reason || "-"}
         </td>
         <td className="px-4 py-3">
           {isEditing ? (
@@ -156,6 +288,36 @@ function UserRow({ user }: { user: Profile }) {
             </div>
           ) : (
             <div className="flex gap-1">
+              {canManageSanction ? (
+                effectiveStatus === "active" ? (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setIsSuspendAlertOpen(true)}
+                    className="h-7 w-7 p-0 text-amber-600 hover:text-amber-700 hover:bg-amber-50 cursor-pointer"
+                    title="정지"
+                  >
+                    <UserLock className="w-3.5 h-3.5" />
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setIsUnsuspendAlertOpen(true)}
+                    className="h-7 px-2 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 cursor-pointer"
+                  >
+                    해제
+                  </Button>
+                )
+              ) : null}
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setIsHistoryDialogOpen(true)}
+                className="h-7 px-2 text-slate-600 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
+              >
+                이력
+              </Button>
               <Button
                 size="sm"
                 variant="ghost"
@@ -188,6 +350,127 @@ function UserRow({ user }: { user: Profile }) {
         onConfirm={handleDelete}
         onCancel={() => setIsDeleteAlertOpen(false)}
       />
+
+      <ConfirmAlert
+        open={isSuspendAlertOpen}
+        title="유저 정지"
+        description="사유를 입력한 뒤 정지 기간을 선택해 주세요."
+        confirmText="정지"
+        cancelText="취소"
+        isPending={isManagingSanction}
+        confirmVariant="danger"
+        confirmDisabled={!suspendReason.trim()}
+        onConfirm={handleSuspend}
+        onCancel={() => {
+          setIsSuspendAlertOpen(false);
+          resetSanctionForm();
+        }}
+      >
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-gray-600">정지 기간</label>
+            <select
+              value={suspendDuration}
+              onChange={(event) => setSuspendDuration(event.target.value)}
+              className="h-9 w-full rounded-md border border-gray-200 bg-white px-3 text-sm"
+            >
+              {sanctionOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-gray-600">사유</label>
+            <textarea
+              value={suspendReason}
+              onChange={(event) => setSuspendReason(event.target.value)}
+              rows={3}
+              className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm outline-none focus:border-gray-400"
+              placeholder="비매너, 비방, 욕설 등 정지 사유"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-gray-600">내부 메모</label>
+            <textarea
+              value={suspendInternalNote}
+              onChange={(event) => setSuspendInternalNote(event.target.value)}
+              rows={2}
+              className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm outline-none focus:border-gray-400"
+              placeholder="운영자 메모 (선택)"
+            />
+          </div>
+        </div>
+      </ConfirmAlert>
+
+      <ConfirmAlert
+        open={isUnsuspendAlertOpen}
+        title="유저 정지 해제"
+        description="이 유저의 정지를 해제하시겠습니까?"
+        confirmText="해제"
+        cancelText="취소"
+        isPending={isManagingSanction}
+        confirmVariant="default"
+        onConfirm={handleUnsuspend}
+        onCancel={() => setIsUnsuspendAlertOpen(false)}
+      />
+
+      <Dialog open={isHistoryDialogOpen} onOpenChange={setIsHistoryDialogOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>제재 이력</DialogTitle>
+            <DialogDescription>
+              {user.nickname || user.email || user.id} 계정의 최근 제재 이력입니다.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[420px] overflow-y-auto rounded-lg border border-gray-100">
+            {isSanctionsLoading ? (
+              <div className="space-y-2 p-4">
+                <Skeleton className="h-14 w-full" />
+                <Skeleton className="h-14 w-full" />
+                <Skeleton className="h-14 w-full" />
+              </div>
+            ) : sanctions.length > 0 ? (
+              <div className="divide-y divide-gray-100">
+                {sanctions.map((sanction, index) => (
+                  <div key={`${sanction.created_at}-${index}`} className="space-y-1 p-4 text-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-medium text-gray-900">
+                        {sanction.action_type === "unsuspend"
+                          ? "해제"
+                          : sanction.action_type === "ban"
+                            ? "영구 정지"
+                            : "일시 정지"}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {new Date(sanction.created_at).toLocaleString("ko-KR")}
+                      </span>
+                    </div>
+                    <p className="text-gray-700">사유: {sanction.reason}</p>
+                    <p className="text-xs text-gray-500">
+                      처리자: {sanction.created_by_name || sanction.created_by}
+                      {sanction.created_by_role ? ` (${sanction.created_by_role})` : ""}
+                    </p>
+                    {sanction.suspended_until ? (
+                      <p className="text-xs text-gray-500">
+                        제한 종료: {new Date(sanction.suspended_until).toLocaleString("ko-KR")}
+                      </p>
+                    ) : null}
+                    {sanction.internal_note ? (
+                      <p className="text-xs text-gray-500">내부 메모: {sanction.internal_note}</p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 text-center text-sm text-gray-400">
+                제재 이력이 없습니다.
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
@@ -589,7 +872,7 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
 }
 
 type UserTableProps = {
-  users?: Profile[];
+  users?: AdminUserProfile[];
   isLoading: boolean;
 };
 
@@ -605,17 +888,20 @@ export function UserTable({ users, isLoading }: UserTableProps) {
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">닉네임</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">역할</th>
             <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">가입일</th>
-            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-20">수정</th>
+            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">상태</th>
+            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">제한 종료</th>
+            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">최근 제재 사유</th>
+            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-32">수정</th>
           </tr>
         </thead>
         <tbody>
           {isLoading ? (
-            <TableSkeleton cols={7} />
+            <TableSkeleton cols={10} />
           ) : users && users.length > 0 ? (
             users.map((user) => <UserRow key={user.id} user={user} />)
           ) : (
             <tr>
-              <td colSpan={7} className="px-4 py-12 text-center text-gray-400 text-sm">
+              <td colSpan={10} className="px-4 py-12 text-center text-gray-400 text-sm">
                 등록된 유저가 없습니다.
               </td>
             </tr>

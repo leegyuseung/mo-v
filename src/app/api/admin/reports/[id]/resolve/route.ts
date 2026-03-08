@@ -4,6 +4,8 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { ADMIN_REVIEW_REWARD_POINT } from "@/lib/constant";
 import { creditAdminRewardPoint } from "@/utils/admin-reward";
+import { hasAdminAccess } from "@/utils/role";
+import { consumeRouteRateLimit, getRequestClientIp } from "@/utils/route-rate-limit";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
@@ -83,8 +85,21 @@ export async function POST(
     return NextResponse.json({ message: "권한 확인에 실패했습니다." }, { status: 500 });
   }
 
-  if ((me?.role || "").trim().toLowerCase() !== "admin") {
+  if (!hasAdminAccess(me?.role)) {
     return NextResponse.json({ message: "관리자 권한이 필요합니다." }, { status: 403 });
+  }
+
+  const rateLimit = consumeRouteRateLimit({
+    key: `admin-report-resolve:${user.id}:${getRequestClientIp(request)}`,
+    limit: 30,
+    windowMs: 60 * 1000,
+  });
+
+  if (!rateLimit.ok) {
+    return NextResponse.json(
+      { message: "요청이 많습니다. 잠시 후 다시 시도해 주세요." },
+      { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds) } }
+    );
   }
 
   const admin = createAdminClient(supabaseUrl, serviceRoleKey);
@@ -138,8 +153,7 @@ export async function POST(
       rewardPoint: action === "approve" ? ADMIN_REVIEW_REWARD_POINT : 0,
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "신고 처리에 실패했습니다.";
-    return NextResponse.json({ message }, { status: 500 });
+    console.error("admin report resolve failed", error);
+    return NextResponse.json({ message: "신고 처리에 실패했습니다." }, { status: 500 });
   }
 }

@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/client";
+import { getAccountRestrictionMessage } from "@/utils/account-status";
 import type { CreateEntityReportRequestInput } from "@/types/report";
 import { ENTITY_REPORT_REQUEST_TABLE } from "@/lib/constant";
 
@@ -20,6 +21,21 @@ export async function createEntityReportRequest({
   const trimmedContent = content.trim();
   if (!trimmedContent) {
     throw new Error("신고 내용을 입력해 주세요.");
+  }
+
+  const { data: profileStatus, error: profileStatusError } = await supabase
+    .from("profiles")
+    .select("account_status,suspended_until")
+    .eq("id", reporterId)
+    .single();
+
+  if (profileStatusError) {
+    throw profileStatusError;
+  }
+
+  const restrictionMessage = getAccountRestrictionMessage(profileStatus);
+  if (restrictionMessage) {
+    throw new Error(restrictionMessage);
   }
 
   const { error } = await supabase.from(ENTITY_REPORT_REQUEST_TABLE).insert({

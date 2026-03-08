@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/client";
+import { getAccountRestrictionMessage } from "@/utils/account-status";
 import type {
   CreateGroupInfoEditRequestInput,
   IdolGroupCard,
@@ -8,6 +9,23 @@ import type {
 import { ENTITY_INFO_EDIT_REQUEST_TABLE } from "@/lib/constant";
 
 const supabase = createClient();
+
+async function assertGroupRequestAllowed(userId: string) {
+  const { data: profileStatus, error: profileStatusError } = await supabase
+    .from("profiles")
+    .select("account_status,suspended_until")
+    .eq("id", userId)
+    .single();
+
+  if (profileStatusError) {
+    throw profileStatusError;
+  }
+
+  const restrictionMessage = getAccountRestrictionMessage(profileStatus);
+  if (restrictionMessage) {
+    throw new Error(restrictionMessage);
+  }
+}
 
 export async function fetchIdolGroupCodeNames(): Promise<IdolGroupCodeName[]> {
   const { data, error } = await supabase
@@ -144,6 +162,8 @@ export async function createGroupInfoEditRequest({
   requesterId,
   requesterNickname,
 }: CreateGroupInfoEditRequestInput) {
+  await assertGroupRequestAllowed(requesterId);
+
   const trimmedContent = content.trim();
   if (!trimmedContent) {
     throw new Error("수정 요청 내용을 입력해 주세요.");

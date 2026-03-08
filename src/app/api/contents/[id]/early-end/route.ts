@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { hasAdminAccess } from "@/utils/role";
+import { getUserAccountAccessResult } from "@/utils/server-account-status";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
@@ -44,6 +46,11 @@ export async function POST(
     return NextResponse.json({ message: "로그인이 필요합니다." }, { status: 401 });
   }
 
+  const access = await getUserAccountAccessResult(supabase, user.id);
+  if (!access.ok) {
+    return NextResponse.json({ message: access.message }, { status: access.status });
+  }
+
   const admin = createAdminClient(supabaseUrl, serviceRoleKey);
 
   const [{ data: content, error: contentError }, { data: me, error: meError }] =
@@ -64,7 +71,7 @@ export async function POST(
     return NextResponse.json({ message: "콘텐츠를 찾을 수 없습니다." }, { status: 404 });
   }
 
-  const isAdmin = (me?.role || "").trim().toLowerCase() === "admin";
+  const isAdmin = hasAdminAccess(me?.role);
   const isAuthor = Boolean(content.created_by && content.created_by === user.id);
   if (!isAuthor && !isAdmin) {
     return NextResponse.json(

@@ -2,6 +2,7 @@ import AppSideBar from "@/components/common/app-side-bar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import AppHeader from "@/components/common/app-header";
 import AppFooter from "@/components/common/app-footer";
+import AccountRestrictedRedirect from "@/components/auth/account-restricted-redirect";
 
 export default function MainLayout({
   children,
@@ -10,6 +11,7 @@ export default function MainLayout({
 }>) {
   return (
     <SidebarProvider>
+      <AccountRestrictedRedirect />
       <div className="w-full h-screen overflow-hidden flex flex-col">
         <AppHeader />
         <div className="flex h-[calc(100vh-72px)] overflow-hidden">

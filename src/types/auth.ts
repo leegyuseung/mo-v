@@ -1,6 +1,11 @@
-import { User } from "@supabase/supabase-js";
 import type { Profile, HeartPoints } from "@/types/profile";
 import type { UserAgreementState } from "@/types/user-agreement";
+
+export type AppUser = {
+  email: string | null;
+  id: string;
+  provider: string | null;
+};
 
 export type AuthForm = {
   email: string;
@@ -27,7 +32,7 @@ export type MutationCallback = {
 };
 
 export type AuthState = {
-  user: User | null;
+  user: AppUser | null;
   profile: Profile | null;
   heartPoints: HeartPoints | null;
   isLoading: boolean;
@@ -35,11 +40,11 @@ export type AuthState = {
 };
 
 export type AuthActions = {
-  setUser: (user: User | null) => void;
+  setUser: (user: AppUser | null) => void;
   setProfile: (profile: Profile | null) => void;
   setHeartPoints: (heartPoints: HeartPoints | null) => void;
   setSession: (
-    user: User | null,
+    user: AppUser | null,
     profile: Profile | null,
     heartPoints: HeartPoints | null
   ) => void;

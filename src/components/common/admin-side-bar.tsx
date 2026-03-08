@@ -13,8 +13,10 @@ import {
     Bug,
     Boxes,
     Clapperboard,
+    ShieldAlert,
 } from "lucide-react";
 import {
+    SidebarTrigger,
     Sidebar,
     SidebarContent,
     SidebarGroup,
@@ -25,6 +27,7 @@ import {
     SidebarMenuItem,
     SidebarFooter,
     SidebarHeader,
+    SidebarRail,
     useSidebar,
 } from "../ui/sidebar";
 
@@ -39,12 +42,12 @@ const adminMenuItems = [
     { title: "정보 수정 요청", url: "/admin/infoeditrq", icon: UserRoundPen },
     { title: "정보 신고 관리", url: "/admin/reports", icon: Siren },
     { title: "오류 신고 관리", url: "/admin/error-reports", icon: Bug },
+    { title: "제재 이력", url: "/admin/user-sanctions", icon: ShieldAlert },
 ];
 
 export default function AdminSideBar() {
     const pathname = usePathname();
-    const { state, isMobile, setOpenMobile } = useSidebar();
-    const isCollapsed = state === "collapsed";
+    const { isMobile, setOpenMobile } = useSidebar();
     const closeSidebarOnMobile = () => {
         if (!isMobile) return;
         setOpenMobile(false);
@@ -52,18 +55,12 @@ export default function AdminSideBar() {
 
     return (
         <Sidebar variant="sidebar" collapsible="icon" className="border-none">
-            <SidebarHeader className="bg-gray-900 p-4">
-                <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center shrink-0">
-                        <span className="text-white font-bold text-sm">A</span>
-                    </div>
-                    {!isCollapsed && (
-                        <div>
-                            <h2 className="text-white font-bold text-sm">mo-v Admin</h2>
-                            <p className="text-gray-400 text-xs">관리자 패널</p>
-                        </div>
-                    )}
-                </div>
+            <SidebarHeader className="bg-gray-900 p-2">
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarTrigger className="h-9 w-full justify-start rounded-md px-2 text-gray-400 hover:bg-gray-800 hover:text-white group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 [&>svg]:size-5" />
+                    </SidebarMenuItem>
+                </SidebarMenu>
             </SidebarHeader>
 
             <SidebarContent className="bg-gray-900">
@@ -114,6 +111,7 @@ export default function AdminSideBar() {
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarFooter>
+            <SidebarRail />
         </Sidebar>
     );
 }

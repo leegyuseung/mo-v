@@ -25,6 +25,7 @@ import {
   useSidebar,
 } from "../ui/sidebar";
 import { useAuthStore } from "@/store/useAuthStore";
+import { hasAdminAccess } from "@/utils/role";
 
 type MenuItem = {
   title: string;
@@ -52,7 +53,7 @@ const isNavigableItem = (item: MenuItem) => {
 export default function AppSideBar() {
   const { profile } = useAuthStore();
   const { isMobile, setOpenMobile } = useSidebar();
-  const isAdmin = (profile?.role || "").trim().toLowerCase() === "admin";
+  const isAdmin = hasAdminAccess(profile?.role);
   const closeSidebarOnMobile = () => {
     if (!isMobile) return;
     setOpenMobile(false);

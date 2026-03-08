@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/client";
+import { getAccountRestrictionMessage } from "@/utils/account-status";
 import { validateNicknameInput } from "@/utils/validate";
 
 const supabase = createClient();
@@ -20,6 +21,19 @@ export async function updateProfile(
     userId: string,
     data: { nickname?: string; bio?: string; avatar_url?: string; is_first_edit?: boolean }
 ) {
+    const { data: profileStatus, error: profileStatusError } = await supabase
+        .from("profiles")
+        .select("account_status,suspended_until")
+        .eq("id", userId)
+        .single();
+
+    if (profileStatusError) throw profileStatusError;
+
+    const restrictionMessage = getAccountRestrictionMessage(profileStatus);
+    if (restrictionMessage) {
+        throw new Error(restrictionMessage);
+    }
+
     const validatedNickname = validateNicknameInput(data.nickname);
 
     if (validatedNickname !== undefined) {
