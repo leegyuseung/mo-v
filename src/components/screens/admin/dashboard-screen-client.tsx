@@ -63,6 +63,7 @@ export default function DashboardScreen() {
       {
         title: "전체 유저",
         value: stats.totalUsers,
+        href: "/admin/users",
         icon: Users,
         color: "from-blue-500 to-blue-600",
         bgLight: "bg-blue-50",
@@ -73,6 +74,7 @@ export default function DashboardScreen() {
       {
         title: "이메일 가입",
         value: stats.emailUsers,
+        href: "/admin/users",
         icon: Mail,
         color: "from-emerald-500 to-emerald-600",
         bgLight: "bg-emerald-50",
@@ -83,6 +85,7 @@ export default function DashboardScreen() {
       {
         title: "구글 가입",
         value: stats.googleUsers,
+        href: "/admin/users",
         icon: Globe,
         color: "from-red-500 to-red-600",
         bgLight: "bg-red-50",
@@ -93,6 +96,7 @@ export default function DashboardScreen() {
       {
         title: "카카오 가입",
         value: stats.kakaoUsers,
+        href: "/admin/users",
         icon: MessageCircle,
         color: "from-yellow-500 to-amber-500",
         bgLight: "bg-yellow-50",
@@ -120,6 +124,7 @@ export default function DashboardScreen() {
       {
         title: "등록된 버츄얼",
         value: stats.totalStreamers,
+        href: "/admin/streamers",
         icon: TvMinimalPlay,
         color: "from-purple-500 to-purple-600",
         bgLight: "bg-purple-50",
@@ -130,6 +135,7 @@ export default function DashboardScreen() {
       {
         title: "등록된 그룹",
         value: stats.totalGroups,
+        href: "/admin/groups",
         icon: UsersRound,
         color: "from-indigo-500 to-indigo-600",
         bgLight: "bg-indigo-50",
@@ -140,6 +146,7 @@ export default function DashboardScreen() {
       {
         title: "등록된 소속",
         value: stats.totalCrews,
+        href: "/admin/crews",
         icon: Building2,
         color: "from-sky-500 to-sky-600",
         bgLight: "bg-sky-50",
@@ -150,6 +157,7 @@ export default function DashboardScreen() {
       {
         title: "등록된 박스",
         value: stats.totalLiveBoxes,
+        href: "/admin/live-box",
         icon: Boxes,
         color: "from-cyan-500 to-cyan-600",
         bgLight: "bg-cyan-50",
@@ -160,6 +168,7 @@ export default function DashboardScreen() {
       {
         title: "등록된 콘텐츠",
         value: stats.totalContents,
+        href: "/admin/contents",
         icon: Clapperboard,
         color: "from-indigo-500 to-violet-600",
         bgLight: "bg-indigo-50",
@@ -189,6 +198,7 @@ export default function DashboardScreen() {
       {
         title: "버츄얼 등록 대기",
         value: stats.pendingStreamerRequests,
+        href: "/admin/pending",
         icon: Clock,
         color: "from-emerald-500 to-emerald-600",
         bgLight: "bg-emerald-50",
@@ -199,6 +209,7 @@ export default function DashboardScreen() {
       {
         title: "버츄얼 정보수정요청",
         value: stats.pendingStreamerInfoEditRequests,
+        href: "/admin/infoeditrq",
         icon: Pencil,
         color: "from-orange-500 to-orange-600",
         bgLight: "bg-orange-50",
@@ -209,6 +220,7 @@ export default function DashboardScreen() {
       {
         title: "데이터 정보 수정 요청",
         value: stats.pendingDataInfoEditRequests,
+        href: "/admin/data-infoeditrq",
         icon: Pencil,
         color: "from-orange-500 to-orange-600",
         bgLight: "bg-orange-50",
@@ -219,6 +231,7 @@ export default function DashboardScreen() {
       {
         title: "데이터 신고 관리",
         value: stats.pendingReportRequests,
+        href: "/admin/reports",
         icon: Siren,
         color: "from-rose-500 to-rose-600",
         bgLight: "bg-rose-50",
@@ -229,6 +242,7 @@ export default function DashboardScreen() {
       {
         title: "홈페이지 오류 신고",
         value: stats.pendingHomepageErrorReports,
+        href: "/admin/error-reports",
         icon: Bug,
         color: "from-amber-500 to-amber-600",
         bgLight: "bg-amber-50",
@@ -239,6 +253,7 @@ export default function DashboardScreen() {
       {
         title: "박스 등록 요청",
         value: stats.pendingLiveBoxRequests,
+        href: "/admin/live-box-pending",
         icon: Boxes,
         color: "from-cyan-500 to-cyan-600",
         bgLight: "bg-cyan-50",
@@ -249,6 +264,7 @@ export default function DashboardScreen() {
       {
         title: "콘텐츠 등록 요청 대기",
         value: stats.pendingContentRequests,
+        href: "/admin/content-pending",
         icon: Clapperboard,
         color: "from-indigo-500 to-violet-600",
         bgLight: "bg-indigo-50",
@@ -288,6 +304,7 @@ export default function DashboardScreen() {
                   key={card.title}
                   title={card.title}
                   value={card.value}
+                  href={card.href}
                   icon={card.icon}
                   color={card.color}
                   bgLight={card.bgLight}
@@ -323,6 +340,7 @@ export default function DashboardScreen() {
                   key={card.title}
                   title={card.title}
                   value={card.value}
+                  href={card.href}
                   icon={card.icon}
                   color={card.color}
                   bgLight={card.bgLight}
@@ -358,6 +376,7 @@ export default function DashboardScreen() {
                   key={card.title}
                   title={card.title}
                   value={card.value}
+                  href={card.href}
                   icon={card.icon}
                   color={card.color}
                   bgLight={card.bgLight}

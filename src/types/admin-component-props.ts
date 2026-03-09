@@ -24,6 +24,7 @@ export type StatCardProps = {
   textColor: string;
   ratioBase: number;
   unit?: string;
+  href?: string;
 };
 
 /** 버츄얼 등록 대기 행 props */

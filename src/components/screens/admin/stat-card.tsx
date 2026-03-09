@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { StatCardProps } from "@/types/admin-component-props";
 
 /** 대시보드 통계 카드 — 제목, 수치, 아이콘, 비율 바를 표시한다 */
@@ -12,11 +13,14 @@ export function StatCard({
   textColor,
   ratioBase,
   unit = "명",
+  href,
 }: StatCardProps) {
   const ratio = Math.min(100, ratioBase > 0 ? (value / ratioBase) * 100 : 0);
+  const cardClassName =
+    "bg-white rounded-2xl p-6 shadow-sm border border-gray-100 transition-shadow";
 
-  return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-100">
+  const content = (
+    <>
       <div className="flex items-center justify-between mb-4">
         <div className={`p-3 rounded-xl ${bgLight}`}>
           <Icon className={`w-6 h-6 ${textColor}`} />
@@ -37,8 +41,21 @@ export function StatCard({
           style={{ width: `${ratio}%` }}
         />
       </div>
-    </div>
+    </>
   );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className={`${cardClassName} cursor-pointer hover:shadow-md hover:border-gray-200`}
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return <div className={cardClassName}>{content}</div>;
 }
 
 /** 통계 카드의 로딩 스켈레톤 */
