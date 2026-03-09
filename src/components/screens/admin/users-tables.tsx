@@ -955,7 +955,7 @@ type StreamerTableProps = {
 
 export function StreamerTable({ streamers, isLoading }: StreamerTableProps) {
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto overflow-y-auto max-h-[720px]">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto overflow-y-auto max-h-[620px]">
       <table className="min-w-[2820px] text-left">
         <thead>
           <tr className="bg-gray-50/80 border-b border-gray-100">

@@ -1,8 +1,11 @@
 "use client";
 
+import { useMemo } from "react";
 import { Boxes } from "lucide-react";
 import LiveBoxPendingRequestsTable from "@/components/screens/admin/live-box-pending-requests-table";
 import { usePendingLiveBoxRequests } from "@/hooks/queries/admin/use-pending-live-box-requests";
+import { useStreamers } from "@/hooks/queries/admin/use-streamers";
+import { buildLiveBoxParticipantCandidates } from "@/utils/admin-live-box";
 
 export default function LiveBoxPendingRequestsScreenClient() {
   const {
@@ -10,6 +13,11 @@ export default function LiveBoxPendingRequestsScreenClient() {
     isLoading,
     isError,
   } = usePendingLiveBoxRequests();
+  const { data: streamers = [] } = useStreamers();
+  const participantCandidates = useMemo(
+    () => buildLiveBoxParticipantCandidates(streamers),
+    [streamers]
+  );
 
   return (
     <div className="mx-auto max-w-7xl p-6 md:p-10">
@@ -23,6 +31,7 @@ export default function LiveBoxPendingRequestsScreenClient() {
 
       <LiveBoxPendingRequestsTable
         pendingLiveBoxRequests={pendingLiveBoxRequests}
+        participantCandidates={participantCandidates}
         isLoading={isLoading}
         isError={isError}
       />

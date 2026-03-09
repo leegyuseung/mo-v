@@ -74,6 +74,7 @@ export type LiveBoxDetailParticipantLiveStatus = {
   viewerCount: number | null;
 };
 
+
 export type LiveBoxParticipantsPanelProps = {
   liveBox: LiveBox;
   filteredParticipantIds: string[];

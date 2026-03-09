@@ -6,6 +6,10 @@ import type {
     StreamerRegistrationRequest,
     StreamerRequestStatus,
 } from "@/types/admin-requests";
+import type {
+  AdminStreamerPageParams,
+  AdminStreamerPageResponse,
+} from "@/types/admin-streamer";
 import type { Streamer } from "@/types/streamer";
 import {
     ENTITY_INFO_EDIT_REQUEST_TABLE,
@@ -25,6 +29,40 @@ export async function fetchStreamers(): Promise<Streamer[]> {
 
     if (error) throw error;
     return data || [];
+}
+
+export async function fetchAdminStreamersPage(
+  params: AdminStreamerPageParams
+): Promise<AdminStreamerPageResponse> {
+  const searchParams = new URLSearchParams({
+    page: String(params.page),
+    pageSize: String(params.pageSize),
+    keyword: params.keyword,
+    platform: params.platform,
+    genre: params.genre,
+    sortKey: params.sortKey,
+    sortOrder: params.sortOrder,
+  });
+
+  const response = await fetch(`/api/admin/streamers?${searchParams.toString()}`, {
+    method: "GET",
+    credentials: "include",
+  });
+
+  const result = (await response.json().catch(() => null)) as
+    | { message?: string }
+    | AdminStreamerPageResponse
+    | null;
+
+  if (!response.ok) {
+    throw new Error(
+      result && "message" in result && result.message
+        ? result.message
+        : "버츄얼 목록을 불러오지 못했습니다."
+    );
+  }
+
+  return result as AdminStreamerPageResponse;
 }
 
 // 버츄얼 정보 수정

@@ -1,5 +1,5 @@
 import type { Streamer } from "@/types/streamer";
-import type { LiveBoxStatus } from "@/types/live-box";
+import type { LiveBoxCreateInput, LiveBoxStatus, LiveBoxUpdateInput } from "@/types/live-box";
 import type { LiveBoxParticipantCandidate } from "@/types/admin-live-box";
 import { toSeoulDateParts } from "@/utils/seoul-time";
 
@@ -56,6 +56,12 @@ export function formatLiveBoxDate(value: string | null) {
 export function formatLiveBoxDateTime(value: string | null) {
   if (!value) return "-";
   return new Date(value).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" });
+}
+
+function toTimestampOrNull(value: string | null) {
+  if (!value) return null;
+  const timestamp = new Date(value).getTime();
+  return Number.isFinite(timestamp) ? timestamp : null;
 }
 
 export function normalizeLiveBoxStatus(value: string): LiveBoxStatus {
@@ -121,4 +127,70 @@ export function getLiveBoxParticipantCandidate(
   }
 
   return null;
+}
+
+export function buildLiveBoxParticipantCandidates(streamers: Streamer[]) {
+  return streamers
+    .map(getLiveBoxParticipantCandidate)
+    .filter((item): item is LiveBoxParticipantCandidate => item !== null);
+}
+
+/**
+ * 클라이언트 조작으로 잘못된 payload가 전달돼도 DB 쓰기 전에 1차 검증한다.
+ * 왜: 관리자 폼과 승인 API가 같은 규칙을 공유해야 등록 경로가 달라도 결과가 일관되기 때문이다.
+ */
+export function assertValidLiveBoxPayload(payload: LiveBoxCreateInput | LiveBoxUpdateInput) {
+  if (!payload.title.trim()) {
+    throw new Error("제목은 필수입니다.");
+  }
+
+  if (!Array.isArray(payload.category) || payload.category.length === 0) {
+    throw new Error("카테고리를 1개 이상 입력해 주세요.");
+  }
+
+  const startsAtTimestamp = toTimestampOrNull(payload.starts_at);
+  const endsAtTimestamp = toTimestampOrNull(payload.ends_at);
+
+  if (payload.starts_at && startsAtTimestamp === null) {
+    throw new Error("시작일시 형식이 올바르지 않습니다.");
+  }
+
+  if (payload.ends_at && endsAtTimestamp === null) {
+    throw new Error("종료일시 형식이 올바르지 않습니다.");
+  }
+
+  if (
+    startsAtTimestamp !== null &&
+    endsAtTimestamp !== null &&
+    startsAtTimestamp > endsAtTimestamp
+  ) {
+    throw new Error("시작일시는 종료일시보다 늦을 수 없습니다.");
+  }
+
+  const linkValidationMessage = validateLiveBoxExternalLink({
+    urlTitle: payload.url_title,
+    url: payload.url,
+  });
+  if (linkValidationMessage) {
+    throw new Error(linkValidationMessage);
+  }
+}
+
+export function toLiveBoxPersistPayload(payload: LiveBoxCreateInput | LiveBoxUpdateInput) {
+  const normalizedExternalLink = normalizeLiveBoxExternalLink({
+    urlTitle: payload.url_title,
+    url: payload.url,
+  });
+
+  return {
+    title: payload.title,
+    category: payload.category,
+    participant_streamer_ids: payload.participant_streamer_ids,
+    starts_at: payload.starts_at,
+    ends_at: payload.ends_at,
+    url_title: normalizedExternalLink.urlTitle || null,
+    url: normalizedExternalLink.url || null,
+    description: payload.description,
+    status: payload.status,
+  };
 }

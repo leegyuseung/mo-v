@@ -3,6 +3,9 @@ import type { LiveBoxParticipantCandidate } from "@/types/admin-live-box";
 
 export type LiveBoxFormPanelProps = {
   editingLiveBoxId: number | null;
+  panelTitle?: string;
+  submitLabel?: string;
+  submittingLabel?: string;
   title: string;
   categoryInput: string;
   participantSearch: string;

@@ -11,6 +11,9 @@ import type { LiveBoxFormPanelProps } from "@/types/admin-live-box-form";
  */
 export default function LiveBoxFormPanel({
   editingLiveBoxId,
+  panelTitle,
+  submitLabel,
+  submittingLabel,
   title,
   categoryInput,
   participantSearch,
@@ -41,7 +44,7 @@ export default function LiveBoxFormPanel({
   return (
     <div className="mb-4 rounded-2xl border border-gray-100 bg-white p-4">
       <div className="mb-3 text-sm font-medium text-gray-700">
-        {editingLiveBoxId ? `박스 수정 #${editingLiveBoxId}` : "박스 추가"}
+        {panelTitle || (editingLiveBoxId ? `박스 수정 #${editingLiveBoxId}` : "박스 추가")}
       </div>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <div className="space-y-1.5">
@@ -193,10 +196,11 @@ export default function LiveBoxFormPanel({
           className="cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white"
         >
           {isSubmitting
-            ? editingLiveBoxId
-              ? "수정중..."
-              : "추가중..."
-            : "저장"}
+            ? submittingLabel ||
+              (editingLiveBoxId
+                ? "수정중..."
+                : "추가중...")
+            : submitLabel || "저장"}
         </Button>
       </div>
     </div>

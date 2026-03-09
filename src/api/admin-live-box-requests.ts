@@ -1,5 +1,9 @@
 import { createClient } from "@/utils/supabase/client";
-import type { LiveBoxAdminPendingRequest } from "@/types/live-box-request";
+import type {
+  ApproveLiveBoxRequestInput,
+  ApproveLiveBoxRequestResponse,
+  LiveBoxAdminPendingRequest,
+} from "@/types/live-box-request";
 
 const supabase = createClient();
 
@@ -54,4 +58,32 @@ export async function updateLiveBoxRequestStatus(
 
   if (error) throw error;
   return data;
+}
+
+export async function approveLiveBoxRequest(
+  requestId: number,
+  payload: ApproveLiveBoxRequestInput
+): Promise<ApproveLiveBoxRequestResponse> {
+  const response = await fetch(`/api/admin/live-box-requests/${requestId}/approve`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const result = (await response.json().catch(() => null)) as
+    | { message?: string }
+    | ApproveLiveBoxRequestResponse
+    | null;
+
+  if (!response.ok) {
+    throw new Error(
+      result && "message" in result && result.message
+        ? result.message
+        : "박스 등록 요청 승인에 실패했습니다."
+    );
+  }
+
+  return result as ApproveLiveBoxRequestResponse;
 }

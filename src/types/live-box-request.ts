@@ -1,4 +1,5 @@
 import type { Tables, TablesInsert } from "@/types/database.types";
+import type { LiveBoxCreateInput, LiveBox } from "@/types/live-box";
 
 export type LiveBoxRequestStatus = "pending" | "approved" | "rejected" | "cancelled";
 
@@ -19,4 +20,11 @@ export type CreateLiveBoxRequestInput = {
   requesterId: string;
   topic: string;
   relatedSite: string;
+};
+
+export type ApproveLiveBoxRequestInput = LiveBoxCreateInput;
+
+export type ApproveLiveBoxRequestResponse = {
+  liveBox: LiveBox;
+  request: LiveBoxRequest;
 };

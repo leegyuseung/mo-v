@@ -6,78 +6,12 @@ import type {
   LiveBoxWithCreatorProfile,
 } from "@/types/live-box";
 import {
-  normalizeLiveBoxExternalLink,
-  validateLiveBoxExternalLink,
+  assertValidLiveBoxPayload,
+  toLiveBoxPersistPayload,
 } from "@/utils/admin-live-box";
 import { withEffectiveLiveBoxStatus } from "@/utils/live-box-status";
 
 const supabase = createClient();
-
-function toTimestampOrNull(value: string | null) {
-  if (!value) return null;
-  const timestamp = new Date(value).getTime();
-  return Number.isFinite(timestamp) ? timestamp : null;
-}
-
-/**
- * 클라이언트 조작으로 잘못된 payload가 전달돼도 DB 쓰기 전에 1차 검증한다.
- * 왜: UI validation 우회 시 서버 오류를 줄이고 요청 의도를 명확히 보장하기 위함.
- */
-function assertValidLiveBoxPayload(payload: LiveBoxCreateInput | LiveBoxUpdateInput) {
-  if (!payload.title.trim()) {
-    throw new Error("제목은 필수입니다.");
-  }
-
-  if (!Array.isArray(payload.category) || payload.category.length === 0) {
-    throw new Error("카테고리를 1개 이상 입력해 주세요.");
-  }
-
-  const startsAtTimestamp = toTimestampOrNull(payload.starts_at);
-  const endsAtTimestamp = toTimestampOrNull(payload.ends_at);
-
-  if (payload.starts_at && startsAtTimestamp === null) {
-    throw new Error("시작일시 형식이 올바르지 않습니다.");
-  }
-
-  if (payload.ends_at && endsAtTimestamp === null) {
-    throw new Error("종료일시 형식이 올바르지 않습니다.");
-  }
-
-  if (
-    startsAtTimestamp !== null &&
-    endsAtTimestamp !== null &&
-    startsAtTimestamp > endsAtTimestamp
-  ) {
-    throw new Error("시작일시는 종료일시보다 늦을 수 없습니다.");
-  }
-
-  const linkValidationMessage = validateLiveBoxExternalLink({
-    urlTitle: payload.url_title,
-    url: payload.url,
-  });
-  if (linkValidationMessage) {
-    throw new Error(linkValidationMessage);
-  }
-}
-
-function toLiveBoxPersistPayload(payload: LiveBoxCreateInput | LiveBoxUpdateInput) {
-  const normalizedExternalLink = normalizeLiveBoxExternalLink({
-    urlTitle: payload.url_title,
-    url: payload.url,
-  });
-
-  return {
-    title: payload.title,
-    category: payload.category,
-    participant_streamer_ids: payload.participant_streamer_ids,
-    starts_at: payload.starts_at,
-    ends_at: payload.ends_at,
-    url_title: normalizedExternalLink.urlTitle || null,
-    url: normalizedExternalLink.url || null,
-    description: payload.description,
-    status: payload.status,
-  };
-}
 
 /** 관리자 박스 목록을 최신순으로 조회한다. */
 export async function fetchLiveBoxes(): Promise<LiveBoxWithCreatorProfile[]> {

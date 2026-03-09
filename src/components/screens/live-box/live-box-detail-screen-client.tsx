@@ -28,6 +28,7 @@ export default function LiveBoxDetailScreenClient({
   hasLiveStreamersError = false,
 }: LiveBoxDetailScreenProps) {
   const [participantKeyword, setParticipantKeyword] = useState("");
+  const [showOnlyLiveParticipants, setShowOnlyLiveParticipants] = useState(false);
 
   const participantByPlatformId = useMemo<LiveBoxDetailParticipantProfileLookup>(() => {
     const map = new Map();
@@ -69,14 +70,23 @@ export default function LiveBoxDetailScreenClient({
     if (!liveBox) return [];
 
     const keyword = participantKeyword.trim().toLowerCase();
-    if (!keyword) return liveBox.participant_streamer_ids;
 
     return liveBox.participant_streamer_ids.filter((platformId) => {
+      const hasLiveInfo = liveByPlatformId.has(platformId);
+      if (showOnlyLiveParticipants && !hasLiveInfo) return false;
+
       const participant = participantByPlatformId.get(platformId);
+      if (!keyword) return true;
       const nickname = (participant?.nickname || "").toLowerCase();
       return nickname.includes(keyword);
     });
-  }, [liveBox, participantKeyword, participantByPlatformId]);
+  }, [
+    liveBox,
+    liveByPlatformId,
+    participantKeyword,
+    participantByPlatformId,
+    showOnlyLiveParticipants,
+  ]);
 
   const externalUrlTitle = liveBox?.url_title?.trim() || "";
   const externalUrl = liveBox?.url?.trim() || "";
@@ -160,7 +170,8 @@ export default function LiveBoxDetailScreenClient({
           />
         </div>
 
-        <div className="mb-4 flex flex-wrap items-center gap-1.5 text-sm text-gray-600">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-1.5 text-sm text-gray-600">
           <Tag className="h-4 w-4" />
           {liveBox.category.length > 0 ? (
             liveBox.category.map((item) => (
@@ -174,6 +185,31 @@ export default function LiveBoxDetailScreenClient({
           ) : (
             <span>-</span>
           )}
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={showOnlyLiveParticipants}
+            onClick={() => setShowOnlyLiveParticipants((previous) => !previous)}
+            className={`inline-flex h-9 items-center gap-2 rounded-full border px-3 text-sm font-medium transition-colors cursor-pointer ${
+              showOnlyLiveParticipants
+                ? "border-red-200 bg-red-50 text-red-700"
+                : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            <span>라이브중</span>
+            <span
+              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                showOnlyLiveParticipants ? "bg-red-500" : "bg-gray-300"
+              }`}
+            >
+              <span
+                className={`absolute h-4 w-4 rounded-full bg-white transition-transform ${
+                  showOnlyLiveParticipants ? "translate-x-4" : "translate-x-0.5"
+                }`}
+              />
+            </span>
+          </button>
         </div>
 
         <p className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm text-gray-700">

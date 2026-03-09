@@ -1,5 +1,6 @@
 import type { LiveBoxWithCreatorProfile } from "@/types/live-box";
 import type { LiveBoxAdminPendingRequest } from "@/types/live-box-request";
+import type { LiveBoxParticipantCandidate } from "@/types/admin-live-box";
 
 export type AdminLiveBoxesTableProps = {
   boxes: LiveBoxWithCreatorProfile[] | undefined;
@@ -10,6 +11,7 @@ export type AdminLiveBoxesTableProps = {
 
 export type AdminLiveBoxPendingRequestsTableProps = {
   pendingLiveBoxRequests: LiveBoxAdminPendingRequest[] | undefined;
+  participantCandidates: LiveBoxParticipantCandidate[];
   isLoading: boolean;
   isError: boolean;
 };

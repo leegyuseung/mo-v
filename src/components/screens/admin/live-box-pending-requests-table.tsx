@@ -4,6 +4,7 @@ import type { AdminLiveBoxPendingRequestsTableProps } from "@/types/admin-live-b
 
 export default function LiveBoxPendingRequestsTable({
   pendingLiveBoxRequests,
+  participantCandidates,
   isLoading,
   isError,
 }: AdminLiveBoxPendingRequestsTableProps) {
@@ -37,7 +38,11 @@ export default function LiveBoxPendingRequestsTable({
             </tr>
           ) : pendingLiveBoxRequests && pendingLiveBoxRequests.length > 0 ? (
             pendingLiveBoxRequests.map((request) => (
-              <LiveBoxPendingRequestRow key={`pending-live-box-request-${request.id}`} request={request} />
+              <LiveBoxPendingRequestRow
+                key={`pending-live-box-request-${request.id}`}
+                request={request}
+                participantCandidates={participantCandidates}
+              />
             ))
           ) : (
             <tr>
