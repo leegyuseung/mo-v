@@ -53,7 +53,7 @@ export async function fetchIdolGroupCards(): Promise<IdolGroupCard[]> {
         .order("name", { ascending: true }),
       supabase
         .from("streamers")
-        .select("id,public_id,nickname,image_url,group_codes,group_name"),
+        .select("id,public_id,nickname,image_url,chzzk_id,soop_id,group_codes,group_name"),
       supabase
         .from("group_star_stats")
         .select("group_id,star_count"),
@@ -126,7 +126,7 @@ export async function fetchIdolGroupDetailByCode(
         .maybeSingle(),
       supabase
         .from("streamers")
-        .select("id,public_id,nickname,image_url,group_codes,group_name"),
+        .select("id,public_id,nickname,image_url,chzzk_id,soop_id,group_codes,group_name"),
     ]);
 
   if (groupError) throw groupError;
@@ -146,6 +146,8 @@ export async function fetchIdolGroupDetailByCode(
         public_id: streamer.public_id,
         nickname: streamer.nickname,
         image_url: streamer.image_url,
+        chzzk_id: streamer.chzzk_id,
+        soop_id: streamer.soop_id,
       })) || [];
 
   return {

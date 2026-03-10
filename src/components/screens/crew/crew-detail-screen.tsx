@@ -27,6 +27,7 @@ import IconTooltipButton from "@/components/common/icon-tooltip-button";
 import { useStarCount } from "@/hooks/queries/star/use-star-count";
 import StarCountBadge from "@/components/common/star-count-badge";
 import ReportRequestModal from "@/components/common/report-request-modal";
+import EntityParticipatingLiveBoxesSection from "@/components/common/entity-participating-live-boxes-section";
 import { useCreateEntityReportRequest } from "@/hooks/mutations/reports/use-create-entity-report-request";
 import type { CrewDetailScreenProps } from "@/types/crew";
 
@@ -295,6 +296,13 @@ export default function CrewDetailScreen({ crewCode }: CrewDetailScreenProps) {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="mt-6">
+        <EntityParticipatingLiveBoxesSection
+          title="소속 참여 라이브박스"
+          members={crew.members_detail}
+        />
       </div>
 
       {/* ─── 모달 ─── */}

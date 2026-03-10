@@ -54,6 +54,8 @@ export type LiveBoxFilterControlsProps = {
 export type LiveBoxDetailParticipantProfileLookup = Map<
   string,
   {
+    publicId: string | null;
+    streamerId: number;
     nickname: string | null;
     imageUrl: string | null;
     platform: "chzzk" | "soop";

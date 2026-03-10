@@ -25,6 +25,8 @@ export type CrewMemberThumbnail = {
   public_id: string;
   nickname: string | null;
   image_url: string | null;
+  chzzk_id?: string | null;
+  soop_id?: string | null;
 };
 
 /** 크루 목록 카드 UI용 타입 (멤버 수 포함) */

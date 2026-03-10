@@ -13,15 +13,15 @@ function getRankRows(items: StreamerHeartLeaderboardItem[]) {
 
 function getTopRankRowClass(index: number) {
   if (index === 0) {
-    return "border-yellow-300 bg-gradient-to-r from-yellow-50 via-amber-50 to-white";
+    return "border-yellow-300 bg-gradient-to-r from-yellow-50 via-amber-50 to-white hover-rank-first-gradient-flow";
   }
   if (index === 1) {
-    return "border-slate-300 bg-gradient-to-r from-slate-50 via-gray-50 to-white";
+    return "border-slate-300 bg-gradient-to-r from-slate-50 via-gray-50 to-white hover-rank-second-gradient-flow";
   }
   if (index === 2) {
-    return "border-[#B87333] bg-gradient-to-r from-[#FFF8F2] via-[#F1E1D1] to-white";
+    return "border-[#B87333] bg-gradient-to-r from-[#FFF8F2] via-[#F1E1D1] to-white hover-rank-third-gradient-flow";
   }
-  return "border-gray-100 bg-white";
+  return "border-gray-100 bg-white hover:border-gray-300 hover:bg-gray-50";
 }
 
 function getTopRankTrophyClass(index: number) {

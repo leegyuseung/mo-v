@@ -37,7 +37,11 @@ export default function ParticipatingLiveBoxesSection({
     isError,
   } = useParticipatingLiveBoxes(platformIds);
 
-  const sortedParticipatingLiveBoxes = [...participatingLiveBoxes].sort(
+  const visibleParticipatingLiveBoxes = participatingLiveBoxes.filter(
+    (box) => box.status === "대기" || box.status === "진행중"
+  );
+
+  const sortedParticipatingLiveBoxes = [...visibleParticipatingLiveBoxes].sort(
     (left, right) =>
       toComparableStartTime(left.starts_at) -
       toComparableStartTime(right.starts_at)
@@ -46,7 +50,7 @@ export default function ParticipatingLiveBoxesSection({
   return (
     <div
       className={cn(
-        "mt-4 w-full md:w-1/2 h-[246px] rounded-xl border border-gray-200 bg-white p-3 flex flex-col",
+        "mt-4 w-full md:w-1/2 h-[286px] rounded-xl border border-gray-200 bg-white p-3 flex flex-col",
         className
       )}
     >
@@ -85,9 +89,15 @@ export default function ParticipatingLiveBoxesSection({
                   <p className="line-clamp-1 text-sm font-medium text-gray-900">{box.title}</p>
                   <LiveBoxStatusBadge status={box.status} className="px-2 py-0.5" />
                 </div>
-                <div className="mt-1.5 flex items-center gap-1.5 text-xs text-gray-600">
-                  <CalendarClock className="h-3.5 w-3.5 text-gray-400" />
-                  <span>시작일시 {formatLiveBoxDisplayDate(box.starts_at)}</span>
+                <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-600">
+                  <div className="flex items-center gap-1.5">
+                    <CalendarClock className="h-3.5 w-3.5 text-gray-400" />
+                    <span>시작일시 {formatLiveBoxDisplayDate(box.starts_at)}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <CalendarClock className="h-3.5 w-3.5 text-gray-400" />
+                    <span>마감일시 {formatLiveBoxDisplayDate(box.ends_at)}</span>
+                  </div>
                 </div>
               </Link>
             ))}

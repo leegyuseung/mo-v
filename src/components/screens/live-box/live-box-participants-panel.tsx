@@ -20,6 +20,9 @@ export default function LiveBoxParticipantsPanel({
               const liveInfo = liveByPlatformId.get(platformId);
               const safeLiveUrl = toSafeExternalHttpUrl(liveInfo?.liveUrl);
               const isLive = Boolean(safeLiveUrl);
+              const streamerDetailHref = participant
+                ? `/vlist/${participant.publicId ?? participant.streamerId}`
+                : null;
               const participantBorderClass =
                 participant?.platform === "chzzk"
                   ? "border-2 border-green-400"
@@ -72,6 +75,18 @@ export default function LiveBoxParticipantsPanel({
                     target="_blank"
                     rel="noreferrer"
                     className="flex cursor-pointer items-center gap-2 rounded-lg border border-red-100 bg-red-50/40 px-3 py-2 hover:bg-red-50"
+                  >
+                    {content}
+                  </Link>
+                );
+              }
+
+              if (streamerDetailHref) {
+                return (
+                  <Link
+                    key={`${liveBox.id}-detail-participant-${platformId}`}
+                    href={streamerDetailHref}
+                    className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-100 px-3 py-2 hover:bg-gray-50"
                   >
                     {content}
                   </Link>

@@ -76,7 +76,7 @@ export async function fetchPublicLiveBoxById(liveBoxId: number): Promise<LiveBox
 export async function fetchLiveBoxParticipantProfiles(): Promise<LiveBoxParticipantProfile[]> {
   const { data, error } = await getDefaultClient()
     .from("streamers")
-    .select("id,nickname,image_url,chzzk_id,soop_id");
+    .select("id,public_id,nickname,image_url,chzzk_id,soop_id");
 
   if (error) throw error;
   return (data || []) as LiveBoxParticipantProfile[];

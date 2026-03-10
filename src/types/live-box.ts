@@ -33,7 +33,7 @@ export type LiveBoxUpdateInput = LiveBoxCreateInput;
 /** 라이브박스 참여자 미리보기 렌더링에 필요한 최소 스트리머 타입 */
 export type LiveBoxParticipantProfile = Pick<
   Streamer,
-  "id" | "nickname" | "image_url" | "chzzk_id" | "soop_id"
+  "id" | "public_id" | "nickname" | "image_url" | "chzzk_id" | "soop_id"
 >;
 
 /** 라이브박스 정보수정요청 생성 입력 */

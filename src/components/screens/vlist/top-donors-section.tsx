@@ -27,7 +27,7 @@ export default function TopDonorsSection({ streamerId, className }: TopDonorsSec
   return (
     <div
       className={cn(
-        "mt-4 w-full md:w-1/2 h-[246px] rounded-xl border border-gray-200 bg-white p-3 flex flex-col",
+        "mt-4 w-full md:w-1/2 h-[286px] rounded-xl border border-gray-200 bg-white p-3 flex flex-col",
         className
       )}
     >

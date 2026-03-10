@@ -12,6 +12,8 @@ export type IdolGroupMemberThumbnail = {
   public_id: string;
   nickname: string | null;
   image_url: string | null;
+  chzzk_id?: string | null;
+  soop_id?: string | null;
 };
 
 export type IdolGroupCard = {

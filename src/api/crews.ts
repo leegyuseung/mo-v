@@ -53,7 +53,7 @@ export async function fetchCrewCards(): Promise<CrewCard[]> {
 
   const streamersQuery = supabase
     .from("streamers")
-    .select("id,public_id,nickname,image_url,crew_name");
+    .select("id,public_id,nickname,image_url,chzzk_id,soop_id,crew_name");
 
   const statsQuery = supabase.from("crew_star_stats").select("crew_id,star_count");
 
@@ -129,7 +129,7 @@ export async function fetchCrewDetailByCode(
 
   const streamersQuery = supabase
     .from("streamers")
-    .select("id,public_id,nickname,image_url,crew_name");
+    .select("id,public_id,nickname,image_url,chzzk_id,soop_id,crew_name");
 
   const [{ data: crew, error: crewError }, { data: streamers, error: streamersError }] =
     await Promise.all([crewQuery, streamersQuery]);
@@ -151,6 +151,8 @@ export async function fetchCrewDetailByCode(
         public_id: streamer.public_id,
         nickname: streamer.nickname,
         image_url: streamer.image_url,
+        chzzk_id: streamer.chzzk_id,
+        soop_id: streamer.soop_id,
       })) || [];
 
   return {

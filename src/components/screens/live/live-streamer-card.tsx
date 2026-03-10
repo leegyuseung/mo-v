@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ExternalLink, Eye, UserRound } from "lucide-react";
+import SupportersBadge from "@/components/common/supporters-badge";
 import StreamerGroupCrewBadges from "@/components/common/streamer-group-crew-badges";
 import type { LiveStreamer } from "@/types/live";
 
@@ -76,15 +77,18 @@ export default function LiveStreamerCard({
         <p className="truncate text-sm font-semibold text-gray-900">
           {streamer.nickname || "이름 미등록"}
         </p>
-        <span
-          className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
-            streamer.platform === "chzzk"
-              ? "bg-green-100 text-green-700"
-              : "bg-blue-100 text-blue-700"
-          }`}
-        >
-          {streamer.platform?.toUpperCase() || "UNKNOWN"}
-        </span>
+        <div className="ml-2 flex shrink-0 items-center gap-1">
+          <span
+            className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+              streamer.platform === "chzzk"
+                ? "bg-green-100 text-green-700"
+                : "bg-blue-100 text-blue-700"
+            }`}
+          >
+            {streamer.platform?.toUpperCase() || "UNKNOWN"}
+          </span>
+          <SupportersBadge supporters={streamer.supporters} />
+        </div>
       </div>
 
       {streamer.liveTitle ? (

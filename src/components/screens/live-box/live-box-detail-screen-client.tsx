@@ -36,6 +36,8 @@ export default function LiveBoxDetailScreenClient({
     participantProfiles.forEach((profile) => {
       if (profile.chzzk_id) {
         map.set(profile.chzzk_id, {
+          publicId: profile.public_id,
+          streamerId: profile.id,
           nickname: profile.nickname,
           imageUrl: profile.image_url,
           platform: "chzzk" as const,
@@ -43,6 +45,8 @@ export default function LiveBoxDetailScreenClient({
       }
       if (profile.soop_id) {
         map.set(profile.soop_id, {
+          publicId: profile.public_id,
+          streamerId: profile.id,
           nickname: profile.nickname,
           imageUrl: profile.image_url,
           platform: "soop" as const,

@@ -25,6 +25,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useStarredStreamerIds } from "@/hooks/queries/star/use-starred-streamer-ids";
 import PlatformBadge from "@/components/common/platform-badge";
+import SupportersBadge from "@/components/common/supporters-badge";
 import StreamerCardSkeleton from "@/components/common/streamer-card-skeleton";
 import { generateArray } from "@/utils/array";
 import { useInfiniteScrollTrigger } from "@/hooks/use-infinite-scroll-trigger";
@@ -282,7 +283,10 @@ export default function VlistScreen({ initialStarredStreamerIds = [] }: VlistScr
                 <p className="truncate text-sm font-semibold text-gray-900 transition-colors group-hover:text-black">
                   {streamer.nickname || "이름 미등록"}
                 </p>
-                <PlatformBadge platform={streamer.platform || "UNKNOWN"} />
+                <div className="ml-2 flex shrink-0 items-center gap-1">
+                  <PlatformBadge platform={streamer.platform || "UNKNOWN"} />
+                  <SupportersBadge supporters={streamer.supporters} />
+                </div>
               </div>
 
               {(streamer.group_name && streamer.group_name.length > 0) ||
