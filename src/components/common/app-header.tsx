@@ -99,7 +99,7 @@ export default function AppHeader() {
       <div className="flex items-center gap-2">
         <button
           onClick={toggleSidebar}
-          className="md:-ml-3 h-10 w-10 inline-flex items-center justify-center rounded-lg cursor-pointer text-gray-700 hover:bg-gray-100 transition-colors"
+          className="md:-ml-3 h-10 w-10 inline-flex items-center justify-center rounded-lg cursor-pointer text-black-700 hover:bg-gray-100 transition-colors"
           aria-label={isSidebarOpen ? "메뉴 닫기" : "메뉴 열기"}
         >
           <PanelLeft className="w-5 h-5" />

@@ -404,6 +404,120 @@ export type Database = {
           },
         ]
       }
+      notice_post_reactions: {
+        Row: {
+          created_at: string
+          id: number
+          notice_post_id: number
+          reaction: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          notice_post_id: number
+          reaction: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          notice_post_id?: number
+          reaction?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notice_post_reactions_notice_post_id_fkey"
+            columns: ["notice_post_id"]
+            isOneToOne: false
+            referencedRelation: "notice_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notice_post_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notice_posts: {
+        Row: {
+          author_id: string
+          category: string
+          content_html: string
+          content_json: Json | null
+          created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
+          dislike_count: number
+          id: number
+          is_pinned: boolean
+          like_count: number
+          published_at: string | null
+          status: string
+          title: string
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          author_id: string
+          category?: string
+          content_html?: string
+          content_json?: Json | null
+          created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          dislike_count?: number
+          id?: never
+          is_pinned?: boolean
+          like_count?: number
+          published_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          author_id?: string
+          category?: string
+          content_html?: string
+          content_json?: Json | null
+          created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          dislike_count?: number
+          id?: never
+          is_pinned?: boolean
+          like_count?: number
+          published_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notice_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notice_posts_deleted_by_fkey"
+            columns: ["deleted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           account_status: string
