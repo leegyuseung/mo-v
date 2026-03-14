@@ -132,6 +132,14 @@ export default function StreamersScreen() {
                   >
                     생일순{sortKey === "birthday" ? (sortOrder === "asc" ? " ↑" : " ↓") : ""}
                   </Button>
+                  <Button
+                    type="button"
+                    variant={sortKey === "firstStreamDate" ? "default" : "outline"}
+                    className="h-9 cursor-pointer"
+                    onClick={() => handleSortChange("firstStreamDate")}
+                  >
+                    첫 방송일순{sortKey === "firstStreamDate" ? (sortOrder === "asc" ? " ↑" : " ↓") : ""}
+                  </Button>
                 </div>
               </div>
             </div>

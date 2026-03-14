@@ -1,6 +1,6 @@
 import type { Streamer, StreamerSortOrder } from "@/types/streamer";
 
-export type AdminStreamerSortKey = "createdAt" | "name" | "birthday";
+export type AdminStreamerSortKey = "createdAt" | "name" | "birthday" | "firstStreamDate";
 
 export type AdminStreamerPlatformFilter = "all" | "chzzk" | "soop";
 

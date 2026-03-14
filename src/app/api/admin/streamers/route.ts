@@ -25,6 +25,20 @@ function getBirthdaySortValue(birthday?: string | null) {
   return month * 100 + day;
 }
 
+function getFirstStreamDateSortValue(firstStreamDate?: string | null) {
+  if (!firstStreamDate) return Number.MAX_SAFE_INTEGER;
+
+  const matched = firstStreamDate.match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+  if (!matched) return Number.MAX_SAFE_INTEGER;
+
+  const year = Number(matched[1]);
+  const month = Number(matched[2]);
+  const day = Number(matched[3]);
+  if (!year || !month || !day) return Number.MAX_SAFE_INTEGER;
+
+  return year * 10000 + month * 100 + day;
+}
+
 function parsePageParams(request: NextRequest): AdminStreamerPageParams {
   const searchParams = request.nextUrl.searchParams;
   const page = Math.max(1, Number(searchParams.get("page") || "1"));
@@ -91,7 +105,7 @@ export async function GET(request: NextRequest) {
    * 생일순은 DB 정렬로 바로 표현하기 어려워 서버에서 정렬 후 잘라낸다.
    * 왜: 클라이언트로 전체 목록을 내려 보내지 않고도 현재 요구 정렬을 유지하기 위해서다.
    */
-  if (params.sortKey === "birthday") {
+  if (params.sortKey === "birthday" || params.sortKey === "firstStreamDate") {
     let query = admin.from("streamers").select("*", { count: "exact" });
     if (params.platform !== "all") {
       query = query.eq("platform", params.platform);
@@ -110,9 +124,13 @@ export async function GET(request: NextRequest) {
     }
 
     const sorted = [...((data || []) as Streamer[])].sort((left, right) => {
-      const birthdayDiff = getBirthdaySortValue(left.birthday) - getBirthdaySortValue(right.birthday);
-      if (birthdayDiff !== 0) {
-        return params.sortOrder === "asc" ? birthdayDiff : birthdayDiff * -1;
+      const primaryDiff =
+        params.sortKey === "birthday"
+          ? getBirthdaySortValue(left.birthday) - getBirthdaySortValue(right.birthday)
+          : getFirstStreamDateSortValue(left.first_stream_date) -
+            getFirstStreamDateSortValue(right.first_stream_date);
+      if (primaryDiff !== 0) {
+        return params.sortOrder === "asc" ? primaryDiff : primaryDiff * -1;
       }
       const nameDiff = (left.nickname || "").localeCompare(right.nickname || "", "ko");
       return params.sortOrder === "asc" ? nameDiff : nameDiff * -1;
@@ -129,8 +147,7 @@ export async function GET(request: NextRequest) {
   }
 
   const orderColumn = params.sortKey === "name" ? "nickname" : "created_at";
-  const ascending =
-    params.sortKey === "createdAt" ? params.sortOrder === "asc" : params.sortOrder === "asc";
+  const ascending = params.sortOrder === "asc";
   const from = (params.page - 1) * params.pageSize;
   const to = from + params.pageSize - 1;
 

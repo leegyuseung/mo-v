@@ -89,6 +89,21 @@ function TruncatedUrlDisplay({ url }: { url: string | null }) {
   );
 }
 
+function formatFirstStreamDate(value: string | null) {
+  if (!value) return "-";
+
+  const trimmed = value.trim();
+  const matched = trimmed.match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+  if (!matched) return "-";
+
+  const year = Number(matched[1]);
+  const month = Number(matched[2]);
+  const day = Number(matched[3]);
+  if (!year || !month || !day) return "-";
+
+  return `${year}년 ${month}월 ${day}일`;
+}
+
 function AdminEditSection({
   title,
   description,
@@ -678,7 +693,9 @@ function StreamerRow({ streamer }: { streamer: Streamer }) {
         <td className="px-4 py-3 text-sm text-gray-500">{streamer.nationality || "-"}</td>
         <td className="px-4 py-3 text-sm text-gray-500">{streamer.gender || "-"}</td>
         <td className="px-4 py-3 text-sm text-gray-500">{streamer.genre?.join(", ") || "-"}</td>
-        <td className="px-4 py-3 text-sm text-gray-500">{streamer.first_stream_date || "-"}</td>
+        <td className="px-4 py-3 text-sm text-gray-500">
+          {formatFirstStreamDate(streamer.first_stream_date)}
+        </td>
         <td className="px-4 py-3 text-sm text-gray-500">{streamer.fandom_name || "-"}</td>
         <td className="px-4 py-3 text-sm text-gray-500">{streamer.mbti || "-"}</td>
         <td className="px-4 py-3 text-sm text-gray-500">{streamer.alias?.join(", ") || "-"}</td>
