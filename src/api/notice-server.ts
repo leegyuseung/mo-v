@@ -1,7 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import type { User } from "@supabase/supabase-js";
-import type { NoticeCategory, NoticePost } from "@/types/notice";
+import type {
+  NoticeListQuery,
+  NoticeListResult,
+  NoticePost,
+} from "@/types/notice";
 import { isAdminRole } from "@/utils/role";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -80,15 +84,27 @@ export async function canManageNoticeOnServer(
   return isAdminRole(role);
 }
 
-export async function fetchPublishedNoticesOnServer(
-  category?: NoticeCategory
-): Promise<NoticePost[]> {
+export async function fetchPublishedNoticesOnServer({
+  page = 1,
+  pageSize = 20,
+  category,
+  searchField = "title_content",
+  keyword = "",
+}: NoticeListQuery = {}): Promise<NoticeListResult> {
   const admin = createNoticeAdminClient();
-  if (!admin) return [];
+  if (!admin) {
+    return {
+      items: [],
+      totalCount: 0,
+    };
+  }
 
   let query = admin
     .from("notice_posts")
-    .select("*")
+    .select(
+      "*, author_profile:profiles!notice_posts_author_id_fkey(nickname,avatar_url,public_id)",
+      { count: "exact" }
+    )
     .eq("status", "published")
     .is("deleted_at", null)
     .order("is_pinned", { ascending: false })
@@ -99,8 +115,51 @@ export async function fetchPublishedNoticesOnServer(
     query = query.eq("category", category);
   }
 
-  const { data, error } = await query;
-  if (error || !data) return [];
+  const trimmedKeyword = keyword.trim();
+  if (trimmedKeyword) {
+    const escapedKeyword = trimmedKeyword.replace(/[%_]/g, "\\$&");
+    const likeKeyword = `%${escapedKeyword}%`;
 
-  return data as NoticePost[];
+    if (searchField === "title") {
+      query = query.ilike("title", likeKeyword);
+    } else if (searchField === "content") {
+      query = query.ilike("content_html", likeKeyword);
+    } else {
+      query = query.or(`title.ilike.${likeKeyword},content_html.ilike.${likeKeyword}`);
+    }
+  }
+
+  const from = (Math.max(page, 1) - 1) * pageSize;
+  const to = from + pageSize - 1;
+  const { data, error, count } = await query.range(from, to);
+  if (error || !data) {
+    return {
+      items: [],
+      totalCount: 0,
+    };
+  }
+
+  return {
+    items: data as NoticePost[],
+    totalCount: count ?? 0,
+  };
+}
+
+export async function fetchPublishedNoticeByIdOnServer(
+  noticeId: number
+): Promise<NoticePost | null> {
+  const admin = createNoticeAdminClient();
+  if (!admin) return null;
+
+  const { data, error } = await admin
+    .from("notice_posts")
+    .select("*, author_profile:profiles!notice_posts_author_id_fkey(nickname,avatar_url,public_id)")
+    .eq("id", noticeId)
+    .eq("status", "published")
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (error) return null;
+
+  return (data as NoticePost | null) ?? null;
 }

@@ -1,6 +1,12 @@
 export type NoticeCategory = "notice" | "event";
 export type NoticeStatus = "draft" | "published" | "deleted";
 
+export type NoticeAuthorProfile = {
+  nickname: string | null;
+  avatar_url: string | null;
+  public_id: string | null;
+};
+
 export type NoticePost = {
   id: number;
   author_id: string;
@@ -18,6 +24,7 @@ export type NoticePost = {
   published_at: string | null;
   deleted_at: string | null;
   deleted_by: string | null;
+  author_profile?: NoticeAuthorProfile | null;
 };
 
 export type NoticeSavePayload = {
@@ -35,12 +42,34 @@ export type NoticeSaveResponse = {
   message?: string;
 };
 
-export type NoticeListResponse = {
+export type NoticeDraftListResponse = {
   items: NoticePost[];
   message?: string;
 };
 
-export type NoticeDraftListResponse = {
-  items: NoticePost[];
+export type NoticeTrackViewResponse = {
+  incremented?: boolean;
+  view_count?: number;
   message?: string;
+};
+
+export type NoticeLikeResponse = {
+  liked: boolean;
+  like_count: number;
+  message?: string;
+};
+
+export type NoticeSearchField = "title_content" | "title" | "content";
+
+export type NoticeListQuery = {
+  page?: number;
+  pageSize?: number;
+  category?: NoticeCategory;
+  searchField?: NoticeSearchField;
+  keyword?: string;
+};
+
+export type NoticeListResult = {
+  items: NoticePost[];
+  totalCount: number;
 };

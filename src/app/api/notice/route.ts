@@ -5,6 +5,7 @@ import type { NoticeCategory, NoticeSavePayload } from "@/types/notice";
 import {
   createNoticeAdminClient,
   fetchNoticeAuthContext,
+  fetchPublishedNoticesOnServer,
   isNoticeServerConfigured,
 } from "@/api/notice-server";
 import { isAdminRole } from "@/utils/role";
@@ -40,30 +41,13 @@ export async function GET(request: Request) {
     return NextResponse.json({ message: "카테고리 값이 올바르지 않습니다." }, { status: 400 });
   }
 
-  const admin = createNoticeAdminClient();
-  if (!admin) {
-    return NextResponse.json({ message: "서버 설정이 올바르지 않습니다." }, { status: 500 });
-  }
+  const noticeList = await fetchPublishedNoticesOnServer({
+    category: (categoryParam as NoticeCategory | null) ?? undefined,
+    page: 1,
+    pageSize: 100,
+  });
 
-  let query = admin
-    .from("notice_posts")
-    .select("*")
-    .eq("status", "published")
-    .is("deleted_at", null)
-    .order("is_pinned", { ascending: false })
-    .order("published_at", { ascending: false })
-    .order("id", { ascending: false });
-
-  if (categoryParam) {
-    query = query.eq("category", categoryParam);
-  }
-
-  const { data, error } = await query;
-  if (error) {
-    return NextResponse.json({ message: "공지사항 목록 조회에 실패했습니다." }, { status: 500 });
-  }
-
-  return NextResponse.json({ items: data || [] });
+  return NextResponse.json({ items: noticeList.items });
 }
 
 export async function POST(request: Request) {

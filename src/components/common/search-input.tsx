@@ -6,9 +6,11 @@ import { cn } from "@/lib/utils";
 type SearchInputProps = Omit<ComponentProps<"input">, "value" | "onChange"> & {
   value: string;
   onChange: (value: string) => void;
+  onSearchClick?: () => void;
   containerClassName?: string;
   inputClassName?: string;
   iconClassName?: string;
+  iconButtonClassName?: string;
 };
 
 /**
@@ -18,19 +20,36 @@ type SearchInputProps = Omit<ComponentProps<"input">, "value" | "onChange"> & {
 export default function SearchInput({
   value,
   onChange,
+  onSearchClick,
   containerClassName,
   inputClassName,
   iconClassName,
+  iconButtonClassName,
   ...inputProps
 }: SearchInputProps) {
   return (
     <div className={cn("relative w-full", containerClassName)}>
-      <Search
-        className={cn(
-          "pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400",
-          iconClassName
-        )}
-      />
+      {onSearchClick ? (
+        <button
+          type="button"
+          onClick={onSearchClick}
+          className={cn(
+            "absolute left-3 top-1/2 flex h-4 w-4 -translate-y-1/2 cursor-pointer items-center justify-center text-gray-400 transition-colors hover:text-gray-600",
+            iconButtonClassName
+          )}
+          aria-label="검색"
+          title="검색"
+        >
+          <Search className={cn("h-4 w-4", iconClassName)} />
+        </button>
+      ) : (
+        <Search
+          className={cn(
+            "pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400",
+            iconClassName
+          )}
+        />
+      )}
       <Input
         {...inputProps}
         value={value}

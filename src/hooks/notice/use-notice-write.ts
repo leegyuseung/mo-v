@@ -12,13 +12,13 @@ import {
 import type { RichTextEditorHandle } from "@/components/common/rich-text-editor";
 import type { NoticeCategory, NoticePost } from "@/types/notice";
 
-export function useNoticeWrite() {
+export function useNoticeWrite(initialNotice?: NoticePost | null) {
   const router = useRouter();
   const editorRef = useRef<RichTextEditorHandle>(null);
-  const [draftId, setDraftId] = useState<number | undefined>(undefined);
-  const [title, setTitle] = useState("");
-  const [isPinned, setIsPinned] = useState(false);
-  const [category, setCategory] = useState<NoticeCategory>("notice");
+  const [draftId, setDraftId] = useState<number | undefined>(initialNotice?.id);
+  const [title, setTitle] = useState(initialNotice?.title || "");
+  const [isPinned, setIsPinned] = useState(initialNotice?.is_pinned ?? false);
+  const [category, setCategory] = useState<NoticeCategory>(initialNotice?.category || "notice");
   const [drafts, setDrafts] = useState<NoticePost[]>([]);
   const [isDraftDialogOpen, setIsDraftDialogOpen] = useState(false);
   const [isDraftListLoading, setIsDraftListLoading] = useState(false);
@@ -62,8 +62,8 @@ export function useNoticeWrite() {
       });
 
       setDraftId(result.id);
-      toast.success("공지사항을 등록했습니다.");
-      router.push("/notice");
+      toast.success(initialNotice ? "공지사항을 수정했습니다." : "공지사항을 등록했습니다.");
+      router.push(`/notice/${result.id}`);
       router.refresh();
     } catch (error) {
       toast.error(
@@ -75,6 +75,11 @@ export function useNoticeWrite() {
   }
 
   async function handleSaveDraft() {
+    if (initialNotice) {
+      toast.error("등록된 공지사항 수정 화면에서는 임시저장을 사용할 수 없습니다.");
+      return;
+    }
+
     const trimmedTitle = title.trim();
     const isEditorEmpty = editorRef.current?.isEmpty() ?? true;
 
@@ -137,7 +142,7 @@ export function useNoticeWrite() {
   }
 
   function handleCancel() {
-    router.push("/notice");
+    router.push(initialNotice ? `/notice/${initialNotice.id}` : "/notice");
   }
 
   function handleLoadDraft(draft: NoticePost) {
