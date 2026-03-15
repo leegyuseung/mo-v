@@ -50,15 +50,14 @@ export async function POST(
     return NextResponse.json({ incremented: false, view_count: post.view_count });
   }
 
-  const nextViewCount = (post.view_count || 0) + 1;
-  const { error: updateError } = await admin
-    .from("community_posts")
-    .update({ view_count: nextViewCount })
-    .eq("id", postId);
+  // RPC 함수를 통해 view_count 증가 + hourly_stats 동시 기록 (급상승 집계에 필요)
+  const { error: rpcError } = await admin.rpc("increment_community_post_view", {
+    p_post_id: postId,
+  });
 
-  if (updateError) {
+  if (rpcError) {
     return NextResponse.json({ message: "커뮤니티 글 조회수 업데이트에 실패했습니다." }, { status: 500 });
   }
 
-  return NextResponse.json({ incremented: true, view_count: nextViewCount });
+  return NextResponse.json({ incremented: true, view_count: (post.view_count || 0) + 1 });
 }

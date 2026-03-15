@@ -170,7 +170,7 @@ export async function POST(request: Request) {
   if (payload.id) {
     const { data: existing, error: existingError } = await admin
       .from("community_posts")
-      .select("id,author_id,community_id")
+      .select("id,author_id,community_id,status,published_at")
       .eq("id", payload.id)
       .is("deleted_at", null)
       .maybeSingle();
@@ -196,6 +196,15 @@ export async function POST(request: Request) {
       );
     }
 
+    // draft → published 전환 시에만 published_at을 현재 시각으로 설정
+    // 이미 published 상태라면 최초 발행일 유지, draft로 되돌리면 null 처리
+    const publishedAtUpdate =
+      payload.status === "published" && existing.status !== "published"
+        ? new Date().toISOString()
+        : payload.status === "draft"
+          ? null
+          : existing.published_at ?? null;
+
     const { data, error } = await admin
       .from("community_posts")
       .update({
@@ -204,6 +213,7 @@ export async function POST(request: Request) {
         content_html: payload.contentHtml,
         is_pinned: normalizedIsPinned,
         status: payload.status,
+        published_at: publishedAtUpdate,
       })
       .eq("id", payload.id)
       .select("id,status")
@@ -232,6 +242,8 @@ export async function POST(request: Request) {
       content_html: payload.contentHtml,
       is_pinned: normalizedIsPinned,
       status: payload.status,
+      // published 상태로 저장 시 발행일을 현재 시각으로 기록
+      published_at: payload.status === "published" ? new Date().toISOString() : null,
     })
     .select("id,status")
     .single();

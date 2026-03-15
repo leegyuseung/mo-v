@@ -120,6 +120,17 @@
     @apply border-border outline-ring/50;
   }
 
+  /* 모바일에서 루트 폰트를 87.5%로 줄여 rem 기반 텍스트 전체 축소 */
+  html {
+    font-size: 87.5%; /* 14px */
+  }
+
+  @media (min-width: 768px) {
+    html {
+      font-size: 100%; /* 16px */
+    }
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-pretendard);

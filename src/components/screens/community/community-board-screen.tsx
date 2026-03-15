@@ -63,34 +63,46 @@ export default function CommunityBoardScreen({
       : meta.entityType === "group"
         ? `/community/group/${meta.entityPublicId}`
         : `/community/crew/${meta.entityPublicId}`;
+  const entityHref =
+    meta.entityType === "vlist"
+      ? `/vlist/${meta.entityPublicId}`
+      : meta.entityType === "group"
+        ? `/group/${meta.entityPublicId}`
+        : `/crew/${encodeURIComponent(meta.entityPublicId)}`;
 
   return (
     <div className="mx-auto flex min-h-[calc(100svh-140px)] w-full max-w-[1440px] flex-col p-4 md:px-8 md:py-6">
       <div className="mb-6 flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <PageBreadcrumb
-            items={[
-              { label: "커뮤니티", href: "/community" },
-              { label: sectionLabel, href: sectionHref },
-              { label: meta.entityName },
-            ]}
-          />
-          <div className="mt-3 flex items-center gap-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100">
+          {/* 브레드크럼: 데스크톱에서만 상단에 표시 */}
+          <div className="hidden md:block">
+            <PageBreadcrumb
+              items={[
+                { label: "커뮤니티", href: "/community" },
+                { label: sectionLabel, href: sectionHref },
+                { label: meta.entityName },
+              ]}
+            />
+          </div>
+          <div className="mt-2 flex items-center gap-3 md:mt-3">
+            <Link
+              href={entityHref}
+              className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100 transition-opacity hover:opacity-80 md:h-12 md:w-12"
+            >
               {meta.imageUrl ? (
                 <Image
                   src={meta.imageUrl}
                   alt={meta.entityName}
                   width={48}
                   height={48}
-                  className="h-12 w-12 object-cover"
+                  className="h-full w-full object-cover"
                   unoptimized={shouldBypassNextImageOptimization(meta.imageUrl)}
                 />
               ) : (
-                <UserRound className="h-6 w-6 text-gray-300" />
+                <UserRound className="h-5 w-5 text-gray-300 md:h-6 md:w-6" />
               )}
-            </div>
-            <div className="min-w-0">
+            </Link>
+            <div className="hidden min-w-0 md:block">
               <h1 className="truncate text-2xl font-bold text-gray-900">
                 {meta.entityName} 커뮤니티
               </h1>
@@ -109,7 +121,7 @@ export default function CommunityBoardScreen({
           />
           {canWrite ? (
             <Button asChild className="md:self-end">
-              <Link href={writeHref}>
+              <Link href={writeHref} prefetch={false}>
                 <PenSquare className="h-4 w-4" />
                 <span>글쓰기</span>
               </Link>
@@ -118,8 +130,18 @@ export default function CommunityBoardScreen({
         </div>
       </div>
 
-      <div className="mb-3 text-sm text-gray-500">
-        총 {totalCount.toLocaleString()}개
+      {/* 모바일: 총 개수 왼쪽 + 브레드크럼 오른쪽 / 데스크톱: 총 개수만 */}
+      <div className="mb-3 flex items-center justify-between">
+        <span className="text-sm text-gray-500">총 {totalCount.toLocaleString()}개</span>
+        <div className="md:hidden">
+          <PageBreadcrumb
+            items={[
+              { label: "커뮤니티", href: "/community" },
+              { label: sectionLabel, href: sectionHref },
+              { label: meta.entityName },
+            ]}
+          />
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">

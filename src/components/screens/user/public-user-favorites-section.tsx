@@ -18,6 +18,7 @@ export default function PublicUserFavoritesSection({
             items={favorites.streamers.map((item) => ({
               href: `/vlist/${item.public_id || item.id}`,
               label: item.nickname || `버츄얼 ${item.id}`,
+              imageUrl: item.image_url,
             }))}
             emptyText="즐겨찾기한 버츄얼이 없습니다."
           />
@@ -27,6 +28,7 @@ export default function PublicUserFavoritesSection({
               items={favorites.groups.map((item) => ({
                 href: `/group/${item.group_code}`,
                 label: item.name,
+                imageUrl: item.image_url,
               }))}
               emptyText="즐겨찾기한 그룹이 없습니다."
             />
@@ -35,6 +37,7 @@ export default function PublicUserFavoritesSection({
               items={favorites.crews.map((item) => ({
                 href: `/crew/${encodeURIComponent(item.crew_code)}`,
                 label: item.name,
+                imageUrl: item.image_url,
               }))}
               emptyText="즐겨찾기한 소속이 없습니다."
             />

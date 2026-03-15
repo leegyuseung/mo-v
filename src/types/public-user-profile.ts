@@ -65,7 +65,7 @@ export type PublicUserDonationRanksSectionProps = Pick<
 
 export type PublicUserFavoriteTagsSectionProps = {
   title: string;
-  items: Array<{ href: string; label: string }>;
+  items: Array<{ href: string; label: string; imageUrl?: string | null }>;
   emptyText: string;
   large?: boolean;
 };

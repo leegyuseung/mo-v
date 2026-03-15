@@ -432,8 +432,23 @@ export async function fetchTrendingCommunityPostsOnServer(): Promise<
       .select("post_id,view_count")
       .gte("bucket_started_at", bucketStart.toISOString());
 
+    // hourly_stats가 없거나 비어있으면 전체 view_count 기준 fallback
     if (statError || !statRows || statRows.length === 0) {
-      return [];
+      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from("community_posts")
+        .select("id,title,community_id,category,like_count,view_count,created_at,published_at")
+        .eq("status", "published")
+        .gt("view_count", 0)
+        .gte("created_at", since)
+        .order("view_count", { ascending: false })
+        .limit(10);
+
+      if (fallbackError || !fallbackData || fallbackData.length === 0) {
+        return [];
+      }
+
+      return buildCommunityHubPostItems(supabase, fallbackData as CommunityPostBaseRow[]);
     }
 
     const scoreByPostId = new Map<number, number>();

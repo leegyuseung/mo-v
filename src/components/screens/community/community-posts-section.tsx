@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Flame, Heart } from "lucide-react";
+import { Eye, Heart } from "lucide-react";
 import type { CommunityHubPostItem } from "@/types/community";
 import { formatCommunityListDate } from "@/utils/community-format";
 
@@ -52,10 +52,11 @@ export default function CommunityPostsSection({
                     {item.likeCount.toLocaleString()}
                   </span>
                   <span className="inline-flex items-center gap-1">
-                    <Flame className="h-3.5 w-3.5" />
+                    <Eye className="h-3.5 w-3.5" />
                     {item.viewCount.toLocaleString()}
                   </span>
-                  <span>{formatCommunityListDate(item.publishedAt || item.createdAt)}</span>
+                  {/* 모바일에서는 날짜 숨김 - 좁은 화면에서 overflow 방지 */}
+                  <span className="hidden sm:inline">{formatCommunityListDate(item.publishedAt || item.createdAt)}</span>
                 </div>
               </div>
             </div>

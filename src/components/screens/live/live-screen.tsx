@@ -103,6 +103,7 @@ export default function LiveScreen() {
       <div className="mb-5 flex flex-col gap-3">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-wrap items-center gap-2 md:flex-nowrap md:overflow-x-auto">
+            {/* 구분·장르 */}
             <span className="mr-1 inline-flex h-9 items-center text-sm text-gray-500">구분</span>
             <select
               value={platform}
@@ -132,53 +133,56 @@ export default function LiveScreen() {
                 </option>
               ))}
             </select>
-            <span className="inline-flex h-9 items-center text-sm text-gray-500">정렬</span>
-            <Button
-              type="button"
-              size="sm"
-              variant="default"
-              onClick={() =>
-                setSortOrder((prev) => {
-                  const next =
-                    prev === "name_asc"
-                      ? "name_desc"
-                      : prev === "name_desc"
-                        ? "name_asc"
-                        : "name_asc";
-                  setVisiblePageCount(1);
-                  return next;
-                })
-              }
-              className={`h-9 shrink-0 cursor-pointer ${isNameSort
-                ? "bg-gray-800 hover:bg-gray-900 text-white"
-                : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-                }`}
-            >
-              가나다순
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="default"
-              onClick={() =>
-                setSortOrder((prev) => {
-                  const next =
-                    prev === "viewer_desc"
-                      ? "viewer_asc"
-                      : prev === "viewer_asc"
-                        ? "viewer_desc"
-                        : "viewer_desc";
-                  setVisiblePageCount(1);
-                  return next;
-                })
-              }
-              className={`h-9 shrink-0 cursor-pointer ${isViewerSort
-                ? "bg-gray-800 hover:bg-gray-900 text-white"
-                : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-                }`}
-            >
-              시청자 수
-            </Button>
+            {/* 정렬 라벨+버튼: 모바일에서 새 줄로 강제 분리 */}
+            <div className="flex w-full items-center gap-2 md:w-auto">
+              <span className="inline-flex h-9 items-center text-sm text-gray-500">정렬</span>
+              <Button
+                type="button"
+                size="sm"
+                variant="default"
+                onClick={() =>
+                  setSortOrder((prev) => {
+                    const next =
+                      prev === "name_asc"
+                        ? "name_desc"
+                        : prev === "name_desc"
+                          ? "name_asc"
+                          : "name_asc";
+                    setVisiblePageCount(1);
+                    return next;
+                  })
+                }
+                className={`h-9 shrink-0 cursor-pointer ${isNameSort
+                  ? "bg-gray-800 hover:bg-gray-900 text-white"
+                  : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                  }`}
+              >
+                가나다순
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="default"
+                onClick={() =>
+                  setSortOrder((prev) => {
+                    const next =
+                      prev === "viewer_desc"
+                        ? "viewer_asc"
+                        : prev === "viewer_asc"
+                          ? "viewer_desc"
+                          : "viewer_desc";
+                    setVisiblePageCount(1);
+                    return next;
+                  })
+                }
+                className={`h-9 shrink-0 cursor-pointer ${isViewerSort
+                  ? "bg-gray-800 hover:bg-gray-900 text-white"
+                  : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                  }`}
+              >
+                시청자 수
+              </Button>
+            </div>
           </div>
 
           <div className="flex w-full gap-2 md:w-auto">

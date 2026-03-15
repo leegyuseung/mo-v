@@ -44,7 +44,7 @@ import {
   Strikethrough,
   Table2,
   Underline as UnderlineIcon,
-  Youtube,
+  YoutubeIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { YouTubeEmbedNode } from "@/lib/youtube-embed-node";
@@ -609,7 +609,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                     title="YouTube"
                     className="px-2"
                   >
-                    <Youtube className="h-3.5 w-3.5" />
+                    <YoutubeIcon className="h-3.5 w-3.5" />
                   </ToolbarButton>
                   <ToolbarButton
                     active={false}
@@ -784,7 +784,8 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
         </div>
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-2">
+          {/* HTML편집·미리보기는 데스크톱에서만 표시 */}
+          <div className="hidden flex-wrap items-center gap-2 md:flex">
             <Button
               variant="outline"
               className="cursor-pointer"
