@@ -12,6 +12,8 @@ export type IconTooltipButtonProps = {
     label: string;
     /** 툴팁 위치. left: 왼쪽 정렬, right: 오른쪽 정렬 */
     tooltipAlign?: "left" | "right";
+    /** 툴팁이 버튼 기준 어느 방향에 표시될지 지정 */
+    tooltipSide?: "top" | "right" | "bottom" | "left";
     /** 클릭 핸들러 */
     onClick?: () => void;
     /** 비활성 상태 */

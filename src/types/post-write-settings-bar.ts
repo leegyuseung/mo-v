@@ -11,6 +11,7 @@ export type PostWriteSettingsBarProps = {
   onCategoryChange: (value: string) => void;
   isPinned: boolean;
   onPinnedChange: (checked: boolean) => void;
+  showPinSection?: boolean;
   pinTitle?: string;
   pinDescription?: string;
   draftButtonLabel?: string;

@@ -18,9 +18,8 @@ export default function RankFilterBar({
               key={filter.key}
               type="button"
               onClick={() => onChangePeriod(filter.key)}
-              className={`cursor-pointer rounded-md px-3 py-1 text-sm font-medium transition-colors ${
-                isActive ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-100"
-              }`}
+              className={`cursor-pointer rounded-md px-3 py-1 text-sm font-medium transition-colors ${isActive ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-100"
+                }`}
             >
               {filter.label}
             </button>
@@ -30,7 +29,7 @@ export default function RankFilterBar({
       <SearchInput
         value={keyword}
         onChange={onChangeKeyword}
-        placeholder="이름, 그룹, 크루 검색"
+        placeholder="이름, 그룹, 소속 검색"
         containerClassName="w-full md:w-64"
         inputClassName="h-9 border-gray-200 bg-white"
       />

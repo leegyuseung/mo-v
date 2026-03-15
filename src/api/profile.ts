@@ -19,7 +19,7 @@ export async function fetchUserProfile(userId: string) {
 /** 유저 프로필을 수정한다. 닉네임 변경 시 RPC로 코드를 재할당한다 */
 export async function updateProfile(
     userId: string,
-    data: { nickname?: string; bio?: string; avatar_url?: string; is_first_edit?: boolean }
+    data: { nickname?: string; bio?: string; avatar_url?: string | null; is_first_edit?: boolean }
 ) {
     const { data: profileStatus, error: profileStatusError } = await supabase
         .from("profiles")
@@ -46,7 +46,7 @@ export async function updateProfile(
 
     const updates: {
         bio?: string;
-        avatar_url?: string;
+        avatar_url?: string | null;
         is_first_edit?: boolean;
         updated_at: string;
     } = {
@@ -78,6 +78,31 @@ export async function updateProfile(
 
     if (error) throw error;
     return profile;
+}
+
+/** 현재 프로필 아바타를 Storage에서 삭제한다. */
+export async function removeAvatar(avatarUrl: string | null | undefined) {
+    if (!avatarUrl) return;
+
+    let filePath: string | null = null;
+
+    try {
+        const parsedUrl = new URL(avatarUrl);
+        const bucketPathToken = "/storage/v1/object/public/avatars/";
+        const pathIndex = parsedUrl.pathname.indexOf(bucketPathToken);
+
+        if (pathIndex >= 0) {
+            filePath = decodeURIComponent(
+                parsedUrl.pathname.slice(pathIndex + bucketPathToken.length)
+            );
+        }
+    } catch {
+        filePath = null;
+    }
+
+    if (!filePath) return;
+
+    await supabase.storage.from("avatars").remove([filePath]);
 }
 
 /** 유저 아바타를 Supabase Storage에 업로드하고 공개 URL을 반환한다 */

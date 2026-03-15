@@ -8,7 +8,7 @@ export const HOME_BROADCAST_COST_POINT = 100;
 
 export const STREAMER_PLATFORM_OPTIONS: { label: string; value: StreamerPlatform }[] = [
   { label: "전체", value: "all" },
-  { label: "치지직", value: "chzzk" },
+  { label: "CHZZK", value: "chzzk" },
   { label: "SOOP", value: "soop" },
 ];
 

@@ -14,6 +14,7 @@ import { useStreamerReceivedHeartTotal } from "@/hooks/queries/heart/use-streame
 import { useStarCount } from "@/hooks/queries/star/use-star-count";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ArrowBigLeft, Eraser, Heart, Siren, Star } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -187,50 +188,60 @@ export default function VlistDetailScreen({
     <div className="p-4 md:p-6 max-w-4xl mx-auto">
       {/* ─── 상단 액션 바 ─── */}
       <div className="mb-4 flex items-center justify-between">
-        <div className="group relative">
-          <Link href="/vlist">
-            <Button type="button" variant="ghost" size="icon" className="cursor-pointer h-10 w-10">
-              <ArrowBigLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-            뒤로가기
-          </span>
-        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link href="/vlist">
+              <Button type="button" variant="ghost" size="icon" className="cursor-pointer h-10 w-10">
+                <ArrowBigLeft className="w-5 h-5" />
+              </Button>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent side="top" sideOffset={6}>
+            <p>뒤로가기</p>
+          </TooltipContent>
+        </Tooltip>
 
         <div className="flex items-center gap-1">
-          <div className="group relative">
-            <Button type="button" variant="ghost" size="icon" className="cursor-pointer h-10 w-10" onClick={openReportModal} disabled={!user}>
-              <Siren className="w-5 h-5 text-red-500" />
-            </Button>
-            <span className="pointer-events-none absolute right-1/2 top-full z-20 mt-1 translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-              신고하기
-            </span>
-          </div>
-          <div className="group relative">
-            <Button type="button" variant="ghost" size="icon" className="cursor-pointer h-10 w-10" onClick={onClickStar} disabled={isStarToggling}>
-              <Star className={`w-5 h-5 ${isStarred ? "fill-yellow-400 text-yellow-400" : "text-yellow-500"}`} />
-            </Button>
-            <span className="pointer-events-none absolute right-1/2 top-full z-20 mt-1 translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-              즐겨찾기
-            </span>
-          </div>
-          <div className="group relative">
-            <Button type="button" variant="ghost" size="icon" className="cursor-pointer h-10 w-10" onClick={giftModal.openGiftModal} disabled={!user}>
-              <Heart className="w-5 h-5 fill-red-500 text-red-500" />
-            </Button>
-            <span className="pointer-events-none absolute right-1/2 top-full z-20 mt-1 translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-              하트선물하기
-            </span>
-          </div>
-          <div className="group relative">
-            <Button type="button" variant="ghost" size="icon" className="cursor-pointer h-10 w-10" onClick={openInfoEditRequestModal} disabled={!user}>
-              <Eraser className="w-5 h-5" />
-            </Button>
-            <span className="pointer-events-none absolute right-1/2 top-full z-20 mt-1 translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-              정보수정요청
-            </span>
-          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button type="button" variant="ghost" size="icon" className="cursor-pointer h-10 w-10" onClick={openReportModal} disabled={!user}>
+                <Siren className="w-5 h-5 text-red-500" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top" sideOffset={6}>
+              <p>신고하기</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button type="button" variant="ghost" size="icon" className="cursor-pointer h-10 w-10" onClick={onClickStar} disabled={isStarToggling}>
+                <Star className={`w-5 h-5 ${isStarred ? "fill-yellow-400 text-yellow-400" : "text-yellow-500"}`} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top" sideOffset={6}>
+              <p>즐겨찾기</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button type="button" variant="ghost" size="icon" className="cursor-pointer h-10 w-10" onClick={giftModal.openGiftModal} disabled={!user}>
+                <Heart className="w-5 h-5 fill-red-500 text-red-500" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top" sideOffset={6}>
+              <p>하트선물하기</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button type="button" variant="ghost" size="icon" className="cursor-pointer h-10 w-10" onClick={openInfoEditRequestModal} disabled={!user}>
+                <Eraser className="w-5 h-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top" sideOffset={6}>
+              <p>정보수정요청</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
 

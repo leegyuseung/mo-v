@@ -34,7 +34,7 @@ export default function ContentListItemCard({
 
   const cardBody = (
     <article
-      className={`group rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-gray-400 hover:bg-gray-50/40 hover:shadow-[0_14px_28px_-14px_rgba(0,0,0,0.45)] md:grid md:grid-cols-[72px_minmax(220px,1.2fr)_minmax(260px,1.1fr)_minmax(240px,1fr)_auto] md:items-center md:gap-4 ${isApproved ? "cursor-pointer" : ""}`}
+      className={`group rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-gray-400 hover:bg-gray-50/40 hover:shadow-[0_14px_28px_-14px_rgba(0,0,0,0.45)] md:grid md:grid-cols-[72px_minmax(240px,1.35fr)_minmax(320px,1.2fr)_auto] md:items-center md:gap-4 ${isApproved ? "cursor-pointer" : ""}`}
     >
       <div className="mb-3 flex items-start gap-3 md:mb-0 md:contents">
         <div className="shrink-0 md:mb-0">
@@ -102,10 +102,6 @@ export default function ContentListItemCard({
       <h2 className="mb-3 truncate text-base font-semibold text-gray-900 transition-colors group-hover:text-black md:hidden">
         {content.title}
       </h2>
-
-      <p className="mb-3 min-h-10 line-clamp-2 text-sm text-gray-600 md:mb-0">
-        {content.description || "설명이 없습니다."}
-      </p>
 
       <div className="mb-4 space-y-2 text-xs text-gray-500 md:mb-0">
         <div className="flex flex-wrap items-center gap-1.5">

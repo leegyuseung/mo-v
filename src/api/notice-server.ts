@@ -163,3 +163,22 @@ export async function fetchPublishedNoticeByIdOnServer(
 
   return (data as NoticePost | null) ?? null;
 }
+
+export async function fetchLatestNoticeOnServer(): Promise<NoticePost | null> {
+  const admin = createNoticeAdminClient();
+  if (!admin) return null;
+
+  const { data, error } = await admin
+    .from("notice_posts")
+    .select("*, author_profile:profiles!notice_posts_author_id_fkey(nickname,avatar_url,public_id)")
+    .eq("status", "published")
+    .is("deleted_at", null)
+    .order("published_at", { ascending: false, nullsFirst: false })
+    .order("id", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) return null;
+
+  return (data as NoticePost | null) ?? null;
+}

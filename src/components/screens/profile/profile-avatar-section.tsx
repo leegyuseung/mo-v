@@ -8,6 +8,8 @@ type ProfileAvatarSectionProps = {
   profileAvatarUrl: string | null;
   avatarPreview: string | null;
   avatarFile: File | null;
+  canRemoveAvatar: boolean;
+  isRemovingAvatar: boolean;
   fileInputRef: RefObject<HTMLInputElement | null>;
   onAvatarClick: () => void;
   onAvatarChange: (event: ChangeEvent<HTMLInputElement>) => void;
@@ -19,6 +21,8 @@ export default function ProfileAvatarSection({
   profileAvatarUrl,
   avatarPreview,
   avatarFile,
+  canRemoveAvatar,
+  isRemovingAvatar,
   fileInputRef,
   onAvatarClick,
   onAvatarChange,
@@ -52,27 +56,28 @@ export default function ProfileAvatarSection({
 
         <div className="flex flex-col gap-2">
           <p className="text-xs text-gray-500">JPG, PNG, GIF (최대 5MB)</p>
-          <div className="flex gap-2">
+          <div className="flex flex-col items-start gap-2">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={onAvatarClick}
-              className="text-xs"
+              className="text-xs cursor-pointer"
             >
               <Camera className="w-3.5 h-3.5 mr-1.5" />
               사진 변경
             </Button>
-            {avatarFile ? (
+            {canRemoveAvatar ? (
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 onClick={onRemoveAvatar}
-                className="text-xs text-red-500 hover:text-red-600"
+                disabled={isRemovingAvatar}
+                className="text-xs text-red-500 hover:text-red-600 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5 mr-1" />
-                취소
+                {avatarFile ? "취소" : isRemovingAvatar ? "삭제 중..." : "사진 삭제"}
               </Button>
             ) : null}
           </div>

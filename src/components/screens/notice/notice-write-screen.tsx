@@ -90,17 +90,6 @@ export default function NoticeWriteScreen({
             previewTitle="공지사항 미리보기"
             footerActions={
               <>
-                {initialNotice ? null : (
-                  <Button
-                    variant="outline"
-                    className="cursor-pointer"
-                    onClick={handleSaveDraft}
-                    disabled={isSavingDraft || isPublishing}
-                  >
-                    <FileText className="h-4 w-4" />
-                    <span>임시저장</span>
-                  </Button>
-                )}
                 <Button
                   variant="outline"
                   className="cursor-pointer"
@@ -117,6 +106,17 @@ export default function NoticeWriteScreen({
                   <Send className="h-4 w-4" />
                   <span>{isPublishing ? "등록 중..." : "등록"}</span>
                 </Button>
+                {initialNotice ? null : (
+                  <Button
+                    variant="outline"
+                    className="cursor-pointer"
+                    onClick={handleSaveDraft}
+                    disabled={isSavingDraft || isPublishing}
+                  >
+                    <FileText className="h-4 w-4" />
+                    <span>임시저장</span>
+                  </Button>
+                )}
               </>
             }
           />

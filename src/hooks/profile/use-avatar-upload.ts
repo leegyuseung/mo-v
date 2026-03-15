@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 
 /** 프로필 아바타 업로드 상태/핸들러를 캡슐화한다. */
@@ -7,11 +7,11 @@ export function useAvatarUpload() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
-  const handleAvatarClick = () => {
+  const handleAvatarClick = useCallback(() => {
     fileInputRef.current?.click();
-  };
+  }, []);
 
-  const handleAvatarChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -31,15 +31,23 @@ export function useAvatarUpload() {
       setAvatarPreview(loadEvent.target?.result as string);
     };
     reader.readAsDataURL(file);
-  };
+  }, []);
 
-  const handleRemoveAvatar = () => {
+  const handleRemoveAvatar = useCallback(() => {
     setAvatarPreview(null);
     setAvatarFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-  };
+  }, []);
+
+  const resetAvatarState = useCallback(() => {
+    setAvatarPreview(null);
+    setAvatarFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }, []);
 
   return {
     fileInputRef,
@@ -48,5 +56,6 @@ export function useAvatarUpload() {
     handleAvatarClick,
     handleAvatarChange,
     handleRemoveAvatar,
+    resetAvatarState,
   };
 }

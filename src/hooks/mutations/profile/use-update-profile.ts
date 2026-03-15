@@ -9,7 +9,13 @@ export function useUpdateProfile() {
     const { setProfile, setHeartPoints } = useAuthStore();
 
     return useMutation({
-        mutationFn: async ({ userId, nickname, bio, avatarFile, isFirstEdit }: UpdateProfileInput) => {
+        mutationFn: async ({
+            userId,
+            nickname,
+            bio,
+            avatarFile,
+            isFirstEdit,
+        }: UpdateProfileInput) => {
             let avatar_url: string | undefined;
 
             // 아바타 파일이 있으면 먼저 업로드
@@ -21,7 +27,7 @@ export function useUpdateProfile() {
             const profile = await updateProfile(userId, {
                 nickname,
                 bio,
-                ...(avatar_url ? { avatar_url } : {}),
+                ...(avatar_url !== undefined ? { avatar_url } : {}),
                 ...(isFirstEdit ? { is_first_edit: false } : {}),
             });
 

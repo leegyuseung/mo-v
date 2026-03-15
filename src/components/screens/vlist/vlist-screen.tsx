@@ -34,14 +34,18 @@ import { shouldBypassNextImageOptimization } from "@/utils/image";
 
 type VlistScreenProps = {
   initialStarredStreamerIds?: number[];
+  initialKeyword?: string;
 };
 
-export default function VlistScreen({ initialStarredStreamerIds = [] }: VlistScreenProps) {
+export default function VlistScreen({
+  initialStarredStreamerIds = [],
+  initialKeyword = "",
+}: VlistScreenProps) {
   const [platform, setPlatform] = useState<StreamerPlatform>("all");
   const [genre, setGenre] = useState("all");
   const [sortBy, setSortBy] = useState<StreamerSortBy>("name");
   const [sortOrder, setSortOrder] = useState<StreamerSortOrder>("asc");
-  const [keyword, setKeyword] = useState("");
+  const [keyword, setKeyword] = useState(initialKeyword);
   const { user } = useAuthStore();
   const isMobile = useIsMobile();
   const pageSize = isMobile ? 14 : STREAMER_PAGE_SIZE;

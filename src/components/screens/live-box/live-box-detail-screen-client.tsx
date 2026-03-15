@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { ArrowBigLeft, CalendarClock, Eraser, Tag, Users } from "lucide-react";
 import IconTooltipButton from "@/components/common/icon-tooltip-button";
 import InfoEditRequestModal from "@/components/common/info-edit-request-modal";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import LiveBoxStatusBadge from "@/components/common/live-box-status-badge";
 import SearchInput from "@/components/common/search-input";
 import LiveBoxParticipantsPanel from "@/components/screens/live-box/live-box-participants-panel";
@@ -130,16 +131,20 @@ export default function LiveBoxDetailScreenClient({
   return (
     <div className="mx-auto max-w-4xl p-4 md:p-6">
       <div className="flex items-center justify-between">
-        <Link
-          href="/live-box"
-          className="group relative inline-flex h-10 w-10 items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-          aria-label="뒤로가기"
-        >
-          <ArrowBigLeft className="h-4 w-4" />
-          <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-            뒤로가기
-          </span>
-        </Link>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              href="/live-box"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+              aria-label="뒤로가기"
+            >
+              <ArrowBigLeft className="h-4 w-4" />
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent side="top" sideOffset={6}>
+            <p>뒤로가기</p>
+          </TooltipContent>
+        </Tooltip>
         <IconTooltipButton
           icon={Eraser}
           label="정보수정요청"

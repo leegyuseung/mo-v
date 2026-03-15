@@ -5,6 +5,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUpdateProfile } from "@/hooks/mutations/profile/use-update-profile";
+import { useDeleteProfileAvatar } from "@/hooks/mutations/profile/use-delete-profile-avatar";
 import { usePasswordChange } from "@/hooks/profile/use-password-change";
 import { useWithdrawAccount } from "@/hooks/profile/use-withdraw-account";
 import { useAvatarUpload } from "@/hooks/profile/use-avatar-upload";
@@ -40,6 +41,10 @@ function formatDate(dateStr: string) {
 export default function ProfileScreen({ embedded = false }: ProfileScreenProps) {
   const { user, profile, heartPoints, isLoading } = useAuthStore();
   const { mutate: updateProfile, isPending } = useUpdateProfile();
+  const {
+    mutate: deleteProfileAvatar,
+    isPending: isDeletingAvatar,
+  } = useDeleteProfileAvatar();
   const {
     currentPw,
     setCurrentPw,
@@ -79,6 +84,7 @@ export default function ProfileScreen({ embedded = false }: ProfileScreenProps) 
     handleAvatarClick,
     handleAvatarChange,
     handleRemoveAvatar,
+    resetAvatarState,
   } = useAvatarUpload();
 
   const loadingContainerClass = embedded ? "w-full" : "max-w-2xl mx-auto p-6 mt-4";
@@ -111,10 +117,30 @@ export default function ProfileScreen({ embedded = false }: ProfileScreenProps) 
     });
   }, [profile, reset]);
 
+  useEffect(() => {
+    resetAvatarState();
+  }, [profile?.avatar_url, resetAvatarState]);
+
   const isFirstEdit = profile?.is_first_edit ?? false;
 
+  const onRemoveAvatarClick = () => {
+    if (avatarFile || avatarPreview) {
+      handleRemoveAvatar();
+      return;
+    }
+
+    if (!user || !profile?.avatar_url || isDeletingAvatar) {
+      return;
+    }
+
+    deleteProfileAvatar({
+      userId: user.id,
+      currentAvatarUrl: profile.avatar_url,
+    });
+  };
+
   const onSubmit = (data: ProfileFormValues) => {
-    if (!user) return;
+    if (!user || !profile) return;
     if (!isAdminRole(profile?.role) && containsAdminKeyword(data.nickname)) {
       setError("nickname", {
         type: "manual",
@@ -151,10 +177,12 @@ export default function ProfileScreen({ embedded = false }: ProfileScreenProps) 
           profileAvatarUrl={profile.avatar_url}
           avatarPreview={avatarPreview}
           avatarFile={avatarFile}
+          canRemoveAvatar={Boolean(avatarFile || avatarPreview || profile.avatar_url)}
+          isRemovingAvatar={isDeletingAvatar}
           fileInputRef={fileInputRef}
           onAvatarClick={handleAvatarClick}
           onAvatarChange={handleAvatarChange}
-          onRemoveAvatar={handleRemoveAvatar}
+          onRemoveAvatar={onRemoveAvatarClick}
         />
 
         <ProfileBasicFieldsSection

@@ -66,7 +66,7 @@ export default async function NoticePage({ searchParams }: NoticePageProps) {
   const totalPages = Math.max(1, Math.ceil(noticeList.totalCount / NOTICE_PAGE_SIZE));
 
   return (
-    <div className="mx-auto flex min-h-[calc(100svh-140px)] w-full max-w-6xl flex-col p-4 md:px-8 md:py-6">
+    <div className="mx-auto flex min-h-[calc(100svh-140px)] w-full max-w-[1440px] flex-col p-4 md:px-8 md:py-6">
       <div className="mb-6 flex items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">공지사항</h1>

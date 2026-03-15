@@ -40,7 +40,7 @@ export default function ContentsDetailActionBar(props: ContentsDetailActionBarPr
           aria-label="뒤로가기"
         >
           <ArrowBigLeft className="h-4 w-4" />
-          <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+          <span className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
             뒤로가기
           </span>
         </Link>

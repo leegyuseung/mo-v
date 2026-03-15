@@ -28,7 +28,7 @@ export default function Tooltip({
         <div className="group relative">
             {children}
             <span
-                className={`pointer-events-none absolute top-full z-20 mt-1 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100 ${positionClass}`}
+                className={`pointer-events-none absolute bottom-full z-20 mb-1 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100 ${positionClass}`}
             >
                 {label}
             </span>

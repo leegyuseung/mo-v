@@ -29,6 +29,20 @@ function getPlainTextFromHtml(html: string) {
     .trim();
 }
 
+function hasMeaningfulHtmlContent(html: string) {
+  const normalizedHtml = html.trim();
+  if (!normalizedHtml) return false;
+
+  if (
+    /<(img|iframe|video|audio|embed)\b/i.test(normalizedHtml) ||
+    /data-youtube-embed=/i.test(normalizedHtml)
+  ) {
+    return true;
+  }
+
+  return getPlainTextFromHtml(normalizedHtml).length > 0;
+}
+
 export async function GET(request: Request) {
   if (!isNoticeServerConfigured()) {
     return NextResponse.json({ message: "서버 설정이 올바르지 않습니다." }, { status: 500 });
@@ -86,17 +100,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "제목은 80자 이하여야 합니다." }, { status: 400 });
   }
 
-  const plainText = getPlainTextFromHtml(payload.contentHtml);
+  const hasContent = hasMeaningfulHtmlContent(payload.contentHtml);
 
   if (payload.status === "published") {
     if (!payload.title) {
       return NextResponse.json({ message: "제목을 입력해 주세요." }, { status: 400 });
     }
 
-    if (!plainText) {
+    if (!hasContent) {
       return NextResponse.json({ message: "본문을 입력해 주세요." }, { status: 400 });
     }
-  } else if (!payload.title && !plainText) {
+  } else if (!payload.title && !hasContent) {
     return NextResponse.json(
       { message: "임시저장하려면 제목이나 본문 중 하나는 입력해 주세요." },
       { status: 400 }

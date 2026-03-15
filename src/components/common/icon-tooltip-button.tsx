@@ -15,6 +15,7 @@ export default function IconTooltipButton({
     buttonClassName,
     label,
     tooltipAlign = "right",
+    tooltipSide = "top",
     onClick,
     disabled = false,
     ariaLabel,
@@ -34,7 +35,11 @@ export default function IconTooltipButton({
                     <Icon className={cn("h-5 w-5", iconClassName)} />
                 </Button>
             </TooltipTrigger>
-            <TooltipContent align={tooltipAlign === "left" ? "start" : "end"}>
+            <TooltipContent
+                side={tooltipSide}
+                sideOffset={6}
+                align={tooltipAlign === "left" ? "start" : "end"}
+            >
                 <p>{label}</p>
             </TooltipContent>
         </Tooltip>

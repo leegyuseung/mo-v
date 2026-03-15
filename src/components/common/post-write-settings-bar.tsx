@@ -14,6 +14,7 @@ export default function PostWriteSettingsBar({
   onCategoryChange,
   isPinned,
   onPinnedChange,
+  showPinSection = true,
   pinTitle = "상단 고정",
   pinDescription = "목록 상단에 먼저 노출합니다.",
   draftButtonLabel = "임시저장글",
@@ -23,7 +24,11 @@ export default function PostWriteSettingsBar({
 }: PostWriteSettingsBarProps) {
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-gray-200 px-3 py-3 md:flex-row md:items-end md:justify-between">
-      <div className="grid gap-4 md:grid-cols-[minmax(180px,220px)_1fr] md:items-end">
+      <div
+        className={`grid gap-4 md:items-end ${
+          showPinSection ? "md:grid-cols-[minmax(180px,220px)_1fr]" : ""
+        }`}
+      >
         <div className="space-y-2">
           <Label htmlFor={categoryId}>{categoryLabel}</Label>
           <select
@@ -40,16 +45,18 @@ export default function PostWriteSettingsBar({
           </select>
         </div>
 
-        <label className="flex items-start gap-3 md:pb-2">
-          <Checkbox
-            checked={isPinned}
-            onCheckedChange={(checked) => onPinnedChange(checked === true)}
-          />
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-gray-900">{pinTitle}</p>
-            <p className="text-xs text-gray-500">{pinDescription}</p>
-          </div>
-        </label>
+        {showPinSection ? (
+          <label className="flex items-start gap-3 md:pb-2">
+            <Checkbox
+              checked={isPinned}
+              onCheckedChange={(checked) => onPinnedChange(checked === true)}
+            />
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-gray-900">{pinTitle}</p>
+              <p className="text-xs text-gray-500">{pinDescription}</p>
+            </div>
+          </label>
+        ) : null}
       </div>
 
       {onClickDraftButton ? (

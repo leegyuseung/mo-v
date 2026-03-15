@@ -19,15 +19,19 @@ import { shouldBypassNextImageOptimization } from "@/utils/image";
 
 type CrewScreenProps = {
   initialStarredCrewIds?: number[];
+  initialKeyword?: string;
 };
 
-export default function CrewScreen({ initialStarredCrewIds = [] }: CrewScreenProps) {
+export default function CrewScreen({
+  initialStarredCrewIds = [],
+  initialKeyword = "",
+}: CrewScreenProps) {
   const router = useRouter();
   const { user } = useAuthStore();
   const isMobile = useIsMobile();
   const pageSize = isMobile ? 12 : 16;
   const [page, setPage] = useState(1);
-  const [keyword, setKeyword] = useState("");
+  const [keyword, setKeyword] = useState(initialKeyword);
   const [sortBy, setSortBy] = useState<"name" | "star">("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   /** 소속 대표 이미지 깨짐 추적 */

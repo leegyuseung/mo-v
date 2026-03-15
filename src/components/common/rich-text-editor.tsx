@@ -29,6 +29,7 @@ import {
   Bold,
   ChevronDown,
   ChevronUp,
+  Columns2,
   ImagePlus,
   Italic,
   Link2,
@@ -37,12 +38,20 @@ import {
   MinusSquare,
   PaintBucket,
   Palette,
+  Plus,
   Quote,
+  Rows3,
   Strikethrough,
   Table2,
   Underline as UnderlineIcon,
+  Youtube,
 } from "lucide-react";
 import { toast } from "sonner";
+import { YouTubeEmbedNode } from "@/lib/youtube-embed-node";
+import {
+  extractYouTubeVideoId,
+  getYouTubeEmbedUrl,
+} from "@/utils/youtube";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -162,6 +171,31 @@ type RichTextEditorProps = {
   footerActions?: React.ReactNode;
 };
 
+/**
+ * 텍스트가 없더라도 이미지나 YouTube iframe 같은 임베드가 있으면 유효한 본문으로 본다.
+ * 공지사항 작성에서는 미디어만 넣고 등록하는 케이스를 허용해야 한다.
+ */
+function hasMeaningfulHtmlContent(html: string): boolean {
+  const normalizedHtml = html.trim();
+  if (!normalizedHtml) return false;
+
+  if (
+    /<(img|iframe|video|audio|embed)\b/i.test(normalizedHtml) ||
+    /data-youtube-embed=/i.test(normalizedHtml)
+  ) {
+    return true;
+  }
+
+  const textOnly = normalizedHtml
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .trim();
+
+  return textOnly.length > 0;
+}
+
 function ToolbarButton({
   active = false,
   onClick,
@@ -212,6 +246,11 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
     const imageInputRef = useRef<HTMLInputElement | null>(null);
     const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
     const [linkUrl, setLinkUrl] = useState("");
+    const [isYouTubeDialogOpen, setIsYouTubeDialogOpen] = useState(false);
+    const [youtubeUrl, setYouTubeUrl] = useState("");
+    const [isTableDialogOpen, setIsTableDialogOpen] = useState(false);
+    const [tableRows, setTableRows] = useState("3");
+    const [tableColumns, setTableColumns] = useState("3");
     const [showAdvancedTools, setShowAdvancedTools] = useState(false);
     const [showTextColorPalette, setShowTextColorPalette] = useState(false);
     const [showHighlightPalette, setShowHighlightPalette] = useState(false);
@@ -261,6 +300,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
         TableRow,
         TableHeader,
         TableCell,
+        YouTubeEmbedNode,
         Placeholder.configure({
           placeholder,
         }),
@@ -290,12 +330,8 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
       () => ({
         focus: () => editor?.commands.focus(),
         getHTML: () => (isHtmlMode ? htmlContent : editor?.getHTML() || htmlContent),
-        isEmpty: () => {
-          if (isHtmlMode) {
-            return htmlContent.replace(/<[^>]*>/g, "").trim().length === 0;
-          }
-          return editor?.isEmpty ?? true;
-        },
+        isEmpty: () =>
+          !hasMeaningfulHtmlContent(isHtmlMode ? htmlContent : editor?.getHTML() || htmlContent),
         setHTML: (html: string) => {
           updateHtmlState(html);
           if (editor) {
@@ -337,6 +373,59 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
       }
 
       setIsLinkDialogOpen(false);
+    };
+
+    const openYouTubeDialog = () => {
+      setYouTubeUrl("");
+      setIsYouTubeDialogOpen(true);
+    };
+
+    const handleConfirmYouTube = () => {
+      if (!editor) return;
+
+      const videoId = extractYouTubeVideoId(youtubeUrl);
+      if (!videoId) {
+        toast.error("올바른 YouTube 주소를 입력해 주세요.");
+        return;
+      }
+
+      editor
+        .chain()
+        .focus()
+        .setYouTubeEmbed({
+          src: getYouTubeEmbedUrl(videoId),
+          videoId,
+        })
+        .run();
+
+      setIsYouTubeDialogOpen(false);
+      setYouTubeUrl("");
+    };
+
+    const openTableDialog = () => {
+      setTableRows("3");
+      setTableColumns("3");
+      setIsTableDialogOpen(true);
+    };
+
+    const handleConfirmTableInsert = () => {
+      if (!editor) return;
+
+      const rows = Math.min(10, Math.max(1, Number.parseInt(tableRows, 10) || 0));
+      const cols = Math.min(10, Math.max(1, Number.parseInt(tableColumns, 10) || 0));
+
+      if (!rows || !cols) {
+        toast.error("행과 열 개수를 1 이상 입력해 주세요.");
+        return;
+      }
+
+      editor
+        .chain()
+        .focus()
+        .insertTable({ rows, cols, withHeaderRow: true })
+        .run();
+
+      setIsTableDialogOpen(false);
     };
 
     const applyFontSize = (value: string) => {
@@ -386,6 +475,11 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
       (editor?.getAttributes("highlight").color as string) ||
       DEFAULT_HIGHLIGHT_COLOR;
     const previewHtml = isHtmlMode ? htmlContent : editor?.getHTML() || htmlContent;
+    const isTableActive = editor?.isActive("table") ?? false;
+    const youtubePreviewVideoId = extractYouTubeVideoId(youtubeUrl);
+    const youtubePreviewEmbedUrl = youtubePreviewVideoId
+      ? getYouTubeEmbedUrl(youtubePreviewVideoId)
+      : "";
 
     return (
       <>
@@ -511,6 +605,14 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                   </ToolbarButton>
                   <ToolbarButton
                     active={false}
+                    onClick={openYouTubeDialog}
+                    title="YouTube"
+                    className="px-2"
+                  >
+                    <Youtube className="h-3.5 w-3.5" />
+                  </ToolbarButton>
+                  <ToolbarButton
+                    active={false}
                     onClick={() => imageInputRef.current?.click()}
                     title="이미지"
                     className="px-2"
@@ -595,25 +697,61 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                       </ToolbarButton>
                       <ToolbarButton
                         active={editor?.isActive("table")}
-                        onClick={() =>
-                          editor
-                            ?.chain()
-                            .focus()
-                            .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-                            .run()
-                        }
+                        onClick={openTableDialog}
                       >
                         <Table2 className="h-3.5 w-3.5" />
                         <span>표</span>
                       </ToolbarButton>
                       <ToolbarButton
                         active={false}
+                        onClick={() => editor?.chain().focus().addRowAfter().run()}
+                        title="행 추가"
+                        className="px-2"
+                      >
+                        <Rows3 className="h-3.5 w-3.5" />
+                        <Plus className="h-3.5 w-3.5" />
+                      </ToolbarButton>
+                      <ToolbarButton
+                        active={false}
+                        onClick={() => editor?.chain().focus().addColumnAfter().run()}
+                        title="열 추가"
+                        className="px-2"
+                      >
+                        <Columns2 className="h-3.5 w-3.5" />
+                        <Plus className="h-3.5 w-3.5" />
+                      </ToolbarButton>
+                      <ToolbarButton
+                        active={false}
+                        onClick={() => editor?.chain().focus().deleteRow().run()}
+                        title="행 삭제"
+                        className="px-2"
+                      >
+                        <Rows3 className="h-3.5 w-3.5" />
+                        <MinusSquare className="h-3.5 w-3.5" />
+                      </ToolbarButton>
+                      <ToolbarButton
+                        active={false}
+                        onClick={() => editor?.chain().focus().deleteColumn().run()}
+                        title="열 삭제"
+                        className="px-2"
+                      >
+                        <Columns2 className="h-3.5 w-3.5" />
+                        <MinusSquare className="h-3.5 w-3.5" />
+                      </ToolbarButton>
+                      <ToolbarButton
+                        active={false}
                         onClick={() => editor?.chain().focus().deleteTable().run()}
+                        title="표 삭제"
                       >
                         <MinusSquare className="h-3.5 w-3.5" />
                         <span>표삭제</span>
                       </ToolbarButton>
                     </div>
+                    {!isTableActive ? (
+                      <p className="mt-2 text-[11px] text-gray-500">
+                        행/열 추가와 삭제는 표 안에 커서를 둔 상태에서 사용할 수 있습니다.
+                      </p>
+                    ) : null}
                   </div>
                 ) : null}
               </div>
@@ -685,8 +823,61 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
             </div>
 
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsPreviewOpen(false)}>
+              <Button
+                variant="outline"
+                className="cursor-pointer"
+                onClick={() => setIsPreviewOpen(false)}
+              >
                 닫기
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isTableDialogOpen} onOpenChange={setIsTableDialogOpen}>
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <DialogTitle>표 삽입</DialogTitle>
+              <DialogDescription>
+                표의 행과 열 개수를 정해서 삽입합니다. 최대 10 x 10까지 지원합니다.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor={`${id}-table-rows`}>행</Label>
+                <Input
+                  id={`${id}-table-rows`}
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={tableRows}
+                  onChange={(event) => setTableRows(event.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor={`${id}-table-columns`}>열</Label>
+                <Input
+                  id={`${id}-table-columns`}
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={tableColumns}
+                  onChange={(event) => setTableColumns(event.target.value)}
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                className="cursor-pointer"
+                onClick={() => setIsTableDialogOpen(false)}
+              >
+                취소
+              </Button>
+              <Button className="cursor-pointer" onClick={handleConfirmTableInsert}>
+                삽입
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -713,11 +904,16 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
             </div>
 
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsLinkDialogOpen(false)}>
+              <Button
+                variant="outline"
+                className="cursor-pointer"
+                onClick={() => setIsLinkDialogOpen(false)}
+              >
                 취소
               </Button>
               <Button
                 variant="outline"
+                className="cursor-pointer"
                 onClick={() => {
                   if (!editor) return;
                   editor.chain().focus().unsetLink().run();
@@ -727,7 +923,73 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
               >
                 링크 제거
               </Button>
-              <Button onClick={handleConfirmLink}>적용</Button>
+              <Button className="cursor-pointer" onClick={handleConfirmLink}>
+                적용
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isYouTubeDialogOpen} onOpenChange={setIsYouTubeDialogOpen}>
+          <DialogContent className="sm:max-w-xl">
+            <DialogHeader>
+              <DialogTitle>YouTube 삽입</DialogTitle>
+              <DialogDescription>
+                YouTube 주소를 넣으면 저장 전에 iframe 미리보기를 확인할 수 있습니다.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-2">
+              <Label htmlFor={`${id}-youtube-url`}>YouTube URL</Label>
+              <Input
+                id={`${id}-youtube-url`}
+                type="url"
+                value={youtubeUrl}
+                onChange={(event) => setYouTubeUrl(event.target.value)}
+                placeholder="https://www.youtube.com/watch?v=..."
+              />
+            </div>
+
+            {youtubePreviewVideoId ? (
+              <div className="space-y-2">
+                <span className="text-xs font-medium text-gray-600">미리보기</span>
+                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+                  <div className="aspect-video bg-black">
+                    <iframe
+                      src={youtubePreviewEmbedUrl}
+                      title="YouTube 미리보기"
+                      className="h-full w-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                      referrerPolicy="strict-origin-when-cross-origin"
+                    />
+                  </div>
+                  <div className="min-w-0 border-t border-gray-100 px-3 py-3">
+                    <p className="truncate text-sm font-medium text-gray-900">
+                      YouTube 영상 미리보기
+                    </p>
+                    <p className="truncate text-xs text-gray-500">{youtubeUrl.trim()}</p>
+                  </div>
+                </div>
+              </div>
+            ) : youtubeUrl.trim() ? (
+              <p className="text-sm text-red-500">
+                지원하지 않는 YouTube 주소입니다. `watch`, `shorts`, `youtu.be` 형식을 확인해
+                주세요.
+              </p>
+            ) : null}
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                className="cursor-pointer"
+                onClick={() => setIsYouTubeDialogOpen(false)}
+              >
+                취소
+              </Button>
+              <Button className="cursor-pointer" onClick={handleConfirmYouTube}>
+                본문에 삽입
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

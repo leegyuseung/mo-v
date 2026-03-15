@@ -19,15 +19,19 @@ import { shouldBypassNextImageOptimization } from "@/utils/image";
 
 type GroupScreenProps = {
   initialStarredGroupIds?: number[];
+  initialKeyword?: string;
 };
 
-export default function GroupScreen({ initialStarredGroupIds = [] }: GroupScreenProps) {
+export default function GroupScreen({
+  initialStarredGroupIds = [],
+  initialKeyword = "",
+}: GroupScreenProps) {
   const router = useRouter();
   const { user } = useAuthStore();
   const isMobile = useIsMobile();
   const pageSize = isMobile ? 12 : 16;
   const [page, setPage] = useState(1);
-  const [keyword, setKeyword] = useState("");
+  const [keyword, setKeyword] = useState(initialKeyword);
   const [sortBy, setSortBy] = useState<"name" | "star">("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   /** 그룹 대표 이미지 깨짐 추적 */
